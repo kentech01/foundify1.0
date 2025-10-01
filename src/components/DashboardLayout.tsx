@@ -1,0 +1,192 @@
+import { useState } from 'react';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { 
+  LayoutDashboard, 
+  FileText, 
+  Wrench,
+  Settings,
+  LogOut,
+  ChevronDown,
+  User,
+  Plus,
+  Home
+} from 'lucide-react';
+
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+  currentView: 'pitches' | 'invoices' | 'essentials';
+  onViewChange: (view: 'pitches' | 'invoices' | 'essentials') => void;
+  onCreatePitch: () => void;
+  onBackToLanding?: () => void;
+  isPremium: boolean;
+}
+
+export function DashboardLayout({ 
+  children, 
+  currentView, 
+  onViewChange, 
+  onCreatePitch,
+  onBackToLanding,
+  isPremium 
+}: DashboardLayoutProps) {
+  const navItems = [
+    {
+      id: 'pitches' as const,
+      label: 'Pitch Dashboard',
+      icon: LayoutDashboard,
+      active: currentView === 'pitches',
+    },
+    {
+      id: 'invoices' as const,
+      label: 'Invoices',
+      icon: FileText,
+      active: currentView === 'invoices',
+      premium: false,
+    },
+    {
+      id: 'essentials' as const,
+      label: 'Founder Essentials',
+      icon: Wrench,
+      active: currentView === 'essentials',
+      premium: false,
+    },
+  ];
+
+  return (
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
+        {/* Logo */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-premium-purple to-deep-blue flex items-center justify-center">
+              <span className="text-white font-bold text-xl">F</span>
+            </div>
+            <div className="flex-1">
+              <h1 className="text-xl font-bold text-gray-900">Foundify</h1>
+              {isPremium && (
+                <Badge className="bg-gradient-to-r from-premium-purple to-deep-blue text-white text-xs mt-1">
+                  Premium
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-2">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => onViewChange(item.id)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  item.active
+                    ? 'bg-gradient-to-r from-premium-purple to-deep-blue text-white shadow-lg'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                <span className="flex-1 text-left font-medium">{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Bottom Section */}
+        <div className="p-4 border-t border-gray-200 space-y-2">
+          {onBackToLanding && (
+            <button
+              onClick={onBackToLanding}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200"
+            >
+              <Home className="h-5 w-5" />
+              <span className="font-medium">Back to Home</span>
+            </button>
+          )}
+          <button
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200"
+          >
+            <Settings className="h-5 w-5" />
+            <span className="font-medium">Settings</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Bar */}
+        <header className="bg-white border-b border-gray-200 px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              {currentView === 'pitches' && (
+                <h2 className="text-2xl font-bold text-gray-900">Pitch Dashboard</h2>
+              )}
+              {currentView === 'invoices' && (
+                <h2 className="text-2xl font-bold text-gray-900">Invoices</h2>
+              )}
+              {currentView === 'essentials' && (
+                <h2 className="text-2xl font-bold text-gray-900">Founder Essentials</h2>
+              )}
+            </div>
+
+            <div className="flex items-center gap-4">
+              {currentView === 'pitches' && (
+                <Button
+                  onClick={onCreatePitch}
+                  className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Pitch
+                </Button>
+              )}
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2 hover:bg-gray-50 rounded-xl px-3 py-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" alt="User" />
+                      <AvatarFallback className="bg-deep-blue text-white">
+                        <User className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <ChevronDown className="h-4 w-4 text-gray-500" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 rounded-xl border border-gray-200 shadow-lg">
+                  <div className="px-3 py-2">
+                    <p className="text-sm font-medium text-gray-900">John Doe</p>
+                    <p className="text-xs text-gray-500">john@example.com</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 rounded-lg mx-1">
+                    <User className="h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 rounded-lg mx-1">
+                    <Settings className="h-4 w-4" />
+                    <span>Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg mx-1">
+                    <LogOut className="h-4 w-4" />
+                    <span>Sign out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </header>
+
+        {/* Content Area */}
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
