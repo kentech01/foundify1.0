@@ -1,29 +1,34 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { Separator } from '../components/ui/separator';
-import { Badge } from '../components/ui/badge';
-import { 
-  Check, 
-  ArrowLeft, 
-  CreditCard, 
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Separator } from "../components/ui/separator";
+import { Badge } from "../components/ui/badge";
+import {
+  Check,
+  ArrowLeft,
+  CreditCard,
   Lock,
   Sparkles,
-  Calendar
-} from 'lucide-react';
-import { LoadingModal } from '../components/LoadingModal';
-import { Dialog, DialogContent } from '../components/ui/dialog';
-import upgradeImage from 'figma:asset/ff07a279964b81324a72c767334d57584c43acb3.png';
+  Calendar,
+} from "lucide-react";
+import { Dialog, DialogContent } from "../components/ui/dialog";
+import { useApp } from "../context/AppContext";
 
-interface UpgradePageProps {
-  onBack: () => void;
-  onSuccess: () => void;
-}
-
-export function UpgradePage({ onBack, onSuccess }: UpgradePageProps) {
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually');
+export function UpgradePage() {
+  const navigate = useNavigate();
+  const { setIsPremium } = useApp();
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "annually">(
+    "annually"
+  );
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -55,7 +60,8 @@ export function UpgradePage({ onBack, onSuccess }: UpgradePageProps) {
 
   const handleSuccessClose = () => {
     setShowSuccess(false);
-    onSuccess();
+    setIsPremium(true);
+    navigate("/dashboard");
   };
 
   return (
@@ -66,7 +72,7 @@ export function UpgradePage({ onBack, onSuccess }: UpgradePageProps) {
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
-              onClick={onBack}
+              onClick={() => navigate("/dashboard")}
               className="rounded-xl"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -92,7 +98,8 @@ export function UpgradePage({ onBack, onSuccess }: UpgradePageProps) {
                 Unlock Your Full Potential
               </h1>
               <p className="text-lg text-gray-600">
-                Get hosted landing pages, analytics, AI assistance, and all essential founder tools
+                Get hosted landing pages, analytics, AI assistance, and all
+                essential founder tools
               </p>
             </div>
 
@@ -101,46 +108,58 @@ export function UpgradePage({ onBack, onSuccess }: UpgradePageProps) {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Select billing cycle</h3>
-                    <p className="text-sm text-gray-600">Save with annual billing</p>
+                    <h3 className="font-semibold text-gray-900 mb-1">
+                      Select billing cycle
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Save with annual billing
+                    </p>
                   </div>
-                  <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100">
+                  <Badge
+                    variant="secondary"
+                    className="bg-green-100 text-green-700 hover:bg-green-100"
+                  >
                     Save 17%
                   </Badge>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <button
-                    onClick={() => setBillingCycle('monthly')}
+                    onClick={() => setBillingCycle("monthly")}
                     className={`p-4 rounded-xl border-2 transition-all duration-300 ${
-                      billingCycle === 'monthly'
-                        ? 'border-premium-purple bg-premium-purple-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                      billingCycle === "monthly"
+                        ? "border-premium-purple bg-premium-purple-50"
+                        : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
                     <div className="text-sm text-gray-600 mb-1">Monthly</div>
-                    <div className="text-2xl font-bold text-gray-900">${monthlyPrice}</div>
+                    <div className="text-2xl font-bold text-gray-900">
+                      ${monthlyPrice}
+                    </div>
                     <div className="text-xs text-gray-500">per month</div>
                   </button>
 
                   <button
-                    onClick={() => setBillingCycle('annually')}
+                    onClick={() => setBillingCycle("annually")}
                     className={`p-4 rounded-xl border-2 transition-all duration-300 ${
-                      billingCycle === 'annually'
-                        ? 'border-premium-purple bg-premium-purple-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                      billingCycle === "annually"
+                        ? "border-premium-purple bg-premium-purple-50"
+                        : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
                     <div className="text-sm text-gray-600 mb-1">Annually</div>
-                    <div className="text-2xl font-bold text-gray-900">${annualPrice}</div>
+                    <div className="text-2xl font-bold text-gray-900">
+                      ${annualPrice}
+                    </div>
                     <div className="text-xs text-gray-500">per month</div>
                   </button>
                 </div>
 
-                {billingCycle === 'annually' && (
+                {billingCycle === "annually" && (
                   <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                     <p className="text-sm text-green-800">
-                      💰 You'll be charged ${annualTotal} annually (saves you $24/year)
+                      💰 You'll be charged ${annualTotal} annually (saves you
+                      $24/year)
                     </p>
                   </div>
                 )}
@@ -157,16 +176,16 @@ export function UpgradePage({ onBack, onSuccess }: UpgradePageProps) {
               </CardHeader>
               <CardContent className="space-y-3">
                 {[
-                  'Professional hosted landing page',
-                  'Built-in analytics (page views, clicks)',
-                  'Multiple premium templates',
-                  'AI-assisted pitch building',
-                  'Invoice Generator',
-                  'Contract Templates (NDAs, agreements)',
-                  '360° Team Feedback',
-                  'Investor Email Generator',
+                  "Professional hosted landing page",
+                  "Built-in analytics (page views, clicks)",
+                  "Multiple premium templates",
+                  "AI-assisted pitch building",
+                  "Invoice Generator",
+                  "Contract Templates (NDAs, agreements)",
+                  "360° Team Feedback",
+                  "Investor Email Generator",
                   'Remove "Made with Foundify" badge',
-                  'Priority support',
+                  "Priority support",
                 ].map((feature, index) => (
                   <div key={index} className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-premium-purple mt-0.5 flex-shrink-0" />
@@ -207,7 +226,10 @@ export function UpgradePage({ onBack, onSuccess }: UpgradePageProps) {
                   {/* Card Information */}
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="cardNumber" className="text-sm font-medium mb-2 block">
+                      <Label
+                        htmlFor="cardNumber"
+                        className="text-sm font-medium mb-2 block"
+                      >
                         Card Number
                       </Label>
                       <div className="relative">
@@ -224,7 +246,10 @@ export function UpgradePage({ onBack, onSuccess }: UpgradePageProps) {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="expiry" className="text-sm font-medium mb-2 block">
+                        <Label
+                          htmlFor="expiry"
+                          className="text-sm font-medium mb-2 block"
+                        >
                           Expiry Date
                         </Label>
                         <Input
@@ -236,7 +261,10 @@ export function UpgradePage({ onBack, onSuccess }: UpgradePageProps) {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="cvc" className="text-sm font-medium mb-2 block">
+                        <Label
+                          htmlFor="cvc"
+                          className="text-sm font-medium mb-2 block"
+                        >
                           CVC
                         </Label>
                         <Input
@@ -250,7 +278,10 @@ export function UpgradePage({ onBack, onSuccess }: UpgradePageProps) {
                     </div>
 
                     <div>
-                      <Label htmlFor="name" className="text-sm font-medium mb-2 block">
+                      <Label
+                        htmlFor="name"
+                        className="text-sm font-medium mb-2 block"
+                      >
                         Cardholder Name
                       </Label>
                       <Input
@@ -267,9 +298,14 @@ export function UpgradePage({ onBack, onSuccess }: UpgradePageProps) {
 
                   {/* Billing Address */}
                   <div className="space-y-4">
-                    <h3 className="font-semibold text-gray-900">Billing Address</h3>
+                    <h3 className="font-semibold text-gray-900">
+                      Billing Address
+                    </h3>
                     <div>
-                      <Label htmlFor="country" className="text-sm font-medium mb-2 block">
+                      <Label
+                        htmlFor="country"
+                        className="text-sm font-medium mb-2 block"
+                      >
                         Country
                       </Label>
                       <Input
@@ -281,7 +317,10 @@ export function UpgradePage({ onBack, onSuccess }: UpgradePageProps) {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="zip" className="text-sm font-medium mb-2 block">
+                      <Label
+                        htmlFor="zip"
+                        className="text-sm font-medium mb-2 block"
+                      >
                         ZIP Code
                       </Label>
                       <Input
@@ -300,13 +339,17 @@ export function UpgradePage({ onBack, onSuccess }: UpgradePageProps) {
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">
-                        Premium Plan ({billingCycle === 'monthly' ? 'Monthly' : 'Annual'})
+                        Premium Plan (
+                        {billingCycle === "monthly" ? "Monthly" : "Annual"})
                       </span>
                       <span className="font-semibold text-gray-900">
-                        ${billingCycle === 'monthly' ? monthlyPrice : annualTotal}
+                        $
+                        {billingCycle === "monthly"
+                          ? monthlyPrice
+                          : annualTotal}
                       </span>
                     </div>
-                    {billingCycle === 'annually' && (
+                    {billingCycle === "annually" && (
                       <div className="flex justify-between text-sm text-green-600">
                         <span>Annual discount</span>
                         <span>-$24</span>
@@ -314,9 +357,14 @@ export function UpgradePage({ onBack, onSuccess }: UpgradePageProps) {
                     )}
                     <Separator />
                     <div className="flex justify-between">
-                      <span className="font-semibold text-gray-900">Total due today</span>
+                      <span className="font-semibold text-gray-900">
+                        Total due today
+                      </span>
                       <span className="text-2xl font-bold bg-gradient-to-r from-premium-purple to-deep-blue bg-clip-text text-transparent">
-                        ${billingCycle === 'monthly' ? monthlyPrice : annualTotal}
+                        $
+                        {billingCycle === "monthly"
+                          ? monthlyPrice
+                          : annualTotal}
                       </span>
                     </div>
                   </div>
@@ -331,8 +379,10 @@ export function UpgradePage({ onBack, onSuccess }: UpgradePageProps) {
                   </Button>
 
                   <p className="text-xs text-center text-gray-500">
-                    By confirming your purchase, you agree to our Terms of Service and Privacy Policy.
-                    Your subscription will auto-renew {billingCycle === 'monthly' ? 'monthly' : 'annually'}.
+                    By confirming your purchase, you agree to our Terms of
+                    Service and Privacy Policy. Your subscription will
+                    auto-renew{" "}
+                    {billingCycle === "monthly" ? "monthly" : "annually"}.
                   </p>
                 </form>
               </CardContent>
@@ -355,14 +405,18 @@ export function UpgradePage({ onBack, onSuccess }: UpgradePageProps) {
 
             {/* Title & Description */}
             <div className="space-y-2">
-              <h3 className="text-2xl font-bold text-gray-900">Processing Payment</h3>
-              <p className="text-gray-600">Securely processing your payment...</p>
+              <h3 className="text-2xl font-bold text-gray-900">
+                Processing Payment
+              </h3>
+              <p className="text-gray-600">
+                Securely processing your payment...
+              </p>
             </div>
 
             {/* Progress Bar */}
             <div className="w-full space-y-2">
               <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                <div 
+                <div
                   className="bg-gradient-to-r from-premium-purple to-deep-blue h-2 rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${progress}%` }}
                 />
@@ -391,7 +445,9 @@ export function UpgradePage({ onBack, onSuccess }: UpgradePageProps) {
 
             {/* Title & Description */}
             <div className="space-y-3">
-              <h3 className="text-3xl font-bold text-gray-900">Welcome to Premium! 🎉</h3>
+              <h3 className="text-3xl font-bold text-gray-900">
+                Welcome to Premium! 🎉
+              </h3>
               <p className="text-lg text-gray-600">
                 You now have access to all premium features
               </p>
@@ -399,7 +455,9 @@ export function UpgradePage({ onBack, onSuccess }: UpgradePageProps) {
 
             {/* Features unlocked */}
             <div className="w-full bg-gradient-to-br from-premium-purple-50 to-white border-2 border-premium-purple/20 rounded-xl p-6">
-              <h4 className="font-semibold text-gray-900 mb-3">What's unlocked:</h4>
+              <h4 className="font-semibold text-gray-900 mb-3">
+                What's unlocked:
+              </h4>
               <div className="grid grid-cols-2 gap-3 text-sm text-gray-700">
                 <div className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-premium-purple" />

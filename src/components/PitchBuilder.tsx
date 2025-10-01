@@ -1,71 +1,68 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Textarea } from './ui/textarea';
-import { Label } from './ui/label';
-import { ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Textarea } from "./ui/textarea";
+import { Label } from "./ui/label";
+import { ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
+import { useApp, PitchData, Pitch } from "../context/AppContext";
 
-interface PitchData {
-  startupName: string;
-  problem: string;
-  targetAudience: string;
-  solution: string;
-  uniqueValue: string;
-  email: string;
-}
-
-interface PitchBuilderProps {
-  onComplete: (data: PitchData) => void;
-}
-
-export function PitchBuilder({ onComplete }: PitchBuilderProps) {
+export function PitchBuilder() {
+  const navigate = useNavigate();
+  const { addPitch, setIsGenerating, setProgress } = useApp();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<PitchData>({
-    startupName: '',
-    problem: '',
-    targetAudience: '',
-    solution: '',
-    uniqueValue: '',
-    email: '',
+    startupName: "",
+    problem: "",
+    targetAudience: "",
+    solution: "",
+    uniqueValue: "",
+    email: "",
   });
 
   const questions = [
     {
-      id: 'startupName',
-      label: 'What is your startup name?',
-      placeholder: 'Enter your startup name',
-      type: 'input',
+      id: "startupName",
+      label: "What is your startup name?",
+      placeholder: "Enter your startup name",
+      type: "input",
     },
     {
-      id: 'problem',
-      label: 'What problem are you solving?',
-      placeholder: 'Describe the problem your startup addresses',
-      type: 'textarea',
+      id: "problem",
+      label: "What problem are you solving?",
+      placeholder: "Describe the problem your startup addresses",
+      type: "textarea",
     },
     {
-      id: 'targetAudience',
-      label: 'Who is your target audience?',
-      placeholder: 'Describe your ideal customers',
-      type: 'textarea',
+      id: "targetAudience",
+      label: "Who is your target audience?",
+      placeholder: "Describe your ideal customers",
+      type: "textarea",
     },
     {
-      id: 'solution',
-      label: 'What is your solution?',
-      placeholder: 'Explain how your product/service solves the problem',
-      type: 'textarea',
+      id: "solution",
+      label: "What is your solution?",
+      placeholder: "Explain how your product/service solves the problem",
+      type: "textarea",
     },
     {
-      id: 'uniqueValue',
-      label: 'What makes you unique?',
-      placeholder: 'Describe your unique value proposition',
-      type: 'textarea',
+      id: "uniqueValue",
+      label: "What makes you unique?",
+      placeholder: "Describe your unique value proposition",
+      type: "textarea",
     },
     {
-      id: 'email',
-      label: 'Your email address',
-      placeholder: 'Enter your email',
-      type: 'input',
+      id: "email",
+      label: "Your email address",
+      placeholder: "Enter your email",
+      type: "input",
     },
   ];
 
@@ -82,8 +79,43 @@ export function PitchBuilder({ onComplete }: PitchBuilderProps) {
     if (currentStep < questions.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      onComplete(formData);
+      handleComplete(formData);
     }
+  };
+
+  const handleComplete = async (data: PitchData) => {
+    setIsGenerating(true);
+    setProgress(0);
+
+    // Simulate AI generation
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            setIsGenerating(false);
+            // Create new pitch
+            const newPitch: Pitch = {
+              id: Date.now().toString(),
+              name: data.startupName,
+              createdAt: new Date().toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              }),
+              views: 0,
+              status: "draft",
+              hasLanding: false,
+              hasPDF: false,
+            };
+            addPitch(newPitch);
+            navigate("/dashboard");
+          }, 500);
+          return 100;
+        }
+        return prev + 8;
+      });
+    }, 400);
   };
 
   const handleBack = () => {
@@ -92,7 +124,8 @@ export function PitchBuilder({ onComplete }: PitchBuilderProps) {
     }
   };
 
-  const isCurrentStepValid = formData[currentQuestion.id as keyof PitchData].trim().length > 0;
+  const isCurrentStepValid =
+    formData[currentQuestion.id as keyof PitchData].trim().length > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-premium-purple-50 via-white to-deep-blue-50 flex items-center justify-center p-4">
@@ -105,16 +138,20 @@ export function PitchBuilder({ onComplete }: PitchBuilderProps) {
               </div>
               <div>
                 <CardTitle className="text-2xl">Create Your Pitch</CardTitle>
-                <CardDescription>Step {currentStep + 1} of {questions.length}</CardDescription>
+                <CardDescription>
+                  Step {currentStep + 1} of {questions.length}
+                </CardDescription>
               </div>
             </div>
           </div>
-          
+
           {/* Progress bar */}
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
+            <div
               className="bg-gradient-to-r from-premium-purple to-deep-blue h-2 rounded-full transition-all duration-300"
-              style={{ width: `${((currentStep + 1) / questions.length) * 100}%` }}
+              style={{
+                width: `${((currentStep + 1) / questions.length) * 100}%`,
+              }}
             />
           </div>
         </CardHeader>
@@ -124,8 +161,8 @@ export function PitchBuilder({ onComplete }: PitchBuilderProps) {
             <Label className="text-xl font-semibold text-gray-900">
               {currentQuestion.label}
             </Label>
-            
-            {currentQuestion.type === 'input' ? (
+
+            {currentQuestion.type === "input" ? (
               <Input
                 placeholder={currentQuestion.placeholder}
                 value={formData[currentQuestion.id as keyof PitchData]}
@@ -160,7 +197,7 @@ export function PitchBuilder({ onComplete }: PitchBuilderProps) {
               disabled={!isCurrentStepValid}
               className="px-8 py-6 rounded-xl bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white shadow-lg"
             >
-              {currentStep === questions.length - 1 ? 'Generate Pitch' : 'Next'}
+              {currentStep === questions.length - 1 ? "Generate Pitch" : "Next"}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>

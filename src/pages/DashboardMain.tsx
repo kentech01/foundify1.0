@@ -1,62 +1,42 @@
-import { useState } from 'react';
-import { DashboardLayout } from '../components/DashboardLayout';
-import { PitchDashboard } from './PitchDashboard';
-import { InvoicesPage } from './InvoicesPage';
-import { FounderEssentialsPage } from './FounderEssentialsPage';
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { DashboardLayout } from "../components/DashboardLayout";
+import { PitchDashboard } from "./PitchDashboard";
+import { InvoicesPage } from "./InvoicesPage";
+import { FounderEssentialsPage } from "./FounderEssentialsPage";
+import { useApp } from "../context/AppContext";
 
-interface Pitch {
-  id: string;
-  name: string;
-  createdAt: string;
-  views: number;
-  status: 'draft' | 'published';
-  hasLanding: boolean;
-  hasPDF: boolean;
-}
-
-interface DashboardMainProps {
-  onCreateNew: () => void;
-  onUpgrade: () => void;
-  onBackToLanding?: () => void;
-  initialPitch?: Pitch;
-  isPremium: boolean;
-}
-
-export function DashboardMain({ 
-  onCreateNew, 
-  onUpgrade, 
-  onBackToLanding,
-  initialPitch, 
-  isPremium 
-}: DashboardMainProps) {
-  const [currentView, setCurrentView] = useState<'pitches' | 'invoices' | 'essentials'>('pitches');
+export function DashboardMain() {
+  const navigate = useNavigate();
+  const { isPremium, pitches } = useApp();
 
   return (
     <DashboardLayout
-      currentView={currentView}
-      onViewChange={setCurrentView}
-      onCreatePitch={onCreateNew}
-      onBackToLanding={onBackToLanding}
+      onCreatePitch={() => navigate("/builder")}
       isPremium={isPremium}
     >
-      {currentView === 'pitches' && (
-        <PitchDashboard 
-          initialPitch={initialPitch}
-          isPremium={isPremium}
-          onUpgrade={onUpgrade}
+      <Routes>
+        <Route index element={<Navigate to="/dashboard/pitches" replace />} />
+        <Route
+          path="pitches"
+          element={
+            <PitchDashboard
+              initialPitch={pitches[0]}
+              isPremium={isPremium}
+              onUpgrade={() => navigate("/upgrade")}
+            />
+          }
         />
-      )}
-      
-      {currentView === 'invoices' && (
-        <InvoicesPage />
-      )}
-      
-      {currentView === 'essentials' && (
-        <FounderEssentialsPage 
-          isPremium={isPremium}
-          onUpgrade={onUpgrade}
+        <Route path="invoices" element={<InvoicesPage />} />
+        <Route
+          path="essentials"
+          element={
+            <FounderEssentialsPage
+              isPremium={isPremium}
+              onUpgrade={() => navigate("/upgrade")}
+            />
+          }
         />
-      )}
+      </Routes>
     </DashboardLayout>
   );
 }
