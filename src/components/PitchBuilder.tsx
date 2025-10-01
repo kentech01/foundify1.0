@@ -15,6 +15,7 @@ import { ArrowRight, ArrowLeft, Sparkles, LogIn } from "lucide-react";
 import { useApp, PitchData, Pitch } from "../context/AppContext";
 import { UserAuth } from "../context/AuthContext";
 import SignInModal from "./signIn/SignInModal";
+import { useApiService } from "../services/api";
 
 export function PitchBuilder() {
   const navigate = useNavigate();
@@ -30,6 +31,66 @@ export function PitchBuilder() {
     uniqueValue: "",
     email: "",
   });
+
+  const [errors, setErrors] = useState<Record<string, string | undefined>>({});
+
+  const validateField = (name: string, value: string): string | undefined => {
+    switch (name) {
+      case "startupName":
+        if (!value.trim()) return "Startup name is required";
+        if (value.trim().length < 2)
+          return "Startup name must be at least 2 characters long";
+        if (value.trim().length > 100)
+          return "Startup name cannot exceed 100 characters";
+        break;
+
+      case "problem":
+        if (!value.trim()) return "Problem description is required";
+        if (value.trim().length < 10)
+          return "Problem description must be at least 10 characters long";
+        if (value.trim().length > 1000)
+          return "Problem description cannot exceed 1000 characters";
+        break;
+
+      case "targetAudience":
+        if (!value.trim()) return "Target audience is required";
+        if (value.trim().length < 5)
+          return "Target audience must be at least 5 characters long";
+        if (value.trim().length > 500)
+          return "Target audience cannot exceed 500 characters";
+        break;
+
+      // Adapted 'product' -> our field 'solution'
+      case "solution":
+        if (!value.trim())
+          return "Main product or service description is required";
+        if (value.trim().length < 5)
+          return "Product description must be at least 5 characters long";
+        if (value.trim().length > 500)
+          return "Product description cannot exceed 500 characters";
+        break;
+
+      // Adapted 'uniqueSellingPoint' -> our field 'uniqueValue'
+      case "uniqueValue":
+        if (!value.trim()) return "Unique selling point is required";
+        if (value.trim().length < 5)
+          return "Unique selling point must be at least 5 characters long";
+        if (value.trim().length > 500)
+          return "Unique selling point cannot exceed 500 characters";
+        break;
+
+      case "email": {
+        if (!value.trim()) return "Email is required";
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value))
+          return "Please provide a valid email address";
+        break;
+      }
+    }
+    return undefined;
+  };
+
+  const { generatePitch } = useApiService();
 
   const questions = [
     {
@@ -72,14 +133,28 @@ export function PitchBuilder() {
 
   const currentQuestion = questions[currentStep];
 
+  const currentValue = String(
+    formData[currentQuestion.id as keyof PitchData] ?? ""
+  );
+  const currentError = validateField(currentQuestion.id, currentValue);
+  const isCurrentStepValid = !currentError;
+
   const handleChange = (value: string) => {
+    const fieldName = currentQuestion.id;
     setFormData({
       ...formData,
-      [currentQuestion.id]: value,
+      [fieldName]: value,
     });
+    const err = validateField(fieldName, value);
+    setErrors((prev) => ({ ...prev, [fieldName]: err }));
   };
-
   const handleNext = () => {
+    const fieldName = currentQuestion.id;
+    const value = String(formData[fieldName as keyof PitchData] ?? "");
+    const err = validateField(fieldName, value);
+    setErrors((prev) => ({ ...prev, [fieldName]: err }));
+    if (err) return;
+
     if (currentStep < questions.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -87,39 +162,82 @@ export function PitchBuilder() {
     }
   };
 
-  const handleComplete = async (data: PitchData) => {
-    setIsGenerating(true);
-    setProgress(0);
+  console.log(currentStep, "currentStep");
+  console.log(questions.length, "questions.length");
 
-    // Simulate AI generation
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setIsGenerating(false);
-            // Create new pitch
-            const newPitch: Pitch = {
-              id: Date.now().toString(),
-              name: data.startupName,
-              createdAt: new Date().toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              }),
-              views: 0,
-              status: "draft",
-              hasLanding: false,
-              hasPDF: false,
-            };
-            addPitch(newPitch);
-            navigate("/dashboard");
-          }, 500);
-          return 100;
-        }
-        return prev + 8;
-      });
-    }, 400);
+  const handleComplete = async (data: PitchData) => {
+    // Validate all fields before submitting
+    const allErrors: Record<string, string | undefined> = {};
+    let firstInvalidIndex = -1;
+    questions.forEach((q, idx) => {
+      const v = String((data as any)[q.id] ?? "");
+      const err = validateField(q.id, v);
+      if (err) {
+        allErrors[q.id] = err;
+        if (firstInvalidIndex === -1) firstInvalidIndex = idx;
+      }
+    });
+    if (firstInvalidIndex !== -1) {
+      setErrors((prev) => ({ ...prev, ...allErrors }));
+      setCurrentStep(firstInvalidIndex);
+      return;
+    }
+
+    setIsGenerating(true);
+    setProgress(10);
+
+    try {
+      // Map UI fields -> API contract
+      const payload = {
+        startupName: data.startupName,
+        problemSolved: data.problem,
+        targetAudience: data.targetAudience,
+        mainProduct: data.solution,
+        uniqueSellingPoint: data.uniqueValue,
+        email: data.email,
+      };
+
+      setProgress(30);
+      const response = await generatePitch(payload as any);
+      setProgress(80);
+
+      // Try to extract backend-created pitch details; fall back if minimal response
+      const generatedId =
+        response?.data?.id || response?.id || Date.now().toString();
+
+      const startupName =
+        response?.data?.startupName ||
+        response?.startupName ||
+        data.startupName;
+
+      const hasLanding = Boolean(
+        response?.data?.landingPage || response?.landingPage
+      );
+
+      const newPitch: Pitch = {
+        id: String(generatedId),
+        name: startupName,
+        createdAt: new Date().toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+        views: 0,
+        status: "draft",
+        hasLanding,
+        hasPDF: false,
+      };
+
+      addPitch(newPitch);
+      setProgress(100);
+      setIsGenerating(false);
+      navigate("/dashboard");
+    } catch (err: any) {
+      console.error("Failed to generate pitch:", err);
+      setIsGenerating(false);
+      setProgress(0);
+      alert(err?.message || "Failed to generate pitch");
+    }
   };
 
   const handleBack = () => {
@@ -130,11 +248,16 @@ export function PitchBuilder() {
     navigate("/");
   };
 
-  const isCurrentStepValid =
-    formData[currentQuestion.id as keyof PitchData].trim().length > 0;
-
   const handleSignInSuccess = () => {
     setIsSignInModalOpen(false);
+  };
+
+  const handleCreatePitch = () => {
+    if (user) {
+      handleComplete(formData);
+    } else {
+      setIsSignInModalOpen(true);
+    }
   };
 
   // Show loading or sign-in prompt if not authenticated
@@ -234,6 +357,7 @@ export function PitchBuilder() {
                 onChange={(e) => handleChange(e.target.value)}
                 className="text-lg py-6 border-2 border-gray-200 focus:border-premium-purple rounded-xl"
                 autoFocus
+                aria-invalid={Boolean(errors[currentQuestion.id])}
               />
             ) : (
               <Textarea
@@ -242,7 +366,14 @@ export function PitchBuilder() {
                 onChange={(e) => handleChange(e.target.value)}
                 className="text-base min-h-[150px] border-2 border-gray-200 focus:border-premium-purple rounded-xl resize-none"
                 autoFocus
+                aria-invalid={Boolean(errors[currentQuestion.id])}
               />
+            )}
+
+            {errors[currentQuestion.id] && (
+              <p className="text-sm text-red-600">
+                {errors[currentQuestion.id]}
+              </p>
             )}
           </div>
 

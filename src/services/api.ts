@@ -510,7 +510,7 @@ export const useApiService = () => {
 // Legacy class-based API service (keeping for backward compatibility)
 class ApiService {
   private async getAuthToken(): Promise<string | null> {
-    const { auth } = await import("../firebase");
+    const { auth } = await import("../../firebase");
     const user = auth.currentUser;
     if (!user) {
       return null;
