@@ -1,0 +1,739 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useCallback } from "react";
+import useAxios from "../hooks/useAxios";
+export const API_BASE_URL = "http://localhost:5001/api/v1/";
+
+interface ApiResponse<T> {
+  success: boolean;
+  user?: T;
+  error?: string;
+  message?: string;
+  timestamp?: string;
+}
+
+interface LandingPageHtmlResponse {
+  success: boolean;
+  data: {
+    landingPage: string;
+  };
+  error?: string;
+  message?: string;
+}
+
+// Email generator interfaces
+interface EmailTemplate {
+  id: string;
+  title: string;
+}
+
+interface EmailTemplatesResponse {
+  success: boolean;
+  templates: EmailTemplate[];
+}
+
+interface GenerateEmailRequest {
+  template: "cold_outreach" | "meeting_followup" | "warm_introduction" | string;
+  yourName: string;
+  companyName: string;
+  investorName: string;
+  valueProposition: string;
+  keyTraction: string;
+}
+
+interface GenerateEmailResponse {
+  success: boolean;
+  subject: string;
+  body: string;
+  template: string;
+}
+
+interface UserProfile {
+  uid: string;
+  email: string;
+  emailVerified: boolean;
+  displayName: string;
+  photoURL: string;
+  disabled: boolean;
+  customClaims: Record<string, any>;
+  metadata: {
+    creationTime: string;
+    lastSignInTime: string;
+  };
+}
+
+interface PitchFormData {
+  startupName: string;
+  problemSolved: string;
+  targetAudience: string;
+  mainProduct: string;
+  uniqueSellingPoint: string;
+  email: string;
+}
+
+interface PitchHistoryItem {
+  id: string;
+  startupName: string;
+  createdAt: string;
+  status: string;
+  preview: string;
+  pitchContent: any;
+  landingPage: string;
+}
+
+interface PitchHistoryResponse {
+  success: boolean;
+  data: PitchHistoryItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    hasMore: boolean;
+  };
+  user: string;
+  timestamp: string;
+}
+
+interface PitchDetails {
+  id: string;
+  startupName: string;
+  problemSolved: string;
+  targetAudience: string;
+  mainProduct: string;
+  uniqueSellingPoint: string;
+  email: string;
+  content: string;
+  createdAt: string;
+}
+
+interface PitchDetailsResponse {
+  success: boolean;
+  data: PitchDetails;
+  timestamp: string;
+}
+
+interface DeletePitchResponse {
+  success: boolean;
+  message: string;
+  pitchId: string;
+  timestamp: string;
+}
+
+interface LandingPageResponse {
+  success: boolean;
+  data: {
+    pitchId: string;
+    landingPage: string;
+    startupName: string;
+    generatedAt: string;
+    generatedBy: string;
+  };
+}
+
+interface LandingPageHtmlResponse {
+  success: boolean;
+  data: {
+    landingPage: string;
+  };
+  error?: string;
+  message?: string;
+}
+
+// Invoice interfaces
+interface InvoiceItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}
+
+interface Invoice {
+  id: string;
+  firebaseUid: string;
+  companyName?: string;
+  clientName?: string;
+  invoiceNumber?: string;
+  currency: string;
+  items: InvoiceItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  notes?: string;
+  bankDetails?: string;
+  status: "draft" | "sent" | "paid" | "cancelled";
+  html?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface InvoiceCreateData {
+  companyName?: string;
+  clientName?: string;
+  invoiceNumber?: string;
+  currency?: string;
+  items: InvoiceItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  notes?: string;
+  bankDetails?: string;
+  status?: "draft" | "sent" | "paid" | "cancelled";
+}
+
+interface InvoiceUpdateData {
+  companyName?: string;
+  clientName?: string;
+  invoiceNumber?: string;
+  currency?: string;
+  items?: InvoiceItem[];
+  subtotal?: number;
+  tax?: number;
+  total?: number;
+  notes?: string;
+  bankDetails?: string;
+  status?: "draft" | "sent" | "paid" | "cancelled";
+}
+
+interface InvoiceResponse {
+  success: boolean;
+  data: Invoice;
+  error?: string;
+  message?: string;
+}
+
+interface InvoiceListResponse {
+  success: boolean;
+  data: Invoice[];
+  pagination: {
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
+  error?: string;
+  message?: string;
+}
+
+interface InvoiceHtmlResponse {
+  success: boolean;
+  data: {
+    id: string;
+    html: string;
+  };
+  error?: string;
+  message?: string;
+}
+
+// Hook-based API service
+export const useApiService = () => {
+  const axiosInstance = useAxios();
+
+  const generatePitch = useCallback(
+    async (pitchData: PitchFormData): Promise<any> => {
+      try {
+        const response = await axiosInstance.post("/pitch/generate", pitchData);
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to generate pitch"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const getUserStats = useCallback(async (): Promise<any> => {
+    try {
+      const response = await axiosInstance.get("/users/stats");
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message || "Failed to get user stats"
+      );
+    }
+  }, [axiosInstance]);
+
+  const getPitchHistory = useCallback(
+    async (
+      page: number = 1,
+      limit: number = 20
+    ): Promise<PitchHistoryResponse> => {
+      try {
+        const response = await axiosInstance.get("/pitch/history", {
+          params: {
+            page,
+            limit: Math.min(limit, 50), // Ensure limit doesn't exceed 50
+          },
+        });
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to get pitch history"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const getPitchDetails = useCallback(
+    async (id: string): Promise<PitchDetailsResponse> => {
+      try {
+        const response = await axiosInstance.get(`/pitch/history/${id}`);
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to get pitch details"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const deletePitch = useCallback(
+    async (id: string): Promise<DeletePitchResponse> => {
+      try {
+        const response = await axiosInstance.delete(`/pitch/history/${id}`);
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to delete pitch"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const generateLandingPage = useCallback(
+    async (pitchId: string): Promise<LandingPageResponse> => {
+      try {
+        const response = await axiosInstance.post(`/pitch/landing/${pitchId}`);
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to generate landing page"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const getLandingPageHtml = useCallback(
+    async (pitchId: string): Promise<LandingPageHtmlResponse> => {
+      try {
+        const response = await axiosInstance.get(`/pitch/landing/${pitchId}`);
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to get landing page HTML"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const getLandingPageHtmlByStartupName = useCallback(
+    async (startupName: string): Promise<LandingPageHtmlResponse> => {
+      try {
+        const response = await axiosInstance.get(
+          `/pitch/landing/startupname/${encodeURIComponent(startupName)}`
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message ||
+            "Failed to get landing page HTML by startup name"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  // Email generator API methods
+  const getEmailTemplates =
+    useCallback(async (): Promise<EmailTemplatesResponse> => {
+      try {
+        const response = await axiosInstance.get("/email/templates");
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to get email templates"
+        );
+      }
+    }, [axiosInstance]);
+
+  const generateInvestorEmail = useCallback(
+    async (payload: GenerateEmailRequest): Promise<GenerateEmailResponse> => {
+      try {
+        const response = await axiosInstance.post("/email/generate", payload);
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to generate email"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  // Invoice API methods
+  const createInvoice = useCallback(
+    async (invoiceData: InvoiceCreateData): Promise<InvoiceResponse> => {
+      try {
+        const response = await axiosInstance.post("/invoices", invoiceData);
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to create invoice"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const getInvoices = useCallback(
+    async (
+      limit: number = 20,
+      offset: number = 0
+    ): Promise<InvoiceListResponse> => {
+      try {
+        const response = await axiosInstance.get("/invoices", {
+          params: {
+            limit: Math.min(limit, 50), // Ensure limit doesn't exceed 50
+            offset,
+          },
+        });
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to get invoices"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const getInvoice = useCallback(
+    async (id: string): Promise<InvoiceResponse> => {
+      try {
+        const response = await axiosInstance.get(`/invoices/${id}`);
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to get invoice"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const updateInvoice = useCallback(
+    async (
+      id: string,
+      updateData: InvoiceUpdateData
+    ): Promise<InvoiceResponse> => {
+      try {
+        const response = await axiosInstance.put(`/invoices/${id}`, updateData);
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to update invoice"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const deleteInvoice = useCallback(
+    async (id: string): Promise<{ success: boolean; message: string }> => {
+      try {
+        const response = await axiosInstance.delete(`/invoices/${id}`);
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to delete invoice"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const renderInvoiceHtml = useCallback(
+    async (id: string): Promise<InvoiceHtmlResponse> => {
+      try {
+        const response = await axiosInstance.post(
+          `/invoices/${id}/render-html`
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to render invoice HTML"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const previewInvoice = useCallback((id: string): void => {
+    const previewUrl = `${API_BASE_URL}invoices/${id}/preview`;
+    window.open(previewUrl, "_blank");
+  }, []);
+
+  const downloadInvoicePdf = useCallback(
+    (uid: string, invoiceId: string): void => {
+      const pdfUrl = `${API_BASE_URL}invoices/${uid}/${invoiceId}/pdf`;
+      window.open(pdfUrl, "_blank");
+    },
+    []
+  );
+
+  return {
+    generatePitch,
+    getUserStats,
+    getPitchHistory,
+    getPitchDetails,
+    deletePitch,
+    generateLandingPage,
+    getLandingPageHtml,
+    getLandingPageHtmlByStartupName,
+    // Email generator methods
+    getEmailTemplates,
+    generateInvestorEmail,
+    // Invoice methods
+    createInvoice,
+    getInvoices,
+    getInvoice,
+    updateInvoice,
+    deleteInvoice,
+    renderInvoiceHtml,
+    previewInvoice,
+    downloadInvoicePdf,
+  };
+};
+
+// Legacy class-based API service (keeping for backward compatibility)
+class ApiService {
+  private async getAuthToken(): Promise<string | null> {
+    const { auth } = await import("../firebase");
+    const user = auth.currentUser;
+    if (!user) {
+      return null;
+    }
+    return await user.getIdToken();
+  }
+
+  private async makeAuthenticatedRequest<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<ApiResponse<T>> {
+    const token = await this.getAuthToken();
+
+    if (!token) {
+      throw new Error("No authentication token available");
+    }
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        ...options.headers,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status}`);
+    }
+
+    return await response.json();
+  }
+
+  async generatePitch(pitchData: PitchFormData): Promise<any> {
+    return this.makeAuthenticatedRequest("/pitch/generate", {
+      method: "POST",
+      body: JSON.stringify(pitchData),
+    });
+  }
+
+  async getUserStats(): Promise<any> {
+    return this.makeAuthenticatedRequest("/users/stats");
+  }
+
+  async getPitchHistory(
+    page: number = 1,
+    limit: number = 20
+  ): Promise<PitchHistoryResponse> {
+    const queryParams = new URLSearchParams({
+      page: page.toString(),
+      limit: Math.min(limit, 50).toString(), // Ensure limit doesn't exceed 50
+    });
+
+    const response = await this.makeAuthenticatedRequest<any>(
+      `/pitch/history?${queryParams}`
+    );
+    return response as PitchHistoryResponse;
+  }
+
+  async getPitchDetails(id: string): Promise<PitchDetailsResponse> {
+    const response = await this.makeAuthenticatedRequest<PitchDetails>(
+      `/pitch/history/${id}`
+    );
+    return response as PitchDetailsResponse;
+  }
+
+  async deletePitch(id: string): Promise<DeletePitchResponse> {
+    const response = await this.makeAuthenticatedRequest<DeletePitchResponse>(
+      `/pitch/history/${id}`,
+      {
+        method: "DELETE",
+      }
+    );
+    return response as DeletePitchResponse;
+  }
+
+  async generateLandingPage(pitchId: string): Promise<LandingPageResponse> {
+    const response = await this.makeAuthenticatedRequest<any>(
+      `/pitch/landing/${pitchId}`,
+      {
+        method: "POST",
+      }
+    );
+    return response as LandingPageResponse;
+  }
+
+  async getLandingPageHtml(pitchId: string): Promise<LandingPageHtmlResponse> {
+    const response = await this.makeAuthenticatedRequest<any>(
+      `/pitch/landing/${pitchId}`
+    );
+    return response as LandingPageHtmlResponse;
+  }
+
+  async getLandingPageHtmlByStartupName(
+    startupName: string
+  ): Promise<LandingPageHtmlResponse> {
+    const response = await this.makeAuthenticatedRequest<any>(
+      `/pitch/landing/startupname/${encodeURIComponent(startupName)}`
+    );
+    return response as LandingPageHtmlResponse;
+  }
+
+  // Email generator methods for legacy class-based service
+  async getEmailTemplates(): Promise<EmailTemplatesResponse> {
+    const response = await this.makeAuthenticatedRequest<EmailTemplate[]>(
+      "/email/templates"
+    );
+    return response as EmailTemplatesResponse;
+  }
+
+  async generateInvestorEmail(
+    payload: GenerateEmailRequest
+  ): Promise<GenerateEmailResponse> {
+    const response = await this.makeAuthenticatedRequest<GenerateEmailResponse>(
+      "/email/generate",
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }
+    );
+    return response as GenerateEmailResponse;
+  }
+
+  // Invoice methods for legacy class-based service
+  async createInvoice(invoiceData: InvoiceCreateData): Promise<any> {
+    return this.makeAuthenticatedRequest<any>("/invoices", {
+      method: "POST",
+      body: JSON.stringify(invoiceData),
+    });
+  }
+
+  async getInvoices(
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<InvoiceListResponse> {
+    const queryParams = new URLSearchParams({
+      limit: Math.min(limit, 50).toString(),
+      offset: offset.toString(),
+    });
+
+    const response = await this.makeAuthenticatedRequest<any>(
+      `/invoices?${queryParams}`
+    );
+    return response as InvoiceListResponse;
+  }
+
+  async getInvoice(id: string): Promise<InvoiceResponse> {
+    const response = await this.makeAuthenticatedRequest<Invoice>(
+      `/invoices/${id}`
+    );
+    return response as InvoiceResponse;
+  }
+
+  async updateInvoice(
+    id: string,
+    updateData: InvoiceUpdateData
+  ): Promise<InvoiceResponse> {
+    const response = await this.makeAuthenticatedRequest<Invoice>(
+      `/invoices/${id}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(updateData),
+      }
+    );
+    return response as InvoiceResponse;
+  }
+
+  async deleteInvoice(
+    id: string
+  ): Promise<{ success: boolean; message: string }> {
+    const response = await this.makeAuthenticatedRequest<any>(
+      `/invoices/${id}`,
+      {
+        method: "DELETE",
+      }
+    );
+    return response as { success: boolean; message: string };
+  }
+
+  async renderInvoiceHtml(id: string): Promise<any> {
+    const response = await this.makeAuthenticatedRequest<any>(
+      `/invoices/${id}/render-html`,
+      {
+        method: "POST",
+      }
+    );
+    return response as InvoiceHtmlResponse;
+  }
+
+  previewInvoice(id: string): void {
+    const previewUrl = `${API_BASE_URL}invoices/${id}/preview`;
+    window.open(previewUrl, "_blank");
+  }
+
+  downloadInvoicePdf(uid: string, invoiceId: string): void {
+    const pdfUrl = `${API_BASE_URL}invoices/${uid}/${invoiceId}/pdf`;
+    window.open(pdfUrl, "_blank");
+  }
+}
+
+export const apiService = new ApiService();
+export type {
+  UserProfile,
+  ApiResponse,
+  PitchFormData,
+  PitchHistoryItem,
+  PitchHistoryResponse,
+  PitchDetails,
+  PitchDetailsResponse,
+  DeletePitchResponse,
+  LandingPageResponse,
+  LandingPageHtmlResponse,
+  // Email generator types
+  EmailTemplate,
+  EmailTemplatesResponse,
+  GenerateEmailRequest,
+  GenerateEmailResponse,
+  // Invoice types
+  Invoice,
+  InvoiceItem,
+  InvoiceCreateData,
+  InvoiceUpdateData,
+  InvoiceResponse,
+  InvoiceListResponse,
+  InvoiceHtmlResponse,
+};

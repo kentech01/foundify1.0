@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -19,7 +20,10 @@ import {
   User,
   Plus,
   Home,
+  LogIn,
 } from "lucide-react";
+import { UserAuth } from "../context/AuthContext";
+import SignInModal from "./signIn/SignInModal";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -34,6 +38,8 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logOut, loading } = UserAuth();
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const navItems = [
     {
       path: "/dashboard/pitches",
@@ -58,6 +64,20 @@ export function DashboardLayout({
   const currentTitle =
     navItems.find((item) => currentPath.startsWith(item.path))?.label ||
     "Dashboard";
+
+  const handleSignOut = async () => {
+    try {
+      await logOut();
+
+      navigate("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
+  const handleSignInSuccess = () => {
+    setIsSignInModalOpen(false);
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -142,50 +162,64 @@ export function DashboardLayout({
                 </Button>
               )}
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="flex items-center gap-2 hover:bg-gray-50 rounded-xl px-3 py-2"
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="flex items-center gap-2 hover:bg-gray-50 rounded-xl px-3 py-2"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage
+                          src={user.photoURL || ""}
+                          alt={user.displayName || "User"}
+                        />
+                        <AvatarFallback className="bg-deep-blue text-white">
+                          <User className="h-4 w-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <ChevronDown className="h-4 w-4 text-gray-500" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-56 rounded-xl border border-gray-200 shadow-lg"
                   >
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage
-                        src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
-                        alt="User"
-                      />
-                      <AvatarFallback className="bg-deep-blue text-white">
-                        <User className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <ChevronDown className="h-4 w-4 text-gray-500" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="w-56 rounded-xl border border-gray-200 shadow-lg"
+                    <div className="px-3 py-2">
+                      <p className="text-sm font-medium text-gray-900">
+                        {user.displayName || "User"}
+                      </p>
+                      <p className="text-xs text-gray-500">{user.email}</p>
+                    </div>
+                    <DropdownMenuSeparator />
+                    {/* <DropdownMenuItem className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 rounded-lg mx-1">
+                      <User className="h-4 w-4" />
+                      <span>Profile</span>
+                    </DropdownMenuItem> */}
+                    <DropdownMenuItem className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 rounded-lg mx-1">
+                      <Settings className="h-4 w-4" />
+                      <span>Settings</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleSignOut}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg mx-1"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Sign out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button
+                  onClick={() => setIsSignInModalOpen(true)}
+                  variant="outline"
+                  className="flex items-center gap-2 hover:bg-gray-50 rounded-xl px-4 py-2"
                 >
-                  <div className="px-3 py-2">
-                    <p className="text-sm font-medium text-gray-900">
-                      John Doe
-                    </p>
-                    <p className="text-xs text-gray-500">john@example.com</p>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 rounded-lg mx-1">
-                    <User className="h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 rounded-lg mx-1">
-                    <Settings className="h-4 w-4" />
-                    <span>Settings</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg mx-1">
-                    <LogOut className="h-4 w-4" />
-                    <span>Sign out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  <LogIn className="h-4 w-4" />
+                  <span>Sign In</span>
+                </Button>
+              )}
             </div>
           </div>
         </header>
@@ -193,6 +227,13 @@ export function DashboardLayout({
         {/* Content Area */}
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
+
+      {/* Sign In Modal */}
+      <SignInModal
+        isOpen={isSignInModalOpen}
+        onClose={() => setIsSignInModalOpen(false)}
+        onSignInSuccess={handleSignInSuccess}
+      />
     </div>
   );
 }

@@ -1,0 +1,185 @@
+.signInWrap {
+  width: 100%;
+  height: auto;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 24px;
+}
+
+.signInTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.instructionText {
+  font-size: 1rem;
+  color: #1f2937;
+  margin: 0;
+  max-width: 280px;
+  line-height: 1.5;
+}
+
+.googleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: white;
+  border: #dadada solid 1px;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1f2937;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 240px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-family: "Outfit";
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.googleLogo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.buttonWrap {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+.buttonsWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.legalText {
+  font-size: 0.875rem;
+  color: #1f2937;
+  margin: 0;
+  max-width: 280px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.termsLink {
+  color: #3b82f6;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #1f2937;
+  }
+}
+
+.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 0.875rem;
+  max-width: 300px;
+  text-align: center;
+}
+
+.loading {
+  color: #1f2937;
+  font-size: 0.875rem;
+  margin-top: 16px;
+}
+
+// Modal styles
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modalContent {
+  background: white;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.closeButton {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #6b7280;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #f3f4f6;
+    color: #374151;
+  }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .modalContent {
+    padding: 24px 8px;
+    max-width: 80%;
+  }
+
+  .signInTitle {
+    font-size: 1.5rem;
+  }
+  .instructionText,
+  .legalText {
+    font-size: 0.95rem;
+  }
+  .googleButton {
+    padding: 12px 0;
+    font-size: 0.95rem;
+  }
+}
