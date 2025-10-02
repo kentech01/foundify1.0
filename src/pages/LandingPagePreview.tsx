@@ -26,10 +26,10 @@ const LandingPage = () => {
       try {
         const res = await getLandingPageHtmlByStartupName(startupName);
 
-        console.log(typeof res, "res");
+        console.log(res, "res");
         if (isMounted) {
           // Extract the JSX string from the response
-          const jsxString = res?.data?.landingPage || res || "";
+          const jsxString = res?.data?.landingPagePremium || res || "";
 
           try {
             // Transform JSX to JavaScript

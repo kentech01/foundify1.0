@@ -392,18 +392,18 @@ export function PitchDashboard({
                       {pitch.hasLandingPagePremium ? (
                         <>
                           <Button
-                            onClick={() => handleViewLandingPage(pitch)}
-                            className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
-                          >
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Landing Page
-                          </Button>
-                          <Button
                             onClick={() => handleViewLanding(pitch)}
                             className="rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
                           >
                             <ExternalLink className="mr-2 h-4 w-4" />
                             Download Landing
+                          </Button>
+                          <Button
+                            onClick={() => handleViewLandingPage(pitch)}
+                            className="rounded-xl bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Landing Page
                           </Button>
                         </>
                       ) : pitch.landingPage ? (
