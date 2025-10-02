@@ -1,50 +1,54 @@
-import { Dialog, DialogContent } from './ui/dialog';
-import { Loader2, FileText, Globe, Sparkles } from 'lucide-react';
+import { Dialog, DialogContent } from "./ui/dialog";
+import { Loader2, FileText, Globe, Sparkles } from "lucide-react";
 
 interface LoadingModalProps {
   isOpen: boolean;
-  type: 'pdf' | 'landing' | 'generating';
+  type: "pdf" | "landing" | "generating";
   progress?: number;
 }
 
-export function LoadingModal({ isOpen, type, progress = 0 }: LoadingModalProps) {
+export function LoadingModal({
+  isOpen,
+  type,
+  progress = 0,
+}: LoadingModalProps) {
   const getContent = () => {
     switch (type) {
-      case 'pdf':
+      case "pdf":
         return {
           icon: FileText,
-          title: 'Generating Your PDF',
-          description: 'Creating a professional pitch deck...',
+          title: "Generating Your PDF",
+          description: "Creating a professional pitch deck...",
           steps: [
-            'Analyzing your pitch content',
-            'Designing slides',
-            'Formatting document',
-            'Finalizing PDF',
-          ]
+            "Analyzing your pitch content",
+            "Designing slides",
+            "Formatting document",
+            "Finalizing PDF",
+          ],
         };
-      case 'landing':
+      case "landing":
         return {
           icon: Globe,
-          title: 'Building Your Landing Page',
-          description: 'Creating a beautiful landing page...',
+          title: "Building Your Landing Page",
+          description: "Creating a beautiful landing page...",
           steps: [
-            'Processing your content',
-            'Applying premium design',
-            'Optimizing for performance',
-            'Publishing page',
-          ]
+            "Processing your content",
+            "Applying premium design",
+            "Optimizing for performance",
+            "Polishing final touches",
+          ],
         };
       default:
         return {
           icon: Sparkles,
-          title: 'Generating Your Pitch',
-          description: 'Using AI to craft your perfect pitch...',
+          title: "Generating Your Pitch",
+          description: "Using AI to craft your perfect pitch...",
           steps: [
-            'Understanding your startup',
-            'Crafting compelling copy',
-            'Structuring your story',
-            'Polishing final touches',
-          ]
+            "Understanding your startup",
+            "Crafting compelling copy",
+            "Structuring your story",
+            "Polishing final touches",
+          ],
         };
     }
   };
@@ -67,14 +71,16 @@ export function LoadingModal({ isOpen, type, progress = 0 }: LoadingModalProps) 
 
           {/* Title & Description */}
           <div className="space-y-2">
-            <h3 className="text-2xl font-bold text-gray-900">{content.title}</h3>
+            <h3 className="text-2xl font-bold text-gray-900">
+              {content.title}
+            </h3>
             <p className="text-gray-600">{content.description}</p>
           </div>
 
           {/* Progress Bar */}
           <div className="w-full space-y-2">
             <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-              <div 
+              <div
                 className="bg-gradient-to-r from-premium-purple to-deep-blue h-2 rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${progress}%` }}
               />
@@ -85,37 +91,47 @@ export function LoadingModal({ isOpen, type, progress = 0 }: LoadingModalProps) 
           {/* Steps */}
           <div className="w-full space-y-3">
             {content.steps.map((step, index) => (
-              <div 
+              <div
                 key={index}
                 className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 ${
-                  index < currentStepIndex 
-                    ? 'bg-green-50 border border-green-200' 
-                    : index === currentStepIndex 
-                    ? 'bg-purple-50 border border-premium-purple' 
-                    : 'bg-gray-50 border border-gray-200'
+                  index < currentStepIndex
+                    ? "bg-green-50 border border-green-200"
+                    : index === currentStepIndex
+                    ? "bg-purple-50 border border-premium-purple"
+                    : "bg-gray-50 border border-gray-200"
                 }`}
               >
                 {index < currentStepIndex ? (
-                  <svg className="h-5 w-5 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  <svg
+                    className="h-5 w-5 text-green-500 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 ) : index === currentStepIndex ? (
                   <Loader2 className="h-5 w-5 text-premium-purple animate-spin flex-shrink-0" />
                 ) : (
                   <div className="h-5 w-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
                 )}
-                <span className={`text-sm ${
-                  index <= currentStepIndex ? 'text-gray-900 font-medium' : 'text-gray-500'
-                }`}>
+                <span
+                  className={`text-sm ${
+                    index <= currentStepIndex
+                      ? "text-gray-900 font-medium"
+                      : "text-gray-500"
+                  }`}
+                >
                   {step}
                 </span>
               </div>
             ))}
           </div>
 
-          <p className="text-xs text-gray-500">
-            This usually takes 10-15 seconds
-          </p>
+          <p className="text-xs text-gray-500">This usually takes a bit</p>
         </div>
       </DialogContent>
     </Dialog>

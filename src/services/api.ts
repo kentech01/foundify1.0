@@ -78,6 +78,10 @@ interface PitchHistoryItem {
   preview: string;
   pitchContent: any;
   landingPage: string;
+  isFirstPitch?: boolean;
+  hasLandingPage?: boolean;
+  hasLandingPagePremium?: boolean;
+  landingPagePremium?: string;
 }
 
 interface PitchHistoryResponse {
@@ -301,9 +305,14 @@ export const useApiService = () => {
   );
 
   const generateLandingPage = useCallback(
-    async (pitchId: string): Promise<LandingPageResponse> => {
+    async (
+      pitchId: string,
+      plan: "basic" | "premium" = "basic"
+    ): Promise<LandingPageResponse> => {
       try {
-        const response = await axiosInstance.post(`/pitch/landing/${pitchId}`);
+        const response = await axiosInstance.post(`/pitch/landing/${pitchId}`, {
+          plan: plan,
+        });
         return response.data;
       } catch (error: any) {
         throw new Error(
@@ -313,6 +322,33 @@ export const useApiService = () => {
     },
     [axiosInstance]
   );
+
+  // Add a new method to get the first pitch
+  const getFirstPitch =
+    useCallback(async (): Promise<PitchHistoryItem | null> => {
+      try {
+        const response = await axiosInstance.get("/pitch/history", {
+          params: {
+            page: 1,
+            limit: 1000000, // Get enough to find the first pitch
+          },
+        });
+
+        const firstPitch = response.data.data.find(
+          (pitch: PitchHistoryItem) => pitch.isFirstPitch
+        );
+        return firstPitch || null;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to get first pitch"
+        );
+      }
+    }, [axiosInstance]);
+
+  const getCurrentUserProfile = useCallback(async (): Promise<UserProfile> => {
+    const response = await axiosInstance.get("/users/profile");
+    return response.data;
+  }, [axiosInstance]);
 
   const getLandingPageHtml = useCallback(
     async (pitchId: string): Promise<LandingPageHtmlResponse> => {
@@ -492,6 +528,8 @@ export const useApiService = () => {
     generateLandingPage,
     getLandingPageHtml,
     getLandingPageHtmlByStartupName,
+    getCurrentUserProfile,
+    getFirstPitch, // Add this to the return object
     // Email generator methods
     getEmailTemplates,
     generateInvestorEmail,

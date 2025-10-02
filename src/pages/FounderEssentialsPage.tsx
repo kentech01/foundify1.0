@@ -1,19 +1,44 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { Textarea } from '../components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { 
-  FileText, 
-  FileCheck, 
-  MessageSquare, 
-  Users, 
-  Mail, 
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Badge } from "../components/ui/badge";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Textarea } from "../components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../components/ui/dialog";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../components/ui/tabs";
+import {
+  FileText,
+  FileCheck,
+  MessageSquare,
+  Users,
+  Mail,
   ClipboardList,
   ArrowRight,
   Download,
@@ -22,74 +47,90 @@ import {
   Star,
   Target,
   Lightbulb,
-  TrendingUp
-} from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
-import starterPackImage from 'figma:asset/d60826e7654cae0c43327173cc7cdd845aca3e70.png';
+  TrendingUp,
+} from "lucide-react";
+import { toast } from "sonner@2.0.3";
+import starterPackImage from "figma:asset/d60826e7654cae0c43327173cc7cdd845aca3e70.png";
+import { useApiService } from "../services/api";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { pitchesAtom } from "../atoms/pitchesAtom";
+import { currentUserAtom } from "../atoms/userAtom";
+import { LoadingModal } from "../components/LoadingModal";
 
 const tools = [
   {
-    id: 'invoice',
-    title: 'Invoice Generator',
-    description: 'Create professional PDF invoices instantly',
+    id: "invoice",
+    title: "Invoice Generator",
+    description: "Create professional PDF invoices instantly",
     icon: FileText,
-    color: 'bg-blue-500',
-    colorLight: 'bg-blue-50',
-    buttonColor: 'bg-blue-600 hover:bg-blue-700',
-    buttonText: 'Generate Invoice',
+    color: "bg-blue-500",
+    colorLight: "bg-blue-50",
+    buttonColor: "bg-blue-600 hover:bg-blue-700",
+    buttonText: "Generate Invoice",
   },
   {
-    id: 'contracts',
-    title: 'Contract Templates',
-    description: 'NDA, Founder Agreement, and legal templates',
+    id: "contracts",
+    title: "Contract Templates",
+    description: "NDA, Founder Agreement, and legal templates",
     icon: FileCheck,
-    color: 'bg-purple-500',
-    colorLight: 'bg-purple-50',
+    color: "bg-purple-500",
+    colorLight: "bg-purple-50",
     isPremium: true,
-    buttonColor: 'bg-premium-purple hover:bg-premium-purple-dark',
-    buttonText: 'Browse Templates',
+    buttonColor: "bg-premium-purple hover:bg-premium-purple-dark",
+    buttonText: "Browse Templates",
   },
   {
-    id: 'feedback',
-    title: 'Feedback Coach',
-    description: 'Structure meaningful feedback for your team',
+    id: "feedback",
+    title: "Feedback Coach",
+    description: "Structure meaningful feedback for your team",
     icon: MessageSquare,
-    color: 'bg-pink-500',
-    colorLight: 'bg-pink-50',
+    color: "bg-pink-500",
+    colorLight: "bg-pink-50",
     isPremium: true,
-    buttonColor: 'bg-premium-purple hover:bg-premium-purple-dark',
-    buttonText: 'Create Feedback',
+    buttonColor: "bg-premium-purple hover:bg-premium-purple-dark",
+    buttonText: "Create Feedback",
   },
   {
-    id: 'roles',
-    title: 'Founder Role Suggestions',
-    description: 'AI-powered role and responsibility mapping',
+    id: "roles",
+    title: "Founder Role Suggestions",
+    description: "AI-powered role and responsibility mapping",
     icon: Users,
-    color: 'bg-purple-500',
-    colorLight: 'bg-purple-50',
+    color: "bg-purple-500",
+    colorLight: "bg-purple-50",
     isPremium: true,
-    buttonColor: 'bg-premium-purple hover:bg-premium-purple-dark',
-    buttonText: 'Get Suggestions',
+    buttonColor: "bg-premium-purple hover:bg-premium-purple-dark",
+    buttonText: "Get Suggestions",
   },
   {
-    id: 'investor',
-    title: 'Investor Email Draft',
-    description: 'Professional outreach email templates',
+    id: "investor",
+    title: "Investor Email Draft",
+    description: "Professional outreach email templates",
     icon: Mail,
-    color: 'bg-blue-500',
-    colorLight: 'bg-blue-50',
-    buttonColor: 'bg-blue-600 hover:bg-blue-700',
-    buttonText: 'Draft Email',
+    color: "bg-blue-500",
+    colorLight: "bg-blue-50",
+    buttonColor: "bg-blue-600 hover:bg-blue-700",
+    buttonText: "Draft Email",
   },
   {
-    id: 'interviews',
-    title: 'Customer Interview Guide',
-    description: 'Structured interview templates and questions',
+    id: "interviews",
+    title: "Customer Interview Guide",
+    description: "Structured interview templates and questions",
     icon: ClipboardList,
-    color: 'bg-blue-500',
-    colorLight: 'bg-blue-50',
-    buttonColor: 'bg-blue-600 hover:bg-blue-700',
-    buttonText: 'Start Guide',
+    color: "bg-blue-500",
+    colorLight: "bg-blue-50",
+    buttonColor: "bg-blue-600 hover:bg-blue-700",
+    buttonText: "Start Guide",
+  },
+  {
+    id: "landing-page",
+    title: "Landing Page Generator",
+    description: "Generate a premium landing page for your startup",
+    icon: FileCheck,
+    color: "bg-purple-500",
+    colorLight: "bg-purple-50",
+    isPremium: true,
+    buttonColor: "bg-premium-purple hover:bg-premium-purple-dark",
+    buttonText: "Generate Landing Page",
   },
 ];
 
@@ -98,28 +139,92 @@ interface FounderEssentialsPageProps {
   onUpgrade: () => void;
 }
 
-export function FounderEssentialsPage({ isPremium, onUpgrade }: FounderEssentialsPageProps) {
+export function FounderEssentialsPage({
+  isPremium,
+  onUpgrade,
+}: FounderEssentialsPageProps) {
   const [activeModal, setActiveModal] = useState<string | null>(null);
-  const [generatedContent, setGeneratedContent] = useState<string>('');
+  const [generatedContent, setGeneratedContent] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const handleToolAction = (toolId: string) => {
-    if (!isPremium && tools.find(t => t.id === toolId)?.isPremium) {
-      onUpgrade();
+  const apiService = useApiService();
+
+  const currentUser = useRecoilValue<any>(currentUserAtom);
+
+  const isLocked = currentUser?.profile?.plan === "basic";
+
+  const [showLandingLoading, setShowLandingLoading] = useState(false);
+  const [landingProgress, setLandingProgress] = useState(0);
+
+  const handleToolAction = async (toolId: string) => {
+    if (toolId === "landing-page") {
+      // Find the first pitch using the API service
+      const firstPitch = await apiService.getFirstPitch();
+
+      if (!firstPitch) {
+        toast.error("No first pitch found", {
+          description:
+            "Please create your first pitch to generate a premium landing page.",
+        });
+        return;
+      }
+
+      if (isLocked) {
+        onUpgrade();
+        return;
+      }
+
+      let progressInterval: number | undefined;
+
+      try {
+        setIsGenerating(true);
+        setShowLandingLoading(true);
+        setLandingProgress(10);
+
+        // Progress animation while generating
+        progressInterval = window.setInterval(() => {
+          setLandingProgress((p) => Math.min(p + 5, 95));
+        }, 500);
+
+        // Call the API to generate premium landing page
+        const response = await apiService.generateLandingPage(
+          firstPitch.id,
+          "premium"
+        );
+
+        setLandingProgress(100);
+
+        toast.success("Premium Landing Page Generated!", {
+          description:
+            "Your premium landing page has been created successfully.",
+        });
+      } catch (error: any) {
+        toast.error("Failed to generate premium landing page", {
+          description: error.message || "Please try again later.",
+        });
+      } finally {
+        if (progressInterval) window.clearInterval(progressInterval);
+        // brief pause so users see 100%
+        setTimeout(() => {
+          setShowLandingLoading(false);
+          setLandingProgress(0);
+        }, 400);
+        setIsGenerating(false);
+      }
+
       return;
     }
-    setActiveModal(toolId);
   };
 
   const generateContent = async (type: string, input: any) => {
     setIsGenerating(true);
-    
+
     // Simulate AI generation
     setTimeout(() => {
-      let content = '';
-      
+      let content = "";
+
       switch (type) {
-        case 'investor':
+        case "investor":
           content = `Subject: Partnership Opportunity - ${input.startupName}
 
 Dear ${input.investorName},
@@ -139,14 +244,14 @@ Best regards,
 ${input.founderName}
 Founder & CEO, ${input.startupName}`;
           break;
-          
-        case 'contracts':
+
+        case "contracts":
           content = `MUTUAL NON-DISCLOSURE AGREEMENT
 
 This Mutual Non-Disclosure Agreement ("Agreement") is entered into on [DATE] between:
 
-Party A: ${input.company1 || '[COMPANY 1]'}
-Party B: ${input.company2 || '[COMPANY 2]'}
+Party A: ${input.company1 || "[COMPANY 1]"}
+Party B: ${input.company2 || "[COMPANY 2]"}
 
 1. PURPOSE: The parties wish to explore potential business opportunities and may disclose confidential information.
 
@@ -161,14 +266,17 @@ Party B: ${input.company2 || '[COMPANY 2]'}
 
 [Additional standard NDA clauses would follow...]`;
           break;
-          
-        case 'feedback':
+
+        case "feedback":
           content = `360° FEEDBACK FRAMEWORK FOR ${input.employeeName.toUpperCase()}
 
 PERFORMANCE REVIEW PERIOD: ${input.period}
 
 1. CORE COMPETENCIES ASSESSMENT:
-   ${input.competencies.split(',').map((comp: string) => `   • ${comp.trim()}: [Rating 1-5]`).join('\n')}
+   ${input.competencies
+     .split(",")
+     .map((comp: string) => `   • ${comp.trim()}: [Rating 1-5]`)
+     .join("\n")}
 
 2. PEER FEEDBACK QUESTIONS:
    • What are ${input.employeeName}'s strongest contributions to the team?
@@ -186,34 +294,41 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
    • Communication effectiveness
    • Goal achievement and impact`;
           break;
-          
+
         default:
-          content = 'Generated content will appear here...';
+          content = "Generated content will appear here...";
       }
-      
+
       setGeneratedContent(content);
       setIsGenerating(false);
-      toast.success('Content generated successfully!');
+      toast.success("Content generated successfully!");
     }, 2000);
   };
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(generatedContent);
-    toast.success('Copied to clipboard!');
+    toast.success("Copied to clipboard!");
   };
   return (
     <div className="p-8">
+      <LoadingModal
+        isOpen={showLandingLoading}
+        type="landing"
+        progress={landingProgress}
+      />
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Founder Essentials</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              Founder Essentials
+            </h2>
             <p className="text-gray-600">
               Essential tools to launch and grow your startup
             </p>
           </div>
           {!isPremium && (
-            <Button 
+            <Button
               onClick={onUpgrade}
               className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg"
             >
@@ -227,21 +342,27 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {tools.map((tool) => {
           const Icon = tool.icon;
-          const isLocked = tool.isPremium && !isPremium;
 
           return (
-            <Card 
+            <Card
               key={tool.id}
               className={`border-2 rounded-2xl transition-all duration-300 ${
-                isLocked 
-                  ? 'border-gray-200 opacity-75' 
-                  : 'border-gray-100 hover:shadow-xl hover:-translate-y-1'
+                isLocked
+                  ? "border-gray-200 opacity-75"
+                  : "border-gray-100 hover:shadow-xl hover:-translate-y-1"
               }`}
             >
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between mb-4">
-                  <div className={`w-14 h-14 rounded-xl ${tool.colorLight} flex items-center justify-center`}>
-                    <Icon className={`h-7 w-7 ${tool.color.replace('bg-', 'text-')}`} />
+                  <div
+                    className={`w-14 h-14 rounded-xl ${tool.colorLight} flex items-center justify-center`}
+                  >
+                    <Icon
+                      className={`h-7 w-7 ${tool.color.replace(
+                        "bg-",
+                        "text-"
+                      )}`}
+                    />
                   </div>
                   {tool.isPremium && (
                     <Badge className="bg-premium-purple text-white hover:bg-premium-purple">
@@ -255,14 +376,16 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button 
+                <Button
                   className={`w-full rounded-xl text-white ${
-                    isLocked 
-                      ? 'bg-gray-300 hover:bg-gray-400 cursor-not-allowed' 
+                    isLocked
+                      ? "bg-gray-300 hover:bg-gray-400 cursor-not-allowed"
                       : tool.buttonColor
                   }`}
-                  onClick={() => isLocked ? onUpgrade() : handleToolAction(tool.id)}
-                  disabled={isLocked && false}
+                  onClick={() =>
+                    isLocked ? onUpgrade() : handleToolAction(tool.id)
+                  }
+                  disabled={isLocked || isGenerating}
                 >
                   {isLocked ? (
                     <>
@@ -283,9 +406,12 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
       </div>
 
       {/* Tool Modals */}
-      
+
       {/* Investor Email Modal */}
-      <Dialog open={activeModal === 'investor'} onOpenChange={() => setActiveModal(null)}>
+      <Dialog
+        open={activeModal === "investor"}
+        onOpenChange={() => setActiveModal(null)}
+      >
         <DialogContent className="sm:max-w-2xl rounded-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
@@ -296,26 +422,38 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
               Create professional outreach emails to potential investors
             </DialogDescription>
           </DialogHeader>
-          
+
           <Tabs defaultValue="form" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="form">Email Form</TabsTrigger>
               <TabsTrigger value="generated">Generated Email</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="form" className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Your Name</Label>
-                  <Input placeholder="Enter your name" className="rounded-xl" id="founderName" />
+                  <Input
+                    placeholder="Enter your name"
+                    className="rounded-xl"
+                    id="founderName"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Startup Name</Label>
-                  <Input placeholder="Your startup name" className="rounded-xl" id="startupName" />
+                  <Input
+                    placeholder="Your startup name"
+                    className="rounded-xl"
+                    id="startupName"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Investor Name</Label>
-                  <Input placeholder="Investor's name" className="rounded-xl" id="investorName" />
+                  <Input
+                    placeholder="Investor's name"
+                    className="rounded-xl"
+                    id="investorName"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Industry</Label>
@@ -333,12 +471,16 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
                   </Select>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Brief Description</Label>
-                <Textarea placeholder="Briefly describe what your startup does" className="rounded-xl" id="description" />
+                <Textarea
+                  placeholder="Briefly describe what your startup does"
+                  className="rounded-xl"
+                  id="description"
+                />
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Funding Stage</Label>
@@ -356,44 +498,85 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
                 </div>
                 <div className="space-y-2">
                   <Label>Key Traction</Label>
-                  <Input placeholder="e.g. 10k users, $50k MRR" className="rounded-xl" id="traction" />
+                  <Input
+                    placeholder="e.g. 10k users, $50k MRR"
+                    className="rounded-xl"
+                    id="traction"
+                  />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Use of Funds</Label>
-                <Textarea placeholder="How will you use the investment?" className="rounded-xl" id="useOfFunds" />
+                <Textarea
+                  placeholder="How will you use the investment?"
+                  className="rounded-xl"
+                  id="useOfFunds"
+                />
               </div>
-              
-              <Button 
+
+              <Button
                 onClick={() => {
                   const formData = {
-                    founderName: (document.getElementById('founderName') as HTMLInputElement)?.value || '',
-                    startupName: (document.getElementById('startupName') as HTMLInputElement)?.value || '',
-                    investorName: (document.getElementById('investorName') as HTMLInputElement)?.value || '',
-                    industry: 'FinTech', // Default
-                    description: (document.getElementById('description') as HTMLTextAreaElement)?.value || '',
-                    fundingStage: 'Seed', // Default
-                    traction: (document.getElementById('traction') as HTMLInputElement)?.value || '',
-                    useOfFunds: (document.getElementById('useOfFunds') as HTMLTextAreaElement)?.value || '',
+                    founderName:
+                      (
+                        document.getElementById(
+                          "founderName"
+                        ) as HTMLInputElement
+                      )?.value || "",
+                    startupName:
+                      (
+                        document.getElementById(
+                          "startupName"
+                        ) as HTMLInputElement
+                      )?.value || "",
+                    investorName:
+                      (
+                        document.getElementById(
+                          "investorName"
+                        ) as HTMLInputElement
+                      )?.value || "",
+                    industry: "FinTech", // Default
+                    description:
+                      (
+                        document.getElementById(
+                          "description"
+                        ) as HTMLTextAreaElement
+                      )?.value || "",
+                    fundingStage: "Seed", // Default
+                    traction:
+                      (document.getElementById("traction") as HTMLInputElement)
+                        ?.value || "",
+                    useOfFunds:
+                      (
+                        document.getElementById(
+                          "useOfFunds"
+                        ) as HTMLTextAreaElement
+                      )?.value || "",
                   };
-                  generateContent('investor', formData);
+                  generateContent("investor", formData);
                 }}
                 className="w-full bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl"
                 disabled={isGenerating}
               >
-                {isGenerating ? 'Generating...' : 'Generate Email'}
+                {isGenerating ? "Generating..." : "Generate Email"}
               </Button>
             </TabsContent>
-            
+
             <TabsContent value="generated" className="space-y-4">
               {generatedContent ? (
                 <>
                   <div className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50">
-                    <pre className="whitespace-pre-wrap text-sm">{generatedContent}</pre>
+                    <pre className="whitespace-pre-wrap text-sm">
+                      {generatedContent}
+                    </pre>
                   </div>
                   <div className="flex gap-2">
-                    <Button onClick={copyToClipboard} variant="outline" className="rounded-xl">
+                    <Button
+                      onClick={copyToClipboard}
+                      variant="outline"
+                      className="rounded-xl"
+                    >
                       <Copy className="mr-2 h-4 w-4" />
                       Copy Email
                     </Button>
@@ -414,7 +597,10 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
       </Dialog>
 
       {/* Contract Templates Modal */}
-      <Dialog open={activeModal === 'contracts'} onOpenChange={() => setActiveModal(null)}>
+      <Dialog
+        open={activeModal === "contracts"}
+        onOpenChange={() => setActiveModal(null)}
+      >
         <DialogContent className="sm:max-w-2xl rounded-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
@@ -425,33 +611,56 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
               Generate legal documents and agreements for your startup
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
-                { name: 'Non-Disclosure Agreement (NDA)', desc: 'Protect confidential information', icon: FileCheck },
-                { name: 'Founder Agreement', desc: 'Define roles and equity splits', icon: Users },
-                { name: 'Employment Contract', desc: 'Standard employee agreements', icon: FileText },
-                { name: 'Consultant Agreement', desc: 'Independent contractor terms', icon: ClipboardList },
+                {
+                  name: "Non-Disclosure Agreement (NDA)",
+                  desc: "Protect confidential information",
+                  icon: FileCheck,
+                },
+                {
+                  name: "Founder Agreement",
+                  desc: "Define roles and equity splits",
+                  icon: Users,
+                },
+                {
+                  name: "Employment Contract",
+                  desc: "Standard employee agreements",
+                  icon: FileText,
+                },
+                {
+                  name: "Consultant Agreement",
+                  desc: "Independent contractor terms",
+                  icon: ClipboardList,
+                },
               ].map((template, index) => {
                 const Icon = template.icon;
                 return (
-                  <Card key={index} className="border-2 border-gray-100 hover:shadow-lg transition-shadow rounded-xl cursor-pointer"
-                        onClick={() => {
-                          const input = {
-                            company1: 'Your Company',
-                            company2: 'Partner Company'
-                          };
-                          generateContent('contracts', input);
-                        }}>
+                  <Card
+                    key={index}
+                    className="border-2 border-gray-100 hover:shadow-lg transition-shadow rounded-xl cursor-pointer"
+                    onClick={() => {
+                      const input = {
+                        company1: "Your Company",
+                        company2: "Partner Company",
+                      };
+                      generateContent("contracts", input);
+                    }}
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
                           <Icon className="h-5 w-5 text-purple-600" />
                         </div>
                         <div>
-                          <h4 className="font-semibold text-gray-900">{template.name}</h4>
-                          <p className="text-sm text-gray-600">{template.desc}</p>
+                          <h4 className="font-semibold text-gray-900">
+                            {template.name}
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            {template.desc}
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -459,14 +668,20 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
                 );
               })}
             </div>
-            
+
             {generatedContent && (
               <>
                 <div className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50 max-h-60 overflow-y-auto">
-                  <pre className="whitespace-pre-wrap text-sm">{generatedContent}</pre>
+                  <pre className="whitespace-pre-wrap text-sm">
+                    {generatedContent}
+                  </pre>
                 </div>
                 <div className="flex gap-2">
-                  <Button onClick={copyToClipboard} variant="outline" className="rounded-xl">
+                  <Button
+                    onClick={copyToClipboard}
+                    variant="outline"
+                    className="rounded-xl"
+                  >
                     <Copy className="mr-2 h-4 w-4" />
                     Copy Template
                   </Button>
@@ -482,7 +697,10 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
       </Dialog>
 
       {/* Feedback Coach Modal */}
-      <Dialog open={activeModal === 'feedback'} onOpenChange={() => setActiveModal(null)}>
+      <Dialog
+        open={activeModal === "feedback"}
+        onOpenChange={() => setActiveModal(null)}
+      >
         <DialogContent className="sm:max-w-2xl rounded-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
@@ -493,12 +711,16 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
               Create structured feedback frameworks for your team
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Employee Name</Label>
-                <Input placeholder="Enter employee name" className="rounded-xl" id="employeeName" />
+                <Input
+                  placeholder="Enter employee name"
+                  className="rounded-xl"
+                  id="employeeName"
+                />
               </div>
               <div className="space-y-2">
                 <Label>Review Period</Label>
@@ -515,34 +737,54 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
                 </Select>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label>Core Competencies (comma-separated)</Label>
-              <Textarea placeholder="e.g. Communication, Technical Skills, Leadership, Teamwork" className="rounded-xl" id="competencies" />
+              <Textarea
+                placeholder="e.g. Communication, Technical Skills, Leadership, Teamwork"
+                className="rounded-xl"
+                id="competencies"
+              />
             </div>
-            
-            <Button 
+
+            <Button
               onClick={() => {
                 const formData = {
-                  employeeName: (document.getElementById('employeeName') as HTMLInputElement)?.value || 'Employee',
-                  period: 'Q1 2025',
-                  competencies: (document.getElementById('competencies') as HTMLTextAreaElement)?.value || 'Communication, Technical Skills, Leadership',
+                  employeeName:
+                    (
+                      document.getElementById(
+                        "employeeName"
+                      ) as HTMLInputElement
+                    )?.value || "Employee",
+                  period: "Q1 2025",
+                  competencies:
+                    (
+                      document.getElementById(
+                        "competencies"
+                      ) as HTMLTextAreaElement
+                    )?.value || "Communication, Technical Skills, Leadership",
                 };
-                generateContent('feedback', formData);
+                generateContent("feedback", formData);
               }}
               className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white rounded-xl"
               disabled={isGenerating}
             >
-              {isGenerating ? 'Generating...' : 'Generate Feedback Framework'}
+              {isGenerating ? "Generating..." : "Generate Feedback Framework"}
             </Button>
-            
+
             {generatedContent && (
               <>
                 <div className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50 max-h-60 overflow-y-auto">
-                  <pre className="whitespace-pre-wrap text-sm">{generatedContent}</pre>
+                  <pre className="whitespace-pre-wrap text-sm">
+                    {generatedContent}
+                  </pre>
                 </div>
                 <div className="flex gap-2">
-                  <Button onClick={copyToClipboard} variant="outline" className="rounded-xl">
+                  <Button
+                    onClick={copyToClipboard}
+                    variant="outline"
+                    className="rounded-xl"
+                  >
                     <Copy className="mr-2 h-4 w-4" />
                     Copy Framework
                   </Button>
@@ -558,7 +800,10 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
       </Dialog>
 
       {/* Quick Tool Modals for Free Tools */}
-      <Dialog open={activeModal === 'interviews'} onOpenChange={() => setActiveModal(null)}>
+      <Dialog
+        open={activeModal === "interviews"}
+        onOpenChange={() => setActiveModal(null)}
+      >
         <DialogContent className="sm:max-w-lg rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
@@ -568,7 +813,9 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
           </DialogHeader>
           <div className="space-y-4">
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <h4 className="font-semibold text-blue-900 mb-2">Essential Interview Questions:</h4>
+              <h4 className="font-semibold text-blue-900 mb-2">
+                Essential Interview Questions:
+              </h4>
               <ul className="space-y-1 text-sm text-blue-800">
                 <li>• What's your biggest challenge with [problem area]?</li>
                 <li>• How do you currently solve this problem?</li>
@@ -600,31 +847,55 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
                 <ul className="mt-4 space-y-2">
                   <li className="flex items-center gap-2 text-gray-700">
                     <div className="w-5 h-5 rounded-full bg-premium-purple flex items-center justify-center">
-                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-3 h-3 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </div>
                     <span>All 6 essential founder tools</span>
                   </li>
                   <li className="flex items-center gap-2 text-gray-700">
                     <div className="w-5 h-5 rounded-full bg-premium-purple flex items-center justify-center">
-                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-3 h-3 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </div>
                     <span>AI-assisted pitch building</span>
                   </li>
                   <li className="flex items-center gap-2 text-gray-700">
                     <div className="w-5 h-5 rounded-full bg-premium-purple flex items-center justify-center">
-                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-3 h-3 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </div>
                     <span>Priority support</span>
                   </li>
                 </ul>
               </div>
-              <Button 
+              <Button
                 onClick={onUpgrade}
                 className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl px-8 py-6 text-lg shadow-xl whitespace-nowrap"
               >

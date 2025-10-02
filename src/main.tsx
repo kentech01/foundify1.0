@@ -4,13 +4,16 @@ import App from "./App.tsx";
 import { AppProvider } from "./context/AppContext";
 import { AuthContextProvider } from "./context/AuthContext";
 import "./index.css";
+import { RecoilRoot } from "recoil";
 
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
-    <AuthContextProvider>
-      <AppProvider>
-        <App />
-      </AppProvider>
-    </AuthContextProvider>
+    <RecoilRoot>
+      <AuthContextProvider>
+        <AppProvider>
+          <App />
+        </AppProvider>
+      </AuthContextProvider>
+    </RecoilRoot>
   </BrowserRouter>
 );
