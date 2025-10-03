@@ -29,7 +29,6 @@ import {
 } from "../../components/ui/dialog";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -40,17 +39,12 @@ import {
 } from "../../components/ui/alert-dialog";
 import {
   FileText,
-  Download,
   Eye,
   Plus,
-  Search,
   Calendar,
   Edit,
   Trash2,
-  Send,
   DollarSign,
-  User,
-  Building,
   Loader2,
 } from "lucide-react";
 import { useApiService, type Invoice as ApiInvoice } from "../../services/api";
@@ -59,7 +53,8 @@ import { useCurrentUser } from "../../hooks/useCurrentUser";
 
 interface LineItem {
   description: string;
-  amount: number;
+  quantity: number;
+  rate: number;
 }
 
 export function InvoicesPage() {
@@ -68,9 +63,13 @@ export function InvoicesPage() {
   const [invoiceNumber, setInvoiceNumber] = useState(
     `INV-${Date.now().toString().slice(-6)}`
   );
+  const [currency, setCurrency] = useState<
+    "USD" | "EUR" | "GBP" | "CAD" | "AUD"
+  >("USD");
+  const [notes, setNotes] = useState("");
   const [bankDetails, setBankDetails] = useState("");
   const [lineItems, setLineItems] = useState<LineItem[]>([
-    { description: "", amount: 0 },
+    { description: "", quantity: 1, rate: 0 },
   ]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -84,13 +83,26 @@ export function InvoicesPage() {
     getInvoices,
     deleteInvoice,
     updateInvoice,
-    previewInvoice,
     downloadInvoicePdf,
   } = useApiService();
   const { user } = useCurrentUser();
 
   const [invoices, setInvoices] = useState<ApiInvoice[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // Helper function to get currency symbol
+  const getCurrencySymbol = (currencyCode: string) => {
+    const symbols: Record<string, string> = {
+      USD: "$",
+      EUR: "€",
+      GBP: "£",
+      CAD: "$",
+      AUD: "$",
+    };
+    return symbols[currencyCode] || "$";
+  };
+
+  const currencySymbol = getCurrencySymbol(currency);
 
   // Load invoices from API
   useEffect(() => {
@@ -115,12 +127,15 @@ export function InvoicesPage() {
   };
 
   // Calculate totals
-  const subtotal = lineItems.reduce((sum, item) => sum + item.amount, 0);
+  const subtotal = lineItems.reduce(
+    (sum, item) => sum + item.quantity * item.rate,
+    0
+  );
   const tax = subtotal * 0.1; // 10% tax
   const total = subtotal + tax;
 
   const addLineItem = () => {
-    setLineItems([...lineItems, { description: "", amount: 0 }]);
+    setLineItems([...lineItems, { description: "", quantity: 1, rate: 0 }]);
   };
 
   const removeLineItem = (index: number) => {
@@ -135,7 +150,21 @@ export function InvoicesPage() {
     value: string | number
   ) => {
     const updatedItems = [...lineItems];
-    updatedItems[index] = { ...updatedItems[index], [field]: value };
+    if (field === "quantity") {
+      const numValue = typeof value === "string" ? parseInt(value, 10) : value;
+      updatedItems[index] = {
+        ...updatedItems[index],
+        [field]: isNaN(numValue) ? 1 : Math.max(1, numValue),
+      };
+    } else if (field === "rate") {
+      const numValue = typeof value === "string" ? parseFloat(value) : value;
+      updatedItems[index] = {
+        ...updatedItems[index],
+        [field]: isNaN(numValue) ? 0 : Math.max(0, numValue),
+      };
+    } else {
+      updatedItems[index] = { ...updatedItems[index], [field]: value };
+    }
     setLineItems(updatedItems);
   };
 
@@ -143,8 +172,10 @@ export function InvoicesPage() {
     setCompanyName("");
     setClientName("");
     setInvoiceNumber(`INV-${Date.now().toString().slice(-6)}`);
+    setCurrency("USD");
+    setNotes("");
     setBankDetails("");
-    setLineItems([{ description: "", amount: 0 }]);
+    setLineItems([{ description: "", quantity: 1, rate: 0 }]);
     setEditingInvoice(null);
   };
 
@@ -153,14 +184,17 @@ export function InvoicesPage() {
     setCompanyName(invoice.companyName || "");
     setClientName(invoice.clientName || "");
     setInvoiceNumber(invoice.invoiceNumber || `INV-${invoice.id.slice(-6)}`);
+    setCurrency((invoice.currency as any) || "USD");
+    setNotes(invoice.notes || "");
     setBankDetails(invoice.bankDetails || "");
     setLineItems(
       invoice.items.length > 0
         ? invoice.items.map((item) => ({
-            description: item.description,
-            amount: item.unitPrice,
+            description: item.description || "",
+            quantity: Number(item.quantity) || 1,
+            rate: Number(item.unitPrice) || 0,
           }))
-        : [{ description: "", amount: 0 }]
+        : [{ description: "", quantity: 1, rate: 0 }]
     );
     setIsEditModalOpen(true);
   };
@@ -181,16 +215,17 @@ export function InvoicesPage() {
         companyName,
         clientName,
         invoiceNumber,
-        currency: "USD",
+        currency,
         items: lineItems.map((item) => ({
           description: item.description,
-          quantity: 1,
-          unitPrice: item.amount,
-          total: item.amount,
+          quantity: item.quantity,
+          unitPrice: item.rate,
+          total: item.quantity * item.rate,
         })),
         subtotal,
         tax,
         total,
+        notes: notes || undefined,
         bankDetails: bankDetails || undefined,
         status: "draft" as const,
       };
@@ -264,15 +299,6 @@ export function InvoicesPage() {
     }
   };
 
-  const handleDownload = (invoice: ApiInvoice) => {
-    try {
-      downloadInvoicePdf(invoice.firebaseUid, invoice.id);
-    } catch (error) {
-      console.error("Error downloading invoice:", error);
-      toast.error("Failed to download invoice");
-    }
-  };
-
   // Filter invoices based on search term
   const filteredInvoices = invoices.filter(
     (invoice) =>
@@ -332,14 +358,22 @@ export function InvoicesPage() {
             Create and manage professional invoices for your business
           </p>
         </div>
-        <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <Dialog
+          open={isCreateModalOpen}
+          onOpenChange={(open) => {
+            setIsCreateModalOpen(open);
+            if (open) {
+              resetForm();
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg">
               <Plus className="mr-2 h-4 w-4" />
               Create Invoice
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md rounded-2xl">
+          <DialogContent className="overflow-y-auto max-h-[80vh]">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold">
                 Create New Invoice
@@ -348,6 +382,8 @@ export function InvoicesPage() {
                 Generate a professional invoice for your client
               </DialogDescription>
             </DialogHeader>
+
+            {/* Invoice Details */}
             <Card>
               <CardHeader>
                 <CardTitle>Invoice Details</CardTitle>
@@ -386,18 +422,28 @@ export function InvoicesPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="bank-details">Bank Details</Label>
-                    <Input
-                      id="bank-details"
-                      value={bankDetails}
-                      onChange={(e) => setBankDetails(e.target.value)}
-                      placeholder="Bank account details for payment"
-                    />
+                    <Label>Currency</Label>
+                    <Select
+                      value={currency}
+                      onValueChange={(v) => setCurrency(v as any)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="USD">USD ($)</SelectItem>
+                        <SelectItem value="EUR">EUR (€)</SelectItem>
+                        <SelectItem value="GBP">GBP (£)</SelectItem>
+                        <SelectItem value="CAD">CAD ($)</SelectItem>
+                        <SelectItem value="AUD">AUD ($)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Items */}
             <Card>
               <CardHeader>
                 <div className={styles.itemsHeader}>
@@ -418,25 +464,42 @@ export function InvoicesPage() {
                         onChange={(e) =>
                           updateLineItem(index, "description", e.target.value)
                         }
-                        placeholder="Service or product"
+                        placeholder="Service or product name"
                         required
                       />
                     </div>
                     <div className={styles.amountCol}>
-                      <Label>Amount ($)</Label>
+                      <Label>Quantity</Label>
                       <Input
                         type="number"
-                        value={item.amount}
+                        min="1"
+                        step="1"
+                        value={item.quantity}
                         onChange={(e) =>
-                          updateLineItem(
-                            index,
-                            "amount",
-                            parseFloat(e.target.value) || 0
-                          )
+                          updateLineItem(index, "quantity", e.target.value)
                         }
-                        placeholder="0.00"
+                      />
+                    </div>
+                    <div className={styles.amountCol}>
+                      <Label>Rate ({currencySymbol})</Label>
+                      <Input
+                        type="number"
                         min="0"
                         step="0.01"
+                        value={item.rate}
+                        onChange={(e) =>
+                          updateLineItem(index, "rate", e.target.value)
+                        }
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <div className={styles.amountCol}>
+                      <Label>Amount</Label>
+                      <Input
+                        readOnly
+                        value={`${currencySymbol}${(
+                          item.quantity * item.rate
+                        ).toFixed(2)}`}
                       />
                     </div>
                     {lineItems.length > 1 && (
@@ -456,24 +519,55 @@ export function InvoicesPage() {
                   <div className={styles.summaryRow}>
                     <span className={styles.summaryLabel}>Subtotal:</span>
                     <span className={styles.summaryValue}>
-                      ${subtotal.toFixed(2)}
+                      {currencySymbol}
+                      {subtotal.toFixed(2)}
                     </span>
                   </div>
                   <div className={styles.summaryRow}>
                     <span className={styles.summaryLabel}>Tax (10%):</span>
                     <span className={styles.summaryValue}>
-                      ${tax.toFixed(2)}
+                      {currencySymbol}
+                      {tax.toFixed(2)}
                     </span>
                   </div>
                   <div className={styles.totalRow}>
                     <span className={styles.totalLabel}>Total:</span>
                     <span className={styles.totalValue}>
-                      ${total.toFixed(2)}
+                      {currencySymbol}
+                      {total.toFixed(2)}
                     </span>
                   </div>
                 </div>
               </CardContent>
             </Card>
+
+            {/* Additional Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Additional Information</CardTitle>
+              </CardHeader>
+              <CardContent className={styles.details}>
+                <div>
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="Add any additional notes or terms (e.g., payment terms, thank you message)"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="bank-details">Bank Account Details</Label>
+                  <Textarea
+                    id="bank-details"
+                    placeholder="Bank name, account number, routing number, SWIFT/BIC code"
+                    value={bankDetails}
+                    onChange={(e) => setBankDetails(e.target.value)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
             <DialogFooter>
               <Button
                 onClick={handleCreateInvoice}
@@ -488,14 +582,24 @@ export function InvoicesPage() {
       </div>
 
       {/* Edit Invoice Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-md rounded-2xl">
+      <Dialog
+        open={isEditModalOpen}
+        onOpenChange={(open) => {
+          setIsEditModalOpen(open);
+          if (!open) {
+            resetForm();
+          }
+        }}
+      >
+        <DialogContent className="!max-w-4xl !max-h-[90vh] overflow-y-auto rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
               Edit Invoice
             </DialogTitle>
             <DialogDescription>Update your invoice details</DialogDescription>
           </DialogHeader>
+
+          {/* Invoice Details */}
           <Card>
             <CardHeader>
               <CardTitle>Invoice Details</CardTitle>
@@ -534,18 +638,28 @@ export function InvoicesPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="edit-bank-details">Bank Details</Label>
-                  <Input
-                    id="edit-bank-details"
-                    value={bankDetails}
-                    onChange={(e) => setBankDetails(e.target.value)}
-                    placeholder="Bank account details for payment"
-                  />
+                  <Label>Currency</Label>
+                  <Select
+                    value={currency}
+                    onValueChange={(v) => setCurrency(v as any)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USD">USD ($)</SelectItem>
+                      <SelectItem value="EUR">EUR (€)</SelectItem>
+                      <SelectItem value="GBP">GBP (£)</SelectItem>
+                      <SelectItem value="CAD">CAD ($)</SelectItem>
+                      <SelectItem value="AUD">AUD ($)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardContent>
           </Card>
 
+          {/* Items */}
           <Card>
             <CardHeader>
               <div className={styles.itemsHeader}>
@@ -566,25 +680,42 @@ export function InvoicesPage() {
                       onChange={(e) =>
                         updateLineItem(index, "description", e.target.value)
                       }
-                      placeholder="Service or product"
+                      placeholder="Service or product name"
                       required
                     />
                   </div>
                   <div className={styles.amountCol}>
-                    <Label>Amount ($)</Label>
+                    <Label>Quantity</Label>
                     <Input
                       type="number"
-                      value={item.amount}
+                      min="1"
+                      step="1"
+                      value={item.quantity}
                       onChange={(e) =>
-                        updateLineItem(
-                          index,
-                          "amount",
-                          parseFloat(e.target.value) || 0
-                        )
+                        updateLineItem(index, "quantity", e.target.value)
                       }
-                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className={styles.amountCol}>
+                    <Label>Rate ({currencySymbol})</Label>
+                    <Input
+                      type="number"
                       min="0"
                       step="0.01"
+                      value={item.rate}
+                      onChange={(e) =>
+                        updateLineItem(index, "rate", e.target.value)
+                      }
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className={styles.amountCol}>
+                    <Label>Amount</Label>
+                    <Input
+                      readOnly
+                      value={`${currencySymbol}${(
+                        item.quantity * item.rate
+                      ).toFixed(2)}`}
                     />
                   </div>
                   {lineItems.length > 1 && (
@@ -604,20 +735,55 @@ export function InvoicesPage() {
                 <div className={styles.summaryRow}>
                   <span className={styles.summaryLabel}>Subtotal:</span>
                   <span className={styles.summaryValue}>
-                    ${subtotal.toFixed(2)}
+                    {currencySymbol}
+                    {subtotal.toFixed(2)}
                   </span>
                 </div>
                 <div className={styles.summaryRow}>
                   <span className={styles.summaryLabel}>Tax (10%):</span>
-                  <span className={styles.summaryValue}>${tax.toFixed(2)}</span>
+                  <span className={styles.summaryValue}>
+                    {currencySymbol}
+                    {tax.toFixed(2)}
+                  </span>
                 </div>
                 <div className={styles.totalRow}>
                   <span className={styles.totalLabel}>Total:</span>
-                  <span className={styles.totalValue}>${total.toFixed(2)}</span>
+                  <span className={styles.totalValue}>
+                    {currencySymbol}
+                    {total.toFixed(2)}
+                  </span>
                 </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* Additional Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Additional Information</CardTitle>
+            </CardHeader>
+            <CardContent className={styles.details}>
+              <div>
+                <Label htmlFor="edit-notes">Notes</Label>
+                <Textarea
+                  id="edit-notes"
+                  placeholder="Add any additional notes or terms (e.g., payment terms, thank you message)"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-bank-details">Bank Account Details</Label>
+                <Textarea
+                  id="edit-bank-details"
+                  placeholder="Bank name, account number, routing number, SWIFT/BIC code"
+                  value={bankDetails}
+                  onChange={(e) => setBankDetails(e.target.value)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           <DialogFooter>
             <Button
               onClick={handleUpdateInvoice}
@@ -692,9 +858,7 @@ export function InvoicesPage() {
             size="sm"
             className="border-2 border-gray-200 rounded-xl"
           >
-            <Loader2
-              className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
-            />
+            <Loader2 className="mr-2 h-4 w-4" />
             Refresh
           </Button>
         </div>
@@ -794,13 +958,6 @@ export function InvoicesPage() {
                       <Edit className="mr-2 h-4 w-4" />
                       Edit
                     </Button>
-                    {/* <Button
-                      onClick={() => handleDownload(invoice)}
-                      className="bg-deep-blue hover:bg-deep-blue-dark text-white rounded-xl"
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      Download
-                    </Button> */}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button

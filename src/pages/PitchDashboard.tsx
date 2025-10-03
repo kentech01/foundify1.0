@@ -337,7 +337,7 @@ export function PitchDashboard({
                 key={pitch.id}
                 className="border-2 border-gray-100 hover:shadow-lg transition-shadow rounded-2xl"
               >
-                <CardContent className="p-6">
+                <CardContent className="p-6 min-w-[1200px]">
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                     {/* Pitch Info */}
                     <div className="flex-1">
@@ -398,13 +398,16 @@ export function PitchDashboard({
                             <ExternalLink className="mr-2 h-4 w-4" />
                             Download Landing
                           </Button>
-                          <Button
-                            onClick={() => handleViewLandingPage(pitch)}
-                            className="rounded-xl bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
-                          >
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Landing Page
-                          </Button>
+
+                          {pitch.hasLandingPagePremium && (
+                            <Button
+                              onClick={() => handleViewLandingPage(pitch)}
+                              className="rounded-xl bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
+                            >
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Landing Page
+                            </Button>
+                          )}
                         </>
                       ) : pitch.landingPage ? (
                         <Button
