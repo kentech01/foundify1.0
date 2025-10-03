@@ -824,20 +824,15 @@ export function InvoicesPage() {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDelete(invoice.id)}
-                            className="bg-red-600 hover:bg-red-700"
+
+                          <Button
+                            variant="outline"
                             disabled={deletingId === invoice.id}
+                            onClick={() => handleDelete(invoice.id)}
+                            className="border-2 border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
                           >
-                            {deletingId === invoice.id ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Deleting...
-                              </>
-                            ) : (
-                              "Delete"
-                            )}
-                          </AlertDialogAction>
+                            Confirm
+                          </Button>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>

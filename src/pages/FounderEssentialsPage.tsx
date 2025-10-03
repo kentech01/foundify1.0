@@ -56,6 +56,7 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { pitchesAtom } from "../atoms/pitchesAtom";
 import { currentUserAtom } from "../atoms/userAtom";
 import { LoadingModal } from "../components/LoadingModal";
+import { useNavigate } from "react-router-dom";
 
 const tools = [
   {
@@ -143,6 +144,7 @@ export function FounderEssentialsPage({
   isPremium,
   onUpgrade,
 }: FounderEssentialsPageProps) {
+  const navigate = useNavigate();
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [generatedContent, setGeneratedContent] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -157,6 +159,11 @@ export function FounderEssentialsPage({
   const [landingProgress, setLandingProgress] = useState(0);
 
   const handleToolAction = async (toolId: string) => {
+    if (toolId === "invoice") {
+      navigate("/dashboard/invoices");
+      return;
+    }
+
     if (toolId === "landing-page") {
       // Find the first pitch using the API service
       const firstPitch = await apiService.getFirstPitch();
