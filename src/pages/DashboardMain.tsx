@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "../components/DashboardLayout";
 import { PitchDashboard } from "./PitchDashboard";
-import { InvoicesPage } from "./InvoicesPage";
+import { InvoicesPage } from "./invoices/InvoicesPage";
 import { FounderEssentialsPage } from "./FounderEssentialsPage";
 import { useApp } from "../context/AppContext";
 import { UserAuth } from "../context/AuthContext";
