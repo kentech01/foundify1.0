@@ -192,7 +192,7 @@ export function InvoicesPage() {
         ? invoice.items.map((item) => ({
             description: item.description || "",
             quantity: Number(item.quantity) || 1,
-            rate: Number(item.unitPrice) || 0,
+            rate: Number(item.rate) || 0,
           }))
         : [{ description: "", quantity: 1, rate: 0 }]
     );
@@ -219,8 +219,8 @@ export function InvoicesPage() {
         items: lineItems.map((item) => ({
           description: item.description,
           quantity: item.quantity,
-          unitPrice: item.rate,
-          total: item.quantity * item.rate,
+          rate: item.rate,
+          amount: item.quantity * item.rate,
         })),
         subtotal,
         tax,
@@ -373,7 +373,7 @@ export function InvoicesPage() {
               Create Invoice
             </Button>
           </DialogTrigger>
-          <DialogContent className="overflow-y-auto max-h-[80vh]">
+          <DialogContent className="overflow-y-auto ">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold">
                 Create New Invoice

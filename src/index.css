@@ -955,6 +955,14 @@
     height: 100vh;
   }
 
+  .h-\[80\%\] {
+    height: 80%;
+  }
+
+  .max-h-\[30\%\] {
+    max-height: 30%;
+  }
+
   .max-h-\(--radix-dropdown-menu-content-available-height\) {
     max-height: var(--radix-dropdown-menu-content-available-height);
   }
