@@ -1,27 +1,34 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
-import { 
-  FileText, 
-  Globe, 
-  Download, 
-  Eye, 
-  Plus, 
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Badge } from "../components/ui/badge";
+import {
+  FileText,
+  Globe,
+  Download,
+  Eye,
+  Plus,
   Sparkles,
   TrendingUp,
   Users,
-  Clock
-} from 'lucide-react';
-import { LoadingModal } from '../components/LoadingModal';
-import { toast } from 'sonner@2.0.3';
+  Clock,
+} from "lucide-react";
+import { LoadingModal } from "../components/LoadingModal";
+import { toast } from "sonner";
+import React from "react";
 
 interface Pitch {
   id: string;
   name: string;
   createdAt: string;
   views: number;
-  status: 'draft' | 'published';
+  status: "draft" | "published";
   hasLanding: boolean;
   hasPDF: boolean;
 }
@@ -33,21 +40,26 @@ interface DashboardProps {
   isPremium?: boolean;
 }
 
-export function Dashboard({ onCreateNew, onUpgrade, initialPitch, isPremium = false }: DashboardProps) {
+export function Dashboard({
+  onCreateNew,
+  onUpgrade,
+  initialPitch,
+  isPremium = false,
+}: DashboardProps) {
   const [pitches, setPitches] = useState<Pitch[]>(
     initialPitch ? [initialPitch] : []
   );
   const [loadingModal, setLoadingModal] = useState<{
     isOpen: boolean;
-    type: 'pdf' | 'landing' | 'generating';
+    type: "pdf" | "landing" | "generating";
   }>({
     isOpen: false,
-    type: 'generating',
+    type: "generating",
   });
   const [progress, setProgress] = useState(0);
 
   const handleGeneratePDF = async (pitchId: string) => {
-    setLoadingModal({ isOpen: true, type: 'pdf' });
+    setLoadingModal({ isOpen: true, type: "pdf" });
     setProgress(0);
 
     // Simulate PDF generation progress
@@ -56,13 +68,15 @@ export function Dashboard({ onCreateNew, onUpgrade, initialPitch, isPremium = fa
         if (prev >= 100) {
           clearInterval(interval);
           setTimeout(() => {
-            setLoadingModal({ isOpen: false, type: 'pdf' });
+            setLoadingModal({ isOpen: false, type: "pdf" });
             // Update pitch to mark PDF as generated
-            setPitches(pitches.map(p => 
-              p.id === pitchId ? { ...p, hasPDF: true } : p
-            ));
-            toast.success('PDF Generated!', {
-              description: 'Your pitch deck PDF is ready to download.',
+            setPitches(
+              pitches.map((p) =>
+                p.id === pitchId ? { ...p, hasPDF: true } : p
+              )
+            );
+            toast.success("PDF Generated!", {
+              description: "Your pitch deck PDF is ready to download.",
             });
           }, 500);
           return 100;
@@ -73,7 +87,7 @@ export function Dashboard({ onCreateNew, onUpgrade, initialPitch, isPremium = fa
   };
 
   const handleGenerateLanding = async (pitchId: string) => {
-    setLoadingModal({ isOpen: true, type: 'landing' });
+    setLoadingModal({ isOpen: true, type: "landing" });
     setProgress(0);
 
     // Simulate landing page generation progress
@@ -82,13 +96,17 @@ export function Dashboard({ onCreateNew, onUpgrade, initialPitch, isPremium = fa
         if (prev >= 100) {
           clearInterval(interval);
           setTimeout(() => {
-            setLoadingModal({ isOpen: false, type: 'landing' });
+            setLoadingModal({ isOpen: false, type: "landing" });
             // Update pitch to mark landing as generated
-            setPitches(pitches.map(p => 
-              p.id === pitchId ? { ...p, hasLanding: true, status: 'published' } : p
-            ));
-            toast.success('Landing Page Live!', {
-              description: 'Your landing page has been published successfully.',
+            setPitches(
+              pitches.map((p) =>
+                p.id === pitchId
+                  ? { ...p, hasLanding: true, status: "published" }
+                  : p
+              )
+            );
+            toast.success("Landing Page Live!", {
+              description: "Your landing page has been published successfully.",
             });
           }, 500);
           return 100;
@@ -139,7 +157,9 @@ export function Dashboard({ onCreateNew, onUpgrade, initialPitch, isPremium = fa
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Total Pitches</p>
-                  <p className="text-3xl font-bold text-gray-900">{pitches.length}</p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {pitches.length}
+                  </p>
                 </div>
                 <div className="w-12 h-12 rounded-xl bg-premium-purple-50 flex items-center justify-center">
                   <FileText className="h-6 w-6 text-premium-purple" />
@@ -170,7 +190,7 @@ export function Dashboard({ onCreateNew, onUpgrade, initialPitch, isPremium = fa
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Published</p>
                   <p className="text-3xl font-bold text-gray-900">
-                    {pitches.filter(p => p.status === 'published').length}
+                    {pitches.filter((p) => p.status === "published").length}
                   </p>
                 </div>
                 <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center">
@@ -193,8 +213,12 @@ export function Dashboard({ onCreateNew, onUpgrade, initialPitch, isPremium = fa
                 <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
                   <FileText className="h-8 w-8 text-gray-400" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No pitches yet</h3>
-                <p className="text-gray-600 mb-6">Create your first pitch to get started</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  No pitches yet
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Create your first pitch to get started
+                </p>
                 <Button
                   onClick={onCreateNew}
                   className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl"
@@ -206,14 +230,25 @@ export function Dashboard({ onCreateNew, onUpgrade, initialPitch, isPremium = fa
             </Card>
           ) : (
             pitches.map((pitch) => (
-              <Card key={pitch.id} className="border-2 border-gray-100 hover:shadow-lg transition-shadow">
+              <Card
+                key={pitch.id}
+                className="border-2 border-gray-100 hover:shadow-lg transition-shadow"
+              >
                 <CardContent className="p-6">
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                     {/* Pitch Info */}
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-semibold text-gray-900">{pitch.name}</h3>
-                        <Badge variant={pitch.status === 'published' ? 'default' : 'secondary'}>
+                        <h3 className="text-xl font-semibold text-gray-900">
+                          {pitch.name}
+                        </h3>
+                        <Badge
+                          variant={
+                            pitch.status === "published"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
                           {pitch.status}
                         </Badge>
                       </div>
@@ -237,20 +272,24 @@ export function Dashboard({ onCreateNew, onUpgrade, initialPitch, isPremium = fa
                         className="border-2 rounded-xl"
                       >
                         <Download className="mr-2 h-4 w-4" />
-                        {pitch.hasPDF ? 'Download PDF' : 'Generate PDF'}
+                        {pitch.hasPDF ? "Download PDF" : "Generate PDF"}
                       </Button>
                       <Button
                         onClick={() => handleGenerateLanding(pitch.id)}
                         className={`rounded-xl ${
-                          isPremium 
-                            ? 'bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white'
-                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          isPremium
+                            ? "bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
+                            : "bg-gray-300 text-gray-500 cursor-not-allowed"
                         }`}
                         disabled={!isPremium}
                       >
                         <Globe className="mr-2 h-4 w-4" />
-                        {pitch.hasLanding ? 'View Landing' : 'Create Landing'}
-                        {!isPremium && <Badge className="ml-2 bg-premium-purple text-white text-xs">Premium</Badge>}
+                        {pitch.hasLanding ? "View Landing" : "Create Landing"}
+                        {!isPremium && (
+                          <Badge className="ml-2 bg-premium-purple text-white text-xs">
+                            Premium
+                          </Badge>
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -274,11 +313,12 @@ export function Dashboard({ onCreateNew, onUpgrade, initialPitch, isPremium = fa
                       Upgrade to Premium
                     </h3>
                     <p className="text-gray-600">
-                      Get hosted landing pages, analytics, AI assistance, and all essential founder tools for just $10/month
+                      Get hosted landing pages, analytics, AI assistance, and
+                      all essential founder tools for just $10/month
                     </p>
                   </div>
                 </div>
-                <Button 
+                <Button
                   onClick={onUpgrade}
                   className="bg-premium-purple hover:bg-premium-purple-dark text-white rounded-xl whitespace-nowrap"
                 >
@@ -304,7 +344,8 @@ export function Dashboard({ onCreateNew, onUpgrade, initialPitch, isPremium = fa
                     </Badge>
                   </div>
                   <p className="text-gray-600">
-                    You have full access to all premium features, AI assistance, and founder tools
+                    You have full access to all premium features, AI assistance,
+                    and founder tools
                   </p>
                 </div>
               </div>
@@ -313,8 +354,8 @@ export function Dashboard({ onCreateNew, onUpgrade, initialPitch, isPremium = fa
         )}
       </div>
 
-      <LoadingModal 
-        isOpen={loadingModal.isOpen} 
+      <LoadingModal
+        isOpen={loadingModal.isOpen}
         type={loadingModal.type}
         progress={progress}
       />
