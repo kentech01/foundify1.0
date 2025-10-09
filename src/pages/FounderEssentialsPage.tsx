@@ -840,7 +840,7 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
       </Dialog>
 
       {/* Upgrade CTA */}
-      {!isPremium && (
+      {/* {!isPremium && (
         <Card className="mt-12 border-2 border-premium-purple bg-gradient-to-br from-premium-purple-50 to-white rounded-2xl">
           <CardContent className="p-8">
             <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
@@ -912,7 +912,7 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
             </div>
           </CardContent>
         </Card>
-      )}
+      )} */}
     </div>
   );
 }

@@ -8,6 +8,9 @@ import {
   signInWithPopup,
   signOut,
   onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
   type User,
 } from "firebase/auth";
 import { auth } from "../../firebase";
@@ -17,6 +20,8 @@ import type { ReactNode } from "react";
 interface AuthContextType {
   googleSignIn: () => Promise<void>;
   facebookSignIn: () => Promise<void>;
+  emailSignUp: (email: string, password: string, name: string) => Promise<void>;
+  emailSignIn: (email: string, password: string) => Promise<void>;
   logOut: () => Promise<void>;
   user: User | null;
   loading: boolean;
@@ -26,6 +31,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   googleSignIn: async () => {},
   facebookSignIn: async () => {},
+  emailSignUp: async () => {},
+  emailSignIn: async () => {},
   logOut: async () => {},
   user: null,
   loading: false,
@@ -35,7 +42,7 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true); // Start with loading true
+  const [loading, setLoading] = useState(true);
 
   const googleSignIn = async () => {
     setLoading(true);
@@ -70,12 +77,50 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const emailSignUp = async (email: string, password: string, name: string) => {
+    setLoading(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      // Update the user's display name
+      if (userCredential.user) {
+        await updateProfile(userCredential.user, { displayName: name });
+      }
+    } catch (error: any) {
+      if (error.code === "auth/email-already-in-use") {
+        throw new Error("This email is already registered.");
+      }
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const emailSignIn = async (email: string, password: string) => {
+    setLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error: any) {
+      if (
+        error.code === "auth/wrong-password" ||
+        error.code === "auth/user-not-found"
+      ) {
+        throw new Error("Invalid email or password.");
+      }
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logOut = async () => {
     setLoading(true);
     try {
       await signOut(auth);
     } catch (error) {
-      // Optionally handle error
       throw error;
     } finally {
       setLoading(false);
@@ -103,6 +148,8 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
       value={{
         googleSignIn,
         facebookSignIn,
+        emailSignUp,
+        emailSignIn,
         logOut,
         user,
         loading,
