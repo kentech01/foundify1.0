@@ -225,6 +225,63 @@ interface InvoiceHtmlResponse {
   message?: string;
 }
 
+// Interview interfaces
+interface InterviewGenerateRequest {
+  candidateName: string;
+  role: string;
+  seniority: string;
+  industry: string;
+  interviewGoal: string;
+}
+
+interface InterviewQuestion {
+  id: string;
+  question: string;
+  answer: string;
+}
+
+interface InterviewQuestionsResponse {
+  success: boolean;
+  data: {
+    candidateInfo: {
+      candidateName: string;
+      role: string;
+      seniority: string;
+      industry: string;
+      interviewGoal: string;
+    };
+    questions: {
+      technical: InterviewQuestion[];
+      softSkills: InterviewQuestion[];
+      cultureFit: InterviewQuestion[];
+    };
+  };
+  message: string;
+}
+
+interface InterviewExportRequest {
+  candidateName: string;
+  role: string;
+  seniority: string;
+  industry: string;
+  interviewGoal: string;
+  technicalQuestions: Array<{
+    id: string;
+    question: string;
+    answer: string;
+  }>;
+  softSkillsQuestions: Array<{
+    id: string;
+    question: string;
+    answer: string;
+  }>;
+  cultureFitQuestions: Array<{
+    id: string;
+    question: string;
+    answer: string;
+  }>;
+}
+
 // Hook-based API service
 export const useApiService = () => {
   const axiosInstance = useAxios();
@@ -519,6 +576,47 @@ export const useApiService = () => {
     []
   );
 
+  // Interview API methods
+  const generateInterviewQuestions = useCallback(
+    async (
+      payload: InterviewGenerateRequest
+    ): Promise<InterviewQuestionsResponse> => {
+      try {
+        const response = await axiosInstance.post(
+          "/interview/generate",
+          payload
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message ||
+            "Failed to generate interview questions"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const exportInterviewPdf = useCallback(
+    async (payload: InterviewExportRequest): Promise<Blob> => {
+      try {
+        const response = await axiosInstance.post(
+          "/interview/export-pdf",
+          payload,
+          {
+            responseType: "blob",
+          }
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to export interview PDF"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
   return {
     generatePitch,
     getUserStats,
@@ -529,7 +627,7 @@ export const useApiService = () => {
     getLandingPageHtml,
     getLandingPageHtmlByStartupName,
     getCurrentUserProfile,
-    getFirstPitch, // Add this to the return object
+    getFirstPitch,
     // Email generator methods
     getEmailTemplates,
     generateInvestorEmail,
@@ -542,6 +640,9 @@ export const useApiService = () => {
     renderInvoiceHtml,
     previewInvoice,
     downloadInvoicePdf,
+    // Interview methods
+    generateInterviewQuestions,
+    exportInterviewPdf,
   };
 };
 
@@ -774,4 +875,9 @@ export type {
   InvoiceResponse,
   InvoiceListResponse,
   InvoiceHtmlResponse,
+  // Interview types
+  InterviewGenerateRequest,
+  InterviewQuestion,
+  InterviewQuestionsResponse,
+  InterviewExportRequest,
 };

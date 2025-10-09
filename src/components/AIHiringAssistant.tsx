@@ -31,11 +31,13 @@ import {
   RefreshCw,
   Loader2,
 } from "lucide-react";
+import { useApiService } from "../services/api";
+import { toast } from "sonner";
 
 interface Question {
-  id: number;
-  text: string;
-  notes: string;
+  id: string;
+  question: string;
+  answer: string;
 }
 
 interface QuestionCategory {
@@ -46,30 +48,6 @@ interface QuestionCategory {
   questions: Question[];
 }
 
-const technicalQuestions = [
-  "Describe your experience with [relevant technology/tool]",
-  "Walk me through how you would approach [technical problem]",
-  "Tell me about the most complex project you've worked on",
-  "How do you stay updated with the latest industry trends?",
-  "Explain a time when you had to debug a difficult issue",
-];
-
-const softSkillsQuestions = [
-  "How do you handle tight deadlines and pressure?",
-  "Describe a time you had to work with a difficult team member",
-  "Tell me about a situation where you had to learn something quickly",
-  "How do you prioritize competing tasks?",
-  "Give an example of when you showed leadership",
-];
-
-const cultureFitQuestions = [
-  "What type of work environment helps you thrive?",
-  "How do you prefer to receive feedback?",
-  "What motivates you in your day-to-day work?",
-  "Where do you see yourself in the next 2-3 years?",
-  "Tell us about your ideal team and company culture",
-];
-
 export function AIHiringAssistant() {
   const [candidateName, setCandidateName] = useState("");
   const [role, setRole] = useState("");
@@ -77,70 +55,77 @@ export function AIHiringAssistant() {
   const [industry, setIndustry] = useState("");
   const [interviewGoal, setInterviewGoal] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [questionsGenerated, setQuestionsGenerated] = useState(false);
   const [categories, setCategories] = useState<QuestionCategory[]>([]);
   const [openCategories, setOpenCategories] = useState<string[]>([]);
 
+  const { generateInterviewQuestions, exportInterviewPdf } = useApiService();
+
   const handleGenerateQuestions = async () => {
     setIsGenerating(true);
 
-    // Simulate AI generation delay
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const response = await generateInterviewQuestions({
+        candidateName,
+        role,
+        seniority,
+        industry,
+        interviewGoal,
+      });
 
-    const generatedCategories: QuestionCategory[] = [
-      {
-        id: "technical",
-        title: "Technical Questions",
-        icon: Settings,
-        color: "bg-blue-50 border-blue-200 text-blue-700",
-        questions: technicalQuestions.map((text, index) => ({
-          id: Date.now() + index,
-          text: text
-            .replace(
-              "[relevant technology/tool]",
-              role || "your main tech stack"
-            )
-            .replace(
-              "[technical problem]",
-              "a complex system design challenge"
-            ),
-          notes: "",
-        })),
-      },
-      {
-        id: "soft-skills",
-        title: "Soft Skills Questions",
-        icon: MessageSquare,
-        color: "bg-purple-50 border-purple-200 text-purple-700",
-        questions: softSkillsQuestions.map((text, index) => ({
-          id: Date.now() + 1000 + index,
-          text,
-          notes: "",
-        })),
-      },
-      {
-        id: "culture-fit",
-        title: "Culture Fit Questions",
-        icon: Sprout,
-        color: "bg-green-50 border-green-200 text-green-700",
-        questions: cultureFitQuestions.map((text, index) => ({
-          id: Date.now() + 2000 + index,
-          text,
-          notes: "",
-        })),
-      },
-    ];
+      const generatedCategories: QuestionCategory[] = [
+        {
+          id: "technical",
+          title: "Technical Questions",
+          icon: Settings,
+          color: "bg-blue-50 border-blue-200 text-blue-700",
+          questions: response.data.questions.technical.map((q) => ({
+            id: q.id,
+            question: q.question,
+            answer: q.answer,
+          })),
+        },
+        {
+          id: "soft-skills",
+          title: "Soft Skills Questions",
+          icon: MessageSquare,
+          color: "bg-purple-50 border-purple-200 text-purple-700",
+          questions: response.data.questions.softSkills.map((q) => ({
+            id: q.id,
+            question: q.question,
+            answer: q.answer,
+          })),
+        },
+        {
+          id: "culture-fit",
+          title: "Culture Fit Questions",
+          icon: Sprout,
+          color: "bg-green-50 border-green-200 text-green-700",
+          questions: response.data.questions.cultureFit.map((q) => ({
+            id: q.id,
+            question: q.question,
+            answer: q.answer,
+          })),
+        },
+      ];
 
-    setCategories(generatedCategories);
-    setOpenCategories(["technical", "soft-skills", "culture-fit"]);
-    setQuestionsGenerated(true);
-    setIsGenerating(false);
+      setCategories(generatedCategories);
+      setOpenCategories(["technical", "soft-skills", "culture-fit"]);
+      setQuestionsGenerated(true);
+      toast.success("Interview questions generated successfully!");
+    } catch (error: any) {
+      console.error("Error generating questions:", error);
+      toast.error(error.message || "Failed to generate interview questions");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
-  const handleNotesChange = (
+  const handleAnswerChange = (
     categoryId: string,
-    questionId: number,
-    notes: string
+    questionId: string,
+    answer: string
   ) => {
     setCategories(
       categories.map((category) => {
@@ -148,7 +133,7 @@ export function AIHiringAssistant() {
           return {
             ...category,
             questions: category.questions.map((q) =>
-              q.id === questionId ? { ...q, notes } : q
+              q.id === questionId ? { ...q, answer } : q
             ),
           };
         }
@@ -169,9 +154,9 @@ export function AIHiringAssistant() {
             questions: [
               ...category.questions,
               {
-                id: Date.now(),
-                text: customQuestion,
-                notes: "",
+                id: `custom_${Date.now()}`,
+                question: customQuestion,
+                answer: "",
               },
             ],
           };
@@ -194,16 +179,45 @@ export function AIHiringAssistant() {
     setCategories([]);
   };
 
-  const handleExportPDF = () => {
-    console.log("Exporting interview guide to PDF...", {
-      candidateName,
-      role,
-      seniority,
-      industry,
-      interviewGoal,
-      categories,
-    });
-    alert("PDF export with all questions and answers would be generated here!");
+  const handleExportPDF = async () => {
+    setIsExporting(true);
+
+    try {
+      const technicalCategory = categories.find((c) => c.id === "technical");
+      const softSkillsCategory = categories.find((c) => c.id === "soft-skills");
+      const cultureFitCategory = categories.find((c) => c.id === "culture-fit");
+
+      const pdfBlob = await exportInterviewPdf({
+        candidateName,
+        role,
+        seniority,
+        industry,
+        interviewGoal,
+        technicalQuestions: technicalCategory?.questions || [],
+        softSkillsQuestions: softSkillsCategory?.questions || [],
+        cultureFitQuestions: cultureFitCategory?.questions || [],
+      });
+
+      // Create download link
+      const url = window.URL.createObjectURL(pdfBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Interview_${candidateName.replace(
+        /\s+/g,
+        "_"
+      )}_${Date.now()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("PDF exported successfully!");
+    } catch (error: any) {
+      console.error("Error exporting PDF:", error);
+      toast.error(error.message || "Failed to export PDF");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleCopyToNotion = () => {
@@ -221,8 +235,8 @@ ${category.title}
 ${category.questions
   .map(
     (q, i) => `
-${i + 1}. ${q.text}
-   Answer/Notes: ${q.notes || "[No notes yet]"}
+${i + 1}. ${q.question}
+   Answer/Notes: ${q.answer || "[No notes yet]"}
 `
   )
   .join("\n")}
@@ -231,7 +245,7 @@ ${i + 1}. ${q.text}
   .join("\n")}`;
 
     navigator.clipboard.writeText(content);
-    alert("Copied to clipboard! You can now paste into Notion.");
+    toast.success("Copied to clipboard! You can now paste into Notion.");
   };
 
   const canGenerate =
@@ -289,11 +303,11 @@ ${i + 1}. ${q.text}
                   <SelectValue placeholder="Select level" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="intern">Intern</SelectItem>
-                  <SelectItem value="junior">Junior</SelectItem>
-                  <SelectItem value="mid">Mid-level</SelectItem>
-                  <SelectItem value="senior">Senior</SelectItem>
-                  <SelectItem value="lead">Lead</SelectItem>
+                  <SelectItem value="Intern">Intern</SelectItem>
+                  <SelectItem value="Junior">Junior</SelectItem>
+                  <SelectItem value="Mid-level">Mid-level</SelectItem>
+                  <SelectItem value="Senior">Senior</SelectItem>
+                  <SelectItem value="Lead">Lead</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -304,12 +318,12 @@ ${i + 1}. ${q.text}
                   <SelectValue placeholder="Select industry" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="technology">Technology</SelectItem>
-                  <SelectItem value="engineering">Engineering</SelectItem>
-                  <SelectItem value="marketing">Marketing</SelectItem>
-                  <SelectItem value="design">Design</SelectItem>
-                  <SelectItem value="finance">Finance</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="Technology">Technology</SelectItem>
+                  <SelectItem value="Engineering">Engineering</SelectItem>
+                  <SelectItem value="Marketing">Marketing</SelectItem>
+                  <SelectItem value="Design">Design</SelectItem>
+                  <SelectItem value="Finance">Finance</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -414,21 +428,23 @@ ${i + 1}. ${q.text}
                                 {index + 1}
                               </div>
                               <div className="flex-1 space-y-3">
-                                <p className="font-medium">{question.text}</p>
+                                <p className="font-medium">
+                                  {question.question}
+                                </p>
 
                                 {/* Answer/Notes */}
                                 <div>
                                   <Label
-                                    htmlFor={`notes-${question.id}`}
+                                    htmlFor={`answer-${question.id}`}
                                     className="text-sm text-muted-foreground mb-2"
                                   >
                                     Candidate Answer & Your Notes
                                   </Label>
                                   <Textarea
-                                    id={`notes-${question.id}`}
-                                    value={question.notes}
+                                    id={`answer-${question.id}`}
+                                    value={question.answer}
                                     onChange={(e) =>
-                                      handleNotesChange(
+                                      handleAnswerChange(
                                         category.id,
                                         question.id,
                                         e.target.value
@@ -482,18 +498,20 @@ ${i + 1}. ${q.text}
                 </Button>
                 <Button
                   onClick={handleExportPDF}
+                  disabled={isExporting}
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  <Download className="w-4 h-4 mr-2" />
-                  Export as PDF
-                </Button>
-                <Button
-                  onClick={handleCopyToNotion}
-                  variant="outline"
-                  className="border-blue-300 text-blue-600 hover:bg-blue-50"
-                >
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy to Notion
+                  {isExporting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Exporting...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 mr-2" />
+                      Export as PDF
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>

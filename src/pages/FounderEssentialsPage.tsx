@@ -59,6 +59,63 @@ import { LoadingModal } from "../components/LoadingModal";
 import { useNavigate } from "react-router-dom";
 import { AIHiringAssistant } from "../components/AIHiringAssistant";
 
+// Interview interfaces
+interface InterviewGenerateRequest {
+  candidateName: string;
+  role: string;
+  seniority: string;
+  industry: string;
+  interviewGoal: string;
+}
+
+interface InterviewQuestion {
+  id: string;
+  question: string;
+  answer: string;
+}
+
+interface InterviewQuestionsResponse {
+  success: boolean;
+  data: {
+    candidateInfo: {
+      candidateName: string;
+      role: string;
+      seniority: string;
+      industry: string;
+      interviewGoal: string;
+    };
+    questions: {
+      technical: InterviewQuestion[];
+      softSkills: InterviewQuestion[];
+      cultureFit: InterviewQuestion[];
+    };
+  };
+  message: string;
+}
+
+interface InterviewExportRequest {
+  candidateName: string;
+  role: string;
+  seniority: string;
+  industry: string;
+  interviewGoal: string;
+  technicalQuestions: Array<{
+    id: string;
+    question: string;
+    answer: string;
+  }>;
+  softSkillsQuestions: Array<{
+    id: string;
+    question: string;
+    answer: string;
+  }>;
+  cultureFitQuestions: Array<{
+    id: string;
+    question: string;
+    answer: string;
+  }>;
+}
+
 const tools = [
   {
     id: "invoice",
