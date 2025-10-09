@@ -57,6 +57,7 @@ import { pitchesAtom } from "../atoms/pitchesAtom";
 import { currentUserAtom } from "../atoms/userAtom";
 import { LoadingModal } from "../components/LoadingModal";
 import { useNavigate } from "react-router-dom";
+import { AIHiringAssistant } from "../components/AIHiringAssistant";
 
 const tools = [
   {
@@ -132,6 +133,17 @@ const tools = [
     isPremium: true,
     buttonColor: "bg-premium-purple hover:bg-premium-purple-dark",
     buttonText: "Generate Landing Page",
+  },
+  {
+    id: "ai-hiring",
+    title: "AI Hiring Assistant",
+    description: "Generate interview questions and evaluate candidates",
+    icon: Users,
+    color: "bg-purple-500",
+    colorLight: "bg-purple-50",
+    isPremium: true,
+    buttonColor: "bg-premium-purple hover:bg-premium-purple-dark",
+    buttonText: "AI Hiring Assistant",
   },
 ];
 
@@ -219,6 +231,15 @@ export function FounderEssentialsPage({
         setIsGenerating(false);
       }
 
+      return;
+    }
+
+    if (toolId === "ai-hiring") {
+      if (isLocked) {
+        onUpgrade();
+        return;
+      }
+      setActiveModal("ai-hiring");
       return;
     }
   };
@@ -835,6 +856,27 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
               <Download className="mr-2 h-4 w-4" />
               Download Full Interview Template
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Hiring Assistant Modal */}
+      <Dialog
+        open={activeModal === "ai-hiring"}
+        onOpenChange={() => setActiveModal(null)}
+      >
+        <DialogContent className="w-3/4  rounded-2xl max-h-[80vh]   overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Users className="h-5 w-5 text-purple-600" />
+              AI Hiring Assistant
+            </DialogTitle>
+            <DialogDescription>
+              Generate smart interview questions and evaluate candidates
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <AIHiringAssistant />
           </div>
         </DialogContent>
       </Dialog>
