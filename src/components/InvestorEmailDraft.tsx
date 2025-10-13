@@ -177,7 +177,7 @@ export function InvestorEmailDraft() {
       </div>
 
       {/* Template Picker */}
-      <Card>
+      <Card className="mb-8">
         <CardHeader>
           <CardTitle>Choose Template</CardTitle>
         </CardHeader>

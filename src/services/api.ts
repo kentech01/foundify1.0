@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback } from "react";
 import useAxios from "../hooks/useAxios";
+// export const API_BASE_URL =
+("https://foundify-api-production.up.railway.app/api/v1");
 export const API_BASE_URL = "http://localhost:5001/api/v1/";
 
 interface ApiResponse<T> {
@@ -316,6 +318,18 @@ interface ContractExportPdfRequest {
   customContent?: string; // optional: send edited text if your API supports it
 }
 
+// Feedback interfaces
+interface FeedbackExportRequest {
+  employeeName: string;
+  role: string;
+  feedbackCycle: string;
+  strengthsObserved?: string;
+  areasForGrowth?: string;
+  teamCollaboration?: string;
+  goalsNext6Months?: string;
+  additionalNotes?: string;
+}
+
 // Add helper to surface server error messages (used below)
 const errorMessage = (error: any) => {
   const status = error?.response?.status;
@@ -409,11 +423,13 @@ export const useApiService = () => {
   const generateLandingPage = useCallback(
     async (
       pitchId: string,
-      plan: "basic" | "premium" = "basic"
+      plan: "basic" | "premium" = "basic",
+      logoSvg?: string // Add optional logoSvg parameter
     ): Promise<LandingPageResponse> => {
       try {
         const response = await axiosInstance.post(`/pitch/landing/${pitchId}`, {
           plan: plan,
+          logo: logoSvg,
         });
         return response.data;
       } catch (error: any) {
@@ -432,7 +448,7 @@ export const useApiService = () => {
         const response = await axiosInstance.get("/pitch/history", {
           params: {
             page: 1,
-            limit: 1000000, // Get enough to find the first pitch
+            limit: 10000,
           },
         });
 
@@ -713,6 +729,27 @@ export const useApiService = () => {
     [axiosInstance]
   );
 
+  // Feedback API methods
+  const exportFeedbackPdf = useCallback(
+    async (payload: FeedbackExportRequest): Promise<Blob> => {
+      try {
+        const response = await axiosInstance.post(
+          "/feedback/export-pdf",
+          payload,
+          {
+            responseType: "blob",
+          }
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to export feedback PDF"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
   return {
     generatePitch,
     getUserStats,
@@ -743,6 +780,8 @@ export const useApiService = () => {
     generateContract,
     exportContractPdf,
     getContract,
+    // Feedback methods
+    exportFeedbackPdf,
   };
 };
 
@@ -985,4 +1024,6 @@ export type {
   ContractGenerateResponse,
   ContractPdfResponse,
   ContractExportPdfRequest,
+  // Feedback types
+  FeedbackExportRequest,
 };
