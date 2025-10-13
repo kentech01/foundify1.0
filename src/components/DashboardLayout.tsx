@@ -46,12 +46,7 @@ export function DashboardLayout({
       label: "Pitch Dashboard",
       icon: LayoutDashboard,
     },
-    {
-      path: "/dashboard/invoices",
-      label: "Invoices",
-      icon: FileText,
-      premium: false,
-    },
+
     {
       path: "/dashboard/essentials",
       label: "Founder Essentials",

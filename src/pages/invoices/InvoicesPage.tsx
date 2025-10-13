@@ -49,10 +49,12 @@ import {
   Send,
   Download,
   Search,
+  ChevronRight,
 } from "lucide-react";
 import { useApiService, type Invoice as ApiInvoice } from "../../services/api";
 import { toast } from "sonner";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
+import { useNavigate } from "react-router-dom";
 
 interface LineItem {
   description: string;
@@ -60,7 +62,15 @@ interface LineItem {
   rate: number;
 }
 
-export function InvoicesPage() {
+export function InvoicesPage({
+  showInvoices,
+  setShowInvoices,
+}: {
+  showInvoices: boolean;
+  setShowInvoices: (showInvoices: boolean) => void;
+}) {
+  const navigate = useNavigate();
+
   const [companyName, setCompanyName] = useState("");
   const [clientName, setClientName] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState(
@@ -88,7 +98,7 @@ export function InvoicesPage() {
     updateInvoice,
     downloadInvoicePdf,
   } = useApiService();
-  const { user } = useCurrentUser();
+  const { currentUser } = useCurrentUser();
 
   const [invoices, setInvoices] = useState<ApiInvoice[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -351,6 +361,20 @@ export function InvoicesPage() {
 
   return (
     <div className="p-8">
+      {/* Breadcrumb Navigation */}
+      <div className="mb-6">
+        <div
+          className="flex items-center space-x-2 text-sm text-gray-600 cursor-pointer"
+          onClick={() => setShowInvoices(!showInvoices)}
+        >
+          <button className="hover:text-gray-900 transition-colors cursor-pointer hover:text-gray-900">
+            Founder Essentials
+          </button>
+          <ChevronRight className="h-4 w-4 text-gray-400" />
+          <span className="text-gray-900 font-medium">Invoices</span>
+        </div>
+      </div>
+
       {/* Header Actions */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <div>

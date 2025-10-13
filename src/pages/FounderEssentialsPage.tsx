@@ -36,6 +36,7 @@ import { ContractTemplates } from "../components/ContractTemplates";
 import { InvestorEmailDraft } from "../components/InvestorEmailDraft";
 import { FeedbackCoach } from "../components/FeedbackCoach";
 import { Input } from "../components/ui/input";
+import { InvoicesPage } from "./invoices/InvoicesPage";
 
 const tools = [
   {
@@ -129,6 +130,7 @@ export function FounderEssentialsPage({
   const [logoSvgContent, setLogoSvgContent] = useState<string | null>(null);
   const [logoFileName, setLogoFileName] = useState<string>("");
   const [uploadError, setUploadError] = useState<string>("");
+  const [showInvoices, setShowInvoices] = useState(false);
 
   const modalContentClass = "overflow-y-auto w-3/4 ";
 
@@ -213,7 +215,7 @@ export function FounderEssentialsPage({
 
   const handleToolAction = async (toolId: string) => {
     if (toolId === "invoice") {
-      navigate("/dashboard/invoices");
+      setShowInvoices(true);
       return;
     }
 
@@ -265,6 +267,15 @@ export function FounderEssentialsPage({
       return;
     }
   };
+
+  if (showInvoices) {
+    return (
+      <InvoicesPage
+        showInvoices={showInvoices}
+        setShowInvoices={setShowInvoices}
+      />
+    );
+  }
 
   return (
     <div className="p-8">
