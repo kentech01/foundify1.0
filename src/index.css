@@ -101,6 +101,7 @@
     --color-blue-800: oklch(0.424 0.199 265.638);
     --color-blue-900: oklch(0.379 0.146 265.522);
     --color-purple-50: oklch(0.977 0.014 308.299);
+    --color-purple-100: oklch(0.946 0.033 307.174);
     --color-purple-500: oklch(0.627 0.265 303.9);
     --color-purple-600: oklch(0.558 0.288 302.321);
     --color-purple-700: oklch(0.496 0.265 301.924);
@@ -954,6 +955,10 @@
     height: 100vh;
   }
 
+  .h-3\/4 {
+    height: 75%;
+  }
+
   .max-h-\(--radix-dropdown-menu-content-available-height\) {
     max-height: var(--radix-dropdown-menu-content-available-height);
   }
@@ -980,6 +985,10 @@
 
   .min-h-screen {
     min-height: 100vh;
+  }
+
+  .min-h-auto {
+    min-height: auto;
   }
 
   .w-3 {
@@ -1613,6 +1622,10 @@
 
   .bg-purple-500 {
     background-color: var(--color-purple-500);
+  }
+
+  .bg-purple-100 {
+    background-color: var(--color-purple-100);
   }
 
   .bg-purple-600 {

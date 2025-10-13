@@ -86,16 +86,8 @@ export function DashboardLayout({
         {/* Logo */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-premium-purple to-deep-blue flex items-center justify-center">
-              <span className="text-white font-bold text-xl">F</span>
-            </div>
             <div className="flex-1">
-              <h1 className="text-xl font-bold text-gray-900">Foundify</h1>
-              {isPremium && (
-                <Badge className="bg-gradient-to-r from-premium-purple to-deep-blue text-white text-xs mt-1">
-                  Premium
-                </Badge>
-              )}
+              <h1 className="text-2xl font-bold text-deep-blue">Foundify</h1>
             </div>
           </div>
         </div>
