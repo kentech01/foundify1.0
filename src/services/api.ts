@@ -282,6 +282,51 @@ interface InterviewExportRequest {
   }>;
 }
 
+// Contract interfaces
+interface ContractGenerateRequest {
+  templateId: string;
+  data: Record<string, string>;
+  customContent?: string; // For edited preview content
+}
+
+interface ContractGenerateResponse {
+  success: boolean;
+  data: {
+    contractId: string;
+    html: string;
+    templateId: string;
+    generatedAt: string;
+  };
+  message?: string;
+}
+
+interface ContractPdfResponse {
+  success: boolean;
+  data: {
+    contractId: string;
+    pdfUrl: string;
+  };
+  message?: string;
+}
+
+// Add type for export request
+interface ContractExportPdfRequest {
+  templateId: string;
+  data: Record<string, string>;
+  customContent?: string; // optional: send edited text if your API supports it
+}
+
+// Add helper to surface server error messages (used below)
+const errorMessage = (error: any) => {
+  const status = error?.response?.status;
+  const msg =
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    error?.message ||
+    "Request failed";
+  return status ? `${status} ${msg}` : msg;
+};
+
 // Hook-based API service
 export const useApiService = () => {
   const axiosInstance = useAxios();
@@ -617,6 +662,57 @@ export const useApiService = () => {
     [axiosInstance]
   );
 
+  // Contract API methods
+  const generateContract = useCallback(
+    async (
+      payload: ContractGenerateRequest
+    ): Promise<ContractGenerateResponse> => {
+      try {
+        const response = await axiosInstance.post(
+          "/contracts/generate",
+          payload
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to generate contract"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  // Contract API methods
+  const exportContractPdf = useCallback(
+    async (payload: ContractExportPdfRequest): Promise<Blob> => {
+      try {
+        const response = await axiosInstance.post(
+          "/contracts/export-pdf",
+          payload,
+          { responseType: "blob" }
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(errorMessage(error));
+      }
+    },
+    [axiosInstance]
+  );
+
+  const getContract = useCallback(
+    async (contractId: string): Promise<ContractGenerateResponse> => {
+      try {
+        const response = await axiosInstance.get(`/contracts/${contractId}`);
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to get contract"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
   return {
     generatePitch,
     getUserStats,
@@ -643,6 +739,10 @@ export const useApiService = () => {
     // Interview methods
     generateInterviewQuestions,
     exportInterviewPdf,
+    // Contract methods
+    generateContract,
+    exportContractPdf,
+    getContract,
   };
 };
 
@@ -880,4 +980,9 @@ export type {
   InterviewQuestion,
   InterviewQuestionsResponse,
   InterviewExportRequest,
+  // Contract types
+  ContractGenerateRequest,
+  ContractGenerateResponse,
+  ContractPdfResponse,
+  ContractExportPdfRequest,
 };

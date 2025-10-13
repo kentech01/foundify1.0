@@ -58,6 +58,8 @@ import { currentUserAtom } from "../atoms/userAtom";
 import { LoadingModal } from "../components/LoadingModal";
 import { useNavigate } from "react-router-dom";
 import { AIHiringAssistant } from "../components/AIHiringAssistant";
+import { ContractTemplates } from "../components/ContractTemplates";
+import { InvestorEmailDraft } from "../components/InvestorEmailDraft";
 
 // Interview interfaces
 interface InterviewGenerateRequest {
@@ -222,7 +224,7 @@ export function FounderEssentialsPage({
 
   const currentUser = useRecoilValue<any>(currentUserAtom);
 
-  const isLocked = currentUser?.profile?.plan === "basic";
+  const isLocked = false;
 
   const [showLandingLoading, setShowLandingLoading] = useState(false);
   const [landingProgress, setLandingProgress] = useState(0);
@@ -230,6 +232,16 @@ export function FounderEssentialsPage({
   const handleToolAction = async (toolId: string) => {
     if (toolId === "invoice") {
       navigate("/dashboard/invoices");
+      return;
+    }
+
+    if (toolId === "contracts") {
+      setActiveModal("contracts");
+      return;
+    }
+
+    if (toolId === "investor") {
+      setActiveModal("investorEmail"); // Match the modal check at line 798
       return;
     }
 
@@ -494,7 +506,7 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
 
       {/* Investor Email Modal */}
       <Dialog
-        open={activeModal === "investor"}
+        open={activeModal === "investor-email"}
         onOpenChange={() => setActiveModal(null)}
       >
         <DialogContent className="sm:max-w-2xl rounded-2xl max-h-[80vh] overflow-y-auto">
@@ -781,6 +793,22 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
         </DialogContent>
       </Dialog>
 
+      {/* Investor Email Modal */}
+      <Dialog
+        open={activeModal === "investorEmail"}
+        onOpenChange={() => setActiveModal(null)}
+      >
+        <DialogContent className="sm:max-w-2xl rounded-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Mail className="h-5 w-5 text-blue-600" />
+              Investor Email Generator
+            </DialogTitle>
+          </DialogHeader>
+          <InvestorEmailDraft />
+        </DialogContent>
+      </Dialog>
+
       {/* Feedback Coach Modal */}
       <Dialog
         open={activeModal === "feedback"}
@@ -935,6 +963,23 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
           <div className="mt-4">
             <AIHiringAssistant />
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Contract Templates Modal */}
+      <Dialog
+        open={activeModal === "contracts"}
+        onOpenChange={() => setActiveModal(null)}
+      >
+        <DialogContent className="w-3/4  rounded-2xl max-h-[80vh]   overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <FileCheck className="h-5 w-5 text-purple-600" />
+              Legal Contract Templates
+            </DialogTitle>
+          </DialogHeader>
+
+          <ContractTemplates />
         </DialogContent>
       </Dialog>
 
