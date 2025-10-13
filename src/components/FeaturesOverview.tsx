@@ -1,6 +1,13 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Presentation, Wrench, ArrowRight } from 'lucide-react';
-import { Button } from './ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { Presentation, Wrench, ArrowRight } from "lucide-react";
+import { Button } from "./ui/button";
+import React from "react";
 
 export function FeaturesOverview() {
   return (
@@ -11,7 +18,8 @@ export function FeaturesOverview() {
             Two Powerful Products, One Platform
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Everything you need to launch and grow your startup, seamlessly integrated
+            Everything you need to launch and grow your startup, seamlessly
+            integrated
           </p>
         </div>
 
@@ -35,11 +43,15 @@ export function FeaturesOverview() {
                 <ul className="space-y-3 mb-4">
                   <li className="flex items-start">
                     <ArrowRight className="h-5 w-5 text-deep-blue mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">Generate beautiful landing pages from your pitch</span>
+                    <span className="text-gray-700">
+                      Generate beautiful landing pages from your pitch
+                    </span>
                   </li>
                   <li className="flex items-start">
                     <ArrowRight className="h-5 w-5 text-deep-blue mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">One-click PDF downloads for easy sharing</span>
+                    <span className="text-gray-700">
+                      One-click PDF downloads for easy sharing
+                    </span>
                   </li>
                 </ul>
                 <div className="text-sm font-semibold text-premium-purple bg-premium-purple-50 px-3 py-1 rounded-full inline-block mb-4 mt-4">
@@ -48,15 +60,22 @@ export function FeaturesOverview() {
                 <ul className="space-y-3">
                   <li className="flex items-start">
                     <ArrowRight className="h-5 w-5 text-premium-purple mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">AI-assisted pitch deck building</span>
+                    <span className="text-gray-700">
+                      AI-assisted pitch deck building
+                    </span>
                   </li>
                   <li className="flex items-start">
                     <ArrowRight className="h-5 w-5 text-premium-purple mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">Track views and engagement analytics</span>
+                    <span className="text-gray-700">
+                      Track views and engagement analytics
+                    </span>
                   </li>
                 </ul>
               </div>
-              <Button variant="outline" className="w-full border-2 border-deep-blue text-deep-blue hover:bg-deep-blue hover:text-white rounded-xl">
+              <Button
+                variant="outline"
+                className="w-full border-2 border-deep-blue text-deep-blue hover:bg-deep-blue hover:text-white rounded-xl"
+              >
                 Explore Pitch Dashboard
               </Button>
             </CardContent>
@@ -71,7 +90,9 @@ export function FeaturesOverview() {
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-premium-purple text-white mb-4">
                 <Wrench className="h-8 w-8" />
               </div>
-              <CardTitle className="text-2xl mb-2">Premium Starter Pack</CardTitle>
+              <CardTitle className="text-2xl mb-2">
+                Premium Starter Pack
+              </CardTitle>
               <CardDescription className="text-base">
                 Six essential tools to launch and scale your startup
               </CardDescription>
@@ -80,27 +101,39 @@ export function FeaturesOverview() {
               <ul className="space-y-4 mb-6">
                 <li className="flex items-start">
                   <ArrowRight className="h-5 w-5 text-premium-purple mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700">Invoice Generator - Professional PDF invoices</span>
+                  <span className="text-gray-700">
+                    Invoice Generator - Professional PDF invoices
+                  </span>
                 </li>
                 <li className="flex items-start">
                   <ArrowRight className="h-5 w-5 text-premium-purple mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700">Contract Templates - NDA, Founder Agreement & more</span>
+                  <span className="text-gray-700">
+                    Contract Templates - NDA, Founder Agreement & more
+                  </span>
                 </li>
                 <li className="flex items-start">
                   <ArrowRight className="h-5 w-5 text-premium-purple mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700">Feedback Coach - AI-guided team feedback</span>
+                  <span className="text-gray-700">
+                    Feedback Coach - AI-guided team feedback
+                  </span>
                 </li>
                 <li className="flex items-start">
                   <ArrowRight className="h-5 w-5 text-premium-purple mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700">Founder Role Suggestions - Smart team mapping</span>
+                  <span className="text-gray-700">
+                    Founder Role Suggestions - Smart team mapping
+                  </span>
                 </li>
                 <li className="flex items-start">
                   <ArrowRight className="h-5 w-5 text-premium-purple mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700">Investor Email Draft - Professional outreach templates</span>
+                  <span className="text-gray-700">
+                    Investor Email Draft - Professional outreach templates
+                  </span>
                 </li>
                 <li className="flex items-start">
                   <ArrowRight className="h-5 w-5 text-premium-purple mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700">Customer Interview Guide - Discovery templates</span>
+                  <span className="text-gray-700">
+                    Customer Interview Guide - Discovery templates
+                  </span>
                 </li>
               </ul>
               <Button className="w-full bg-premium-purple hover:bg-premium-purple-dark text-white rounded-xl">

@@ -12,6 +12,8 @@ import { useEffect } from "react";
 import { currentUserAtom, userLoadingAtom, userErrorAtom } from "./atoms";
 import { UserAuth } from "./context/AuthContext";
 import LandingPagePreview from "./pages/LandingPagePreview";
+import React from "react";
+import Terms from "./pages/Terms";
 
 export default function App() {
   const { isGenerating, progress } = useApp();
@@ -55,6 +57,7 @@ export default function App() {
         <Route path="/dashboard/*" element={<DashboardMain />} />
         <Route path="/upgrade" element={<UpgradePage />} />
         <Route path="/:startupName" element={<LandingPagePreview />} />
+        <Route path="/terms" element={<Terms />} />
       </Routes>
 
       <LoadingModal
