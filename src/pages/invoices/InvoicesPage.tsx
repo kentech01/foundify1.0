@@ -46,6 +46,9 @@ import {
   Trash2,
   DollarSign,
   Loader2,
+  Send,
+  Download,
+  Search,
 } from "lucide-react";
 import { useApiService, type Invoice as ApiInvoice } from "../../services/api";
 import { toast } from "sonner";
@@ -307,7 +310,7 @@ export function InvoicesPage() {
       invoice.companyName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Calculate stats from actual invoices
+  // Update stats calculation to remove overdue-specific stat
   const totalInvoices = invoices.length;
   const paidInvoices = invoices.filter((i) => i.status === "paid").length;
   const pendingInvoices = invoices.filter(
@@ -848,20 +851,22 @@ export function InvoicesPage() {
         </Card>
       </div>
 
+      {/* Search Bar */}
+      <div className="mb-6">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Input
+            placeholder="Search invoices..."
+            className="pl-10 border-2 border-gray-200 rounded-xl"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+
       {/* Invoices List */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold text-gray-900">Recent Invoices</h3>
-          <Button
-            onClick={loadInvoices}
-            variant="outline"
-            size="sm"
-            className="border-2 border-gray-200 rounded-xl"
-          >
-            <Loader2 className="mr-2 h-4 w-4" />
-            Refresh
-          </Button>
-        </div>
+        <h3 className="text-xl font-bold text-gray-900">Recent Invoices</h3>
 
         {filteredInvoices.length === 0 ? (
           <Card className="border-2 border-gray-100 rounded-2xl">
@@ -908,11 +913,6 @@ export function InvoicesPage() {
                         <p className="text-sm text-gray-600">
                           {invoice.clientName || "Unknown Client"}
                         </p>
-                        {invoice.companyName && (
-                          <p className="text-xs text-gray-500">
-                            From: {invoice.companyName}
-                          </p>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -932,10 +932,10 @@ export function InvoicesPage() {
                       </Badge>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Created</p>
+                      <p className="text-sm text-gray-600 mb-1">Due Date</p>
                       <div className="flex items-center gap-1 text-sm text-gray-900">
                         <Calendar className="h-4 w-4" />
-                        {formatDate(invoice.createdAt)}
+                        {invoice.dueDate ? formatDate(invoice.dueDate) : "N/A"}
                       </div>
                     </div>
                   </div>
@@ -958,41 +958,19 @@ export function InvoicesPage() {
                       <Edit className="mr-2 h-4 w-4" />
                       Edit
                     </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="border-2 border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently
-                            delete the invoice "
-                            {invoice.invoiceNumber ||
-                              `INV-${invoice.id.slice(-6)}`}
-                            ".
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-
-                          <Button
-                            variant="outline"
-                            disabled={deletingId === invoice.id}
-                            onClick={() => handleDelete(invoice.id)}
-                            className="border-2 border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
-                          >
-                            Confirm
-                          </Button>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    {invoice.status === "pending" && (
+                      <Button className="bg-green-600 hover:bg-green-700 text-white rounded-xl">
+                        <Send className="mr-2 h-4 w-4" />
+                        Send
+                      </Button>
+                    )}
+                    <Button
+                      onClick={() => handleView(invoice)}
+                      className="bg-deep-blue hover:bg-deep-blue-dark text-white rounded-xl"
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Download
+                    </Button>
                   </div>
                 </div>
               </CardContent>
