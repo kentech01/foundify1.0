@@ -1,8 +1,9 @@
-import { Button } from './ui/button';
-import { ImageWithFallback } from './figma/ImageWithFallback';
-import { ArrowRight, Sparkles, Target, Users, Lightbulb } from 'lucide-react';
+import { Button } from "./ui/button";
+import { ImageWithFallback } from "./ImageWithFallback";
+import { ArrowRight, Sparkles, Target, Users, Lightbulb } from "lucide-react";
 
-const LAPTOP_IMAGE_URL = "https://images.unsplash.com/photo-1590097520505-416422f07ad1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXB0b3AlMjBwaXRjaCUyMGRlY2slMjBwcmVzZW50YXRpb258ZW58MXx8fHwxNzU1MjQxMDA5fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral";
+const LAPTOP_IMAGE_URL =
+  "https://images.unsplash.com/photo-1590097520505-416422f07ad1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXB0b3AlMjBwaXRjaCUyMGRlY2slMjBwcmVzZW50YXRpb258ZW58MXx8fHwxNzU1MjQxMDA5fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral";
 
 interface HeroSectionProps {
   onTryNowClick: () => void;
@@ -21,18 +22,18 @@ export function HeroSection({ onTryNowClick }: HeroSectionProps) {
                 AI-Powered Pitch Generation
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900">
-                Create Your Perfect{' '}
-                <span className="text-deep-blue">Startup Pitch</span>{' '}
-                in Minutes
+                Create Your Perfect{" "}
+                <span className="text-deep-blue">Startup Pitch</span> in Minutes
               </h1>
               <p className="text-xl text-gray-600 max-w-2xl">
-                Transform your startup idea into a compelling pitch deck with our AI-powered platform. 
-                No design skills required — just your vision.
+                Transform your startup idea into a compelling pitch deck with
+                our AI-powered platform. No design skills required — just your
+                vision.
               </p>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
+              <Button
                 onClick={onTryNowClick}
                 size="lg"
                 className="bg-deep-blue hover:bg-deep-blue-dark text-white px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
@@ -40,8 +41,8 @@ export function HeroSection({ onTryNowClick }: HeroSectionProps) {
                 Try it Now — Free
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="lg"
                 className="border-2 border-deep-blue text-deep-blue hover:bg-deep-blue hover:text-white px-8 py-4 rounded-xl transition-all duration-300"
               >
@@ -56,8 +57,12 @@ export function HeroSection({ onTryNowClick }: HeroSectionProps) {
                   <Target className="h-8 w-8 text-deep-blue" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Targeted Messaging</h3>
-                  <p className="text-sm text-gray-600">AI-crafted content for your audience</p>
+                  <h3 className="font-semibold text-gray-900">
+                    Targeted Messaging
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    AI-crafted content for your audience
+                  </p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
@@ -65,8 +70,12 @@ export function HeroSection({ onTryNowClick }: HeroSectionProps) {
                   <Users className="h-8 w-8 text-deep-blue" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Investor Ready</h3>
-                  <p className="text-sm text-gray-600">Professional pitch deck format</p>
+                  <h3 className="font-semibold text-gray-900">
+                    Investor Ready
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Professional pitch deck format
+                  </p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
@@ -74,8 +83,12 @@ export function HeroSection({ onTryNowClick }: HeroSectionProps) {
                   <Lightbulb className="h-8 w-8 text-deep-blue" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Smart Insights</h3>
-                  <p className="text-sm text-gray-600">Data-driven recommendations</p>
+                  <h3 className="font-semibold text-gray-900">
+                    Smart Insights
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Data-driven recommendations
+                  </p>
                 </div>
               </div>
             </div>

@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback } from "react";
 import useAxios from "../hooks/useAxios";
+// export const API_BASE_URL =
+("https://foundify-api-production.up.railway.app/api/v1");
 export const API_BASE_URL = "http://localhost:5001/api/v1/";
 
 interface ApiResponse<T> {
@@ -282,6 +284,83 @@ interface InterviewExportRequest {
   }>;
 }
 
+// Contract interfaces
+interface ContractGenerateRequest {
+  templateId: string;
+  data: Record<string, string>;
+  customContent?: string; // For edited preview content
+}
+
+interface ContractGenerateResponse {
+  success: boolean;
+  data: {
+    contractId: string;
+    html: string;
+    templateId: string;
+    generatedAt: string;
+  };
+  message?: string;
+}
+
+interface ContractPdfResponse {
+  success: boolean;
+  data: {
+    contractId: string;
+    pdfUrl: string;
+  };
+  message?: string;
+}
+
+// Add type for export request
+interface ContractExportPdfRequest {
+  templateId: string;
+  data: Record<string, string>;
+  customContent?: string; // optional: send edited text if your API supports it
+}
+
+interface ContractEditRequest {
+  templateId: string;
+  originalData: Record<string, string>;
+  updates: {
+    data?: Record<string, string>;
+    customContent?: string;
+  };
+}
+
+interface ContractEditResponse {
+  success: boolean;
+  data: {
+    contractId?: string;
+    html: string;
+    templateId: string;
+    generatedAt?: string;
+  };
+  message?: string;
+}
+
+// Feedback interfaces
+interface FeedbackExportRequest {
+  employeeName: string;
+  role: string;
+  feedbackCycle: string;
+  strengthsObserved?: string;
+  areasForGrowth?: string;
+  teamCollaboration?: string;
+  goalsNext6Months?: string;
+  additionalNotes?: string;
+}
+
+// Add helper to surface server error messages (used below)
+const errorMessage = (error: any) => {
+  const status = error?.response?.status;
+  const msg =
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    error?.message ||
+    "Request failed";
+  return status ? `${status} ${msg}` : msg;
+};
+
 // Hook-based API service
 export const useApiService = () => {
   const axiosInstance = useAxios();
@@ -364,11 +443,13 @@ export const useApiService = () => {
   const generateLandingPage = useCallback(
     async (
       pitchId: string,
-      plan: "basic" | "premium" = "basic"
+      plan: "basic" | "premium" = "basic",
+      logoSvg?: string // Add optional logoSvg parameter
     ): Promise<LandingPageResponse> => {
       try {
         const response = await axiosInstance.post(`/pitch/landing/${pitchId}`, {
           plan: plan,
+          logo: logoSvg,
         });
         return response.data;
       } catch (error: any) {
@@ -387,7 +468,7 @@ export const useApiService = () => {
         const response = await axiosInstance.get("/pitch/history", {
           params: {
             page: 1,
-            limit: 1000000, // Get enough to find the first pitch
+            limit: 10000,
           },
         });
 
@@ -617,6 +698,192 @@ export const useApiService = () => {
     [axiosInstance]
   );
 
+  // Contract API methods
+  const generateContract = useCallback(
+    async (
+      payload: ContractGenerateRequest
+    ): Promise<ContractGenerateResponse> => {
+      try {
+        const response = await axiosInstance.post(
+          "/contracts/generate",
+          payload
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to generate contract"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  // Contract API methods
+  const exportContractPdf = useCallback(
+    async (payload: ContractExportPdfRequest): Promise<Blob> => {
+      try {
+        const response = await axiosInstance.post(
+          "/contracts/export-pdf",
+          payload,
+          { responseType: "blob" }
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(errorMessage(error));
+      }
+    },
+    [axiosInstance]
+  );
+
+  const getContract = useCallback(
+    async (contractId: string): Promise<ContractGenerateResponse> => {
+      try {
+        const response = await axiosInstance.get(`/contracts/${contractId}`);
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to get contract"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const deleteContract = useCallback(
+    async (
+      contractId: string
+    ): Promise<{ success: boolean; message: string }> => {
+      try {
+        const response = await axiosInstance.delete(`/contracts/${contractId}`);
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to delete contract"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const editContract = useCallback(
+    async (payload: ContractEditRequest): Promise<ContractEditResponse> => {
+      try {
+        const response = await axiosInstance.put("/contracts/edit", payload);
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to edit contract"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const getContracts = useCallback(
+    async (
+      limit: number = 20,
+      offset: number = 0
+    ): Promise<ContractListResponse> => {
+      try {
+        const response = await axiosInstance.get("/contracts", {
+          params: {
+            limit: Math.min(limit, 50),
+            offset,
+          },
+        });
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to get contracts"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const getContractTemplates =
+    useCallback(async (): Promise<ContractTemplatesResponse> => {
+      try {
+        const response = await axiosInstance.get("/contracts/templates");
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to get contract templates"
+        );
+      }
+    }, [axiosInstance]);
+
+  const getContractTemplate = useCallback(
+    async (templateId: string): Promise<ContractTemplateResponse> => {
+      try {
+        const response = await axiosInstance.get(
+          `/contracts/templates/${templateId}`
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to get contract template"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const getContractTemplatePreview = useCallback(
+    async (templateId: string): Promise<ContractTemplatePreviewResponse> => {
+      try {
+        const response = await axiosInstance.get(
+          `/contracts/templates/${templateId}/preview`
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message ||
+            "Failed to get contract template preview"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const previewContractPdf = useCallback(
+    async (
+      payload: ContractPreviewPdfRequest
+    ): Promise<ContractPreviewPdfResponse> => {
+      try {
+        const response = await axiosInstance.post(
+          "/contracts/preview-pdf",
+          payload
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(errorMessage(error));
+      }
+    },
+    [axiosInstance]
+  );
+
+  // Feedback API methods
+  const exportFeedbackPdf = useCallback(
+    async (payload: FeedbackExportRequest): Promise<Blob> => {
+      try {
+        const response = await axiosInstance.post(
+          "/feedback/export-pdf",
+          payload,
+          {
+            responseType: "blob",
+          }
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to export feedback PDF"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
   return {
     generatePitch,
     getUserStats,
@@ -643,6 +910,19 @@ export const useApiService = () => {
     // Interview methods
     generateInterviewQuestions,
     exportInterviewPdf,
+    // Contract methods
+    generateContract,
+    exportContractPdf,
+    getContract,
+    deleteContract,
+    editContract,
+    getContracts,
+    getContractTemplates,
+    getContractTemplate,
+    getContractTemplatePreview,
+    previewContractPdf,
+    // Feedback methods
+    exportFeedbackPdf,
   };
 };
 
@@ -880,4 +1160,21 @@ export type {
   InterviewQuestion,
   InterviewQuestionsResponse,
   InterviewExportRequest,
+  // Contract types
+  ContractGenerateRequest,
+  ContractGenerateResponse,
+  ContractPdfResponse,
+  ContractExportPdfRequest,
+  ContractEditRequest,
+  ContractEditResponse,
+  ContractTemplate,
+  ContractTemplatesResponse,
+  ContractTemplateResponse,
+  ContractTemplatePreview,
+  ContractTemplatePreviewResponse,
+  ContractPreviewPdfRequest,
+  ContractPreviewPdfResponse,
+  // Feedback types
+  FeedbackExportRequest,
+  ContractListResponse,
 };

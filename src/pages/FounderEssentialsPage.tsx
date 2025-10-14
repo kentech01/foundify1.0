@@ -8,113 +8,35 @@ import {
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import { Textarea } from "../components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "../components/ui/dialog";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../components/ui/tabs";
 import {
   FileText,
   FileCheck,
   MessageSquare,
   Users,
   Mail,
-  ClipboardList,
   ArrowRight,
-  Download,
-  Copy,
-  CheckCircle,
-  Star,
-  Target,
-  Lightbulb,
-  TrendingUp,
+  Upload,
+  X,
 } from "lucide-react";
-import { toast } from "sonner@2.0.3";
-import starterPackImage from "figma:asset/d60826e7654cae0c43327173cc7cdd845aca3e70.png";
+import { toast } from "sonner";
 import { useApiService } from "../services/api";
-import { useRecoilState, useRecoilValue } from "recoil";
-import { pitchesAtom } from "../atoms/pitchesAtom";
+import { useRecoilValue } from "recoil";
 import { currentUserAtom } from "../atoms/userAtom";
 import { LoadingModal } from "../components/LoadingModal";
 import { useNavigate } from "react-router-dom";
 import { AIHiringAssistant } from "../components/AIHiringAssistant";
-
-// Interview interfaces
-interface InterviewGenerateRequest {
-  candidateName: string;
-  role: string;
-  seniority: string;
-  industry: string;
-  interviewGoal: string;
-}
-
-interface InterviewQuestion {
-  id: string;
-  question: string;
-  answer: string;
-}
-
-interface InterviewQuestionsResponse {
-  success: boolean;
-  data: {
-    candidateInfo: {
-      candidateName: string;
-      role: string;
-      seniority: string;
-      industry: string;
-      interviewGoal: string;
-    };
-    questions: {
-      technical: InterviewQuestion[];
-      softSkills: InterviewQuestion[];
-      cultureFit: InterviewQuestion[];
-    };
-  };
-  message: string;
-}
-
-interface InterviewExportRequest {
-  candidateName: string;
-  role: string;
-  seniority: string;
-  industry: string;
-  interviewGoal: string;
-  technicalQuestions: Array<{
-    id: string;
-    question: string;
-    answer: string;
-  }>;
-  softSkillsQuestions: Array<{
-    id: string;
-    question: string;
-    answer: string;
-  }>;
-  cultureFitQuestions: Array<{
-    id: string;
-    question: string;
-    answer: string;
-  }>;
-}
+import { InvestorEmailDraft } from "../components/InvestorEmailDraft";
+import { FeedbackCoach } from "../components/FeedbackCoach";
+import { Input } from "../components/ui/input";
+import { InvoicesPage } from "./invoices/InvoicesPage";
+import { ContractsListPage } from "./ContractsListPage";
 
 const tools = [
   {
@@ -122,10 +44,11 @@ const tools = [
     title: "Invoice Generator",
     description: "Create professional PDF invoices instantly",
     icon: FileText,
-    color: "bg-blue-500",
-    colorLight: "bg-blue-50",
-    buttonColor: "bg-blue-600 hover:bg-blue-700",
+    color: "bg-purple-500",
+    colorLight: "bg-purple-50",
+    buttonColor: "bg-premium-purple hover:bg-premium-purple-dark",
     buttonText: "Generate Invoice",
+    isPremium: true,
   },
   {
     id: "contracts",
@@ -143,64 +66,44 @@ const tools = [
     title: "Feedback Coach",
     description: "Structure meaningful feedback for your team",
     icon: MessageSquare,
-    color: "bg-pink-500",
-    colorLight: "bg-pink-50",
+    color: "bg-purple-500",
+    colorLight: "bg-purple-50",
     isPremium: true,
     buttonColor: "bg-premium-purple hover:bg-premium-purple-dark",
     buttonText: "Create Feedback",
   },
-  // {
-  //   id: "roles",
-  //   title: "Founder Role Suggestions",
-  //   description: "AI-powered role and responsibility mapping",
-  //   icon: Users,
-  //   color: "bg-purple-500",
-  //   colorLight: "bg-purple-50",
-  //   isPremium: true,
-  //   buttonColor: "bg-premium-purple hover:bg-premium-purple-dark",
-  //   buttonText: "Get Suggestions",
-  // },
   {
     id: "investor",
     title: "Investor Email Draft",
     description: "Professional outreach email templates",
     icon: Mail,
-    color: "bg-blue-500",
-    colorLight: "bg-blue-50",
-    buttonColor: "bg-blue-600 hover:bg-blue-700",
-    buttonText: "Draft Email",
-  },
-  {
-    id: "interviews",
-    title: "Customer Interview Guide",
-    description: "Structured interview templates and questions",
-    icon: ClipboardList,
-    color: "bg-blue-500",
-    colorLight: "bg-blue-50",
-    buttonColor: "bg-blue-600 hover:bg-blue-700",
-    buttonText: "Start Guide",
-  },
-  {
-    id: "landing-page",
-    title: "Landing Page Generator",
-    description: "Generate a premium landing page for your startup",
-    icon: FileCheck,
     color: "bg-purple-500",
     colorLight: "bg-purple-50",
-    isPremium: true,
     buttonColor: "bg-premium-purple hover:bg-premium-purple-dark",
-    buttonText: "Generate Landing Page",
+    buttonText: "Draft Email",
+    isPremium: true,
   },
   {
     id: "ai-hiring",
     title: "AI Hiring Assistant",
     description: "Generate interview questions and evaluate candidates",
     icon: Users,
-    color: "bg-purple-500",
+    color: "bg-pink-500",
     colorLight: "bg-purple-50",
     isPremium: true,
     buttonColor: "bg-premium-purple hover:bg-premium-purple-dark",
     buttonText: "AI Hiring Assistant",
+  },
+  {
+    id: "landing-page",
+    title: "Landing Page Generator",
+    description: "Generate a premium landing page for your startup",
+    icon: FileCheck,
+    color: "bg-pink-500",
+    colorLight: "bg-purple-50",
+    isPremium: true,
+    buttonColor: "bg-premium-purple hover:bg-premium-purple-dark",
+    buttonText: "Generate Landing Page",
   },
 ];
 
@@ -215,26 +118,124 @@ export function FounderEssentialsPage({
 }: FounderEssentialsPageProps) {
   const navigate = useNavigate();
   const [activeModal, setActiveModal] = useState<string | null>(null);
-  const [generatedContent, setGeneratedContent] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
-
   const apiService = useApiService();
-
   const currentUser = useRecoilValue<any>(currentUserAtom);
-
-  const isLocked = currentUser?.profile?.plan === "basic";
-
+  const isLocked = false;
   const [showLandingLoading, setShowLandingLoading] = useState(false);
   const [landingProgress, setLandingProgress] = useState(0);
 
+  // Add new states for logo upload
+  const [showLogoUploadModal, setShowLogoUploadModal] = useState(false);
+  const [logoSvgContent, setLogoSvgContent] = useState<string | null>(null);
+  const [logoFileName, setLogoFileName] = useState<string>("");
+  const [uploadError, setUploadError] = useState<string>("");
+  const [showInvoices, setShowInvoices] = useState(false);
+  const [showContracts, setShowContracts] = useState(false);
+
+  const modalContentClass = "overflow-y-auto w-3/4 ";
+
+  // Add function to handle SVG file upload
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.includes("svg")) {
+      setUploadError("Please upload only SVG files");
+      setLogoSvgContent(null);
+      setLogoFileName("");
+      return;
+    }
+
+    setUploadError("");
+    setLogoFileName(file.name);
+
+    // Read SVG file content
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      setLogoSvgContent(content);
+    };
+    reader.onerror = () => {
+      setUploadError("Failed to read SVG file");
+      setLogoSvgContent(null);
+      setLogoFileName("");
+    };
+    reader.readAsText(file);
+  };
+
+  // Add function to clear logo
+  const clearLogo = () => {
+    setLogoSvgContent(null);
+    setLogoFileName("");
+    setUploadError("");
+  };
+
+  // Add function to proceed with landing page generation
+  const proceedWithLandingPageGeneration = async (firstPitch: any) => {
+    setShowLogoUploadModal(false);
+    let progressInterval: number | undefined;
+
+    try {
+      setIsGenerating(true);
+      setShowLandingLoading(true);
+      setLandingProgress(10);
+
+      progressInterval = window.setInterval(() => {
+        setLandingProgress((p) => Math.min(p + 5, 95));
+      }, 500);
+
+      const response = await apiService.generateLandingPage(
+        firstPitch.id,
+        "premium",
+        logoSvgContent || undefined // Pass SVG content
+      );
+
+      setLandingProgress(100);
+
+      toast.success("Premium Landing Page Generated!", {
+        description: "Your premium landing page has been created successfully.",
+      });
+
+      // Clear logo after successful generation
+      clearLogo();
+    } catch (error: any) {
+      toast.error("Failed to generate premium landing page", {
+        description: error.message || "Please try again later.",
+      });
+    } finally {
+      if (progressInterval) window.clearInterval(progressInterval);
+      setTimeout(() => {
+        setShowLandingLoading(false);
+        setLandingProgress(0);
+      }, 400);
+      setIsGenerating(false);
+    }
+  };
+
   const handleToolAction = async (toolId: string) => {
     if (toolId === "invoice") {
-      navigate("/dashboard/invoices");
+      setShowInvoices(true);
+      return;
+    }
+
+    if (toolId === "contracts") {
+      setShowContracts(true);
+      return;
+    }
+
+    if (toolId === "investor") {
+      setActiveModal("investor");
+      return;
+    }
+
+    if (toolId === "feedback") {
+      setActiveModal("feedback");
       return;
     }
 
     if (toolId === "landing-page") {
-      // Find the first pitch using the API service
       const firstPitch = await apiService.getFirstPitch();
 
       if (!firstPitch) {
@@ -250,43 +251,10 @@ export function FounderEssentialsPage({
         return;
       }
 
-      let progressInterval: number | undefined;
-
-      try {
-        setIsGenerating(true);
-        setShowLandingLoading(true);
-        setLandingProgress(10);
-
-        // Progress animation while generating
-        progressInterval = window.setInterval(() => {
-          setLandingProgress((p) => Math.min(p + 5, 95));
-        }, 500);
-
-        // Call the API to generate premium landing page
-        const response = await apiService.generateLandingPage(
-          firstPitch.id,
-          "premium"
-        );
-
-        setLandingProgress(100);
-
-        toast.success("Premium Landing Page Generated!", {
-          description:
-            "Your premium landing page has been created successfully.",
-        });
-      } catch (error: any) {
-        toast.error("Failed to generate premium landing page", {
-          description: error.message || "Please try again later.",
-        });
-      } finally {
-        if (progressInterval) window.clearInterval(progressInterval);
-        // brief pause so users see 100%
-        setTimeout(() => {
-          setShowLandingLoading(false);
-          setLandingProgress(0);
-        }, 400);
-        setIsGenerating(false);
-      }
+      // Open logo upload modal instead of generating immediately
+      setShowLogoUploadModal(true);
+      // Store firstPitch in state or pass it through
+      (window as any).__firstPitch = firstPitch; // Temporary storage
 
       return;
     }
@@ -301,99 +269,24 @@ export function FounderEssentialsPage({
     }
   };
 
-  const generateContent = async (type: string, input: any) => {
-    setIsGenerating(true);
+  if (showInvoices) {
+    return (
+      <InvoicesPage
+        showInvoices={showInvoices}
+        setShowInvoices={setShowInvoices}
+      />
+    );
+  }
 
-    // Simulate AI generation
-    setTimeout(() => {
-      let content = "";
+  if (showContracts) {
+    return (
+      <ContractsListPage
+        showContracts={showContracts}
+        setShowContracts={setShowContracts}
+      />
+    );
+  }
 
-      switch (type) {
-        case "investor":
-          content = `Subject: Partnership Opportunity - ${input.startupName}
-
-Dear ${input.investorName},
-
-I hope this email finds you well. My name is ${input.founderName}, and I'm the founder of ${input.startupName}, a ${input.industry} startup that ${input.description}.
-
-We're currently raising a ${input.fundingStage} round to ${input.useOfFunds}. Based on your portfolio and investment focus, I believe ${input.startupName} would be a great fit for your interests.
-
-Key highlights:
-• ${input.traction}
-• Strong market opportunity in ${input.industry}
-• Experienced team with proven track record
-
-I'd love to share our pitch deck and discuss how we can work together. Would you be available for a brief call next week?
-
-Best regards,
-${input.founderName}
-Founder & CEO, ${input.startupName}`;
-          break;
-
-        case "contracts":
-          content = `MUTUAL NON-DISCLOSURE AGREEMENT
-
-This Mutual Non-Disclosure Agreement ("Agreement") is entered into on [DATE] between:
-
-Party A: ${input.company1 || "[COMPANY 1]"}
-Party B: ${input.company2 || "[COMPANY 2]"}
-
-1. PURPOSE: The parties wish to explore potential business opportunities and may disclose confidential information.
-
-2. CONFIDENTIAL INFORMATION: Any information disclosed that is marked as confidential or should reasonably be considered confidential.
-
-3. OBLIGATIONS: Each party agrees to:
-   - Keep all confidential information strictly confidential
-   - Use the information solely for evaluation purposes
-   - Not disclose to third parties without written consent
-
-4. TERM: This agreement shall remain in effect for 2 years from the date of signing.
-
-[Additional standard NDA clauses would follow...]`;
-          break;
-
-        case "feedback":
-          content = `360° FEEDBACK FRAMEWORK FOR ${input.employeeName.toUpperCase()}
-
-PERFORMANCE REVIEW PERIOD: ${input.period}
-
-1. CORE COMPETENCIES ASSESSMENT:
-   ${input.competencies
-     .split(",")
-     .map((comp: string) => `   • ${comp.trim()}: [Rating 1-5]`)
-     .join("\n")}
-
-2. PEER FEEDBACK QUESTIONS:
-   • What are ${input.employeeName}'s strongest contributions to the team?
-   • Where could ${input.employeeName} improve or grow?
-   • How effectively does ${input.employeeName} collaborate with others?
-
-3. SELF-ASSESSMENT PROMPTS:
-   • What achievements are you most proud of this period?
-   • What challenges did you face and how did you address them?
-   • What goals would you like to set for next period?
-
-4. MANAGER EVALUATION:
-   • Technical skills demonstration
-   • Leadership and initiative
-   • Communication effectiveness
-   • Goal achievement and impact`;
-          break;
-
-        default:
-          content = "Generated content will appear here...";
-      }
-
-      setGeneratedContent(content);
-      setIsGenerating(false);
-      toast.success("Content generated successfully!");
-    }, 2000);
-  };
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(generatedContent);
-    toast.success("Copied to clipboard!");
-  };
   return (
     <div className="p-8">
       <LoadingModal
@@ -401,6 +294,7 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
         type="landing"
         progress={landingProgress}
       />
+
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
@@ -431,7 +325,7 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
           return (
             <Card
               key={tool.id}
-              className={`border-2 rounded-2xl transition-all duration-300 ${
+              className={`border-2 rounded-2xl flex flex-col justify-between transition-all duration-300 ${
                 isLocked
                   ? "border-gray-200 opacity-75"
                   : "border-gray-100 hover:shadow-xl hover:-translate-y-1"
@@ -490,294 +384,19 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
         })}
       </div>
 
-      {/* Tool Modals */}
-
       {/* Investor Email Modal */}
       <Dialog
         open={activeModal === "investor"}
         onOpenChange={() => setActiveModal(null)}
       >
-        <DialogContent className="sm:max-w-2xl rounded-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className={modalContentClass}>
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               <Mail className="h-5 w-5 text-blue-600" />
               Investor Email Generator
             </DialogTitle>
-            <DialogDescription>
-              Create professional outreach emails to potential investors
-            </DialogDescription>
           </DialogHeader>
-
-          <Tabs defaultValue="form" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="form">Email Form</TabsTrigger>
-              <TabsTrigger value="generated">Generated Email</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="form" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Your Name</Label>
-                  <Input
-                    placeholder="Enter your name"
-                    className="rounded-xl"
-                    id="founderName"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Startup Name</Label>
-                  <Input
-                    placeholder="Your startup name"
-                    className="rounded-xl"
-                    id="startupName"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Investor Name</Label>
-                  <Input
-                    placeholder="Investor's name"
-                    className="rounded-xl"
-                    id="investorName"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Industry</Label>
-                  <Select>
-                    <SelectTrigger className="rounded-xl">
-                      <SelectValue placeholder="Select industry" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="fintech">FinTech</SelectItem>
-                      <SelectItem value="healthtech">HealthTech</SelectItem>
-                      <SelectItem value="edtech">EdTech</SelectItem>
-                      <SelectItem value="saas">SaaS</SelectItem>
-                      <SelectItem value="ecommerce">E-commerce</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Brief Description</Label>
-                <Textarea
-                  placeholder="Briefly describe what your startup does"
-                  className="rounded-xl"
-                  id="description"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Funding Stage</Label>
-                  <Select>
-                    <SelectTrigger className="rounded-xl">
-                      <SelectValue placeholder="Select stage" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pre-seed">Pre-Seed</SelectItem>
-                      <SelectItem value="seed">Seed</SelectItem>
-                      <SelectItem value="series-a">Series A</SelectItem>
-                      <SelectItem value="series-b">Series B</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Key Traction</Label>
-                  <Input
-                    placeholder="e.g. 10k users, $50k MRR"
-                    className="rounded-xl"
-                    id="traction"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Use of Funds</Label>
-                <Textarea
-                  placeholder="How will you use the investment?"
-                  className="rounded-xl"
-                  id="useOfFunds"
-                />
-              </div>
-
-              <Button
-                onClick={() => {
-                  const formData = {
-                    founderName:
-                      (
-                        document.getElementById(
-                          "founderName"
-                        ) as HTMLInputElement
-                      )?.value || "",
-                    startupName:
-                      (
-                        document.getElementById(
-                          "startupName"
-                        ) as HTMLInputElement
-                      )?.value || "",
-                    investorName:
-                      (
-                        document.getElementById(
-                          "investorName"
-                        ) as HTMLInputElement
-                      )?.value || "",
-                    industry: "FinTech", // Default
-                    description:
-                      (
-                        document.getElementById(
-                          "description"
-                        ) as HTMLTextAreaElement
-                      )?.value || "",
-                    fundingStage: "Seed", // Default
-                    traction:
-                      (document.getElementById("traction") as HTMLInputElement)
-                        ?.value || "",
-                    useOfFunds:
-                      (
-                        document.getElementById(
-                          "useOfFunds"
-                        ) as HTMLTextAreaElement
-                      )?.value || "",
-                  };
-                  generateContent("investor", formData);
-                }}
-                className="w-full bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl"
-                disabled={isGenerating}
-              >
-                {isGenerating ? "Generating..." : "Generate Email"}
-              </Button>
-            </TabsContent>
-
-            <TabsContent value="generated" className="space-y-4">
-              {generatedContent ? (
-                <>
-                  <div className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50">
-                    <pre className="whitespace-pre-wrap text-sm">
-                      {generatedContent}
-                    </pre>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={copyToClipboard}
-                      variant="outline"
-                      className="rounded-xl"
-                    >
-                      <Copy className="mr-2 h-4 w-4" />
-                      Copy Email
-                    </Button>
-                    <Button className="bg-green-600 hover:bg-green-700 text-white rounded-xl">
-                      <Mail className="mr-2 h-4 w-4" />
-                      Open in Email Client
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  Generate an email first to see the content here
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
-
-      {/* Contract Templates Modal */}
-      <Dialog
-        open={activeModal === "contracts"}
-        onOpenChange={() => setActiveModal(null)}
-      >
-        <DialogContent className="sm:max-w-2xl rounded-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <FileCheck className="h-5 w-5 text-purple-600" />
-              Legal Contract Templates
-            </DialogTitle>
-            <DialogDescription>
-              Generate legal documents and agreements for your startup
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[
-                {
-                  name: "Non-Disclosure Agreement (NDA)",
-                  desc: "Protect confidential information",
-                  icon: FileCheck,
-                },
-                {
-                  name: "Founder Agreement",
-                  desc: "Define roles and equity splits",
-                  icon: Users,
-                },
-                {
-                  name: "Employment Contract",
-                  desc: "Standard employee agreements",
-                  icon: FileText,
-                },
-                {
-                  name: "Consultant Agreement",
-                  desc: "Independent contractor terms",
-                  icon: ClipboardList,
-                },
-              ].map((template, index) => {
-                const Icon = template.icon;
-                return (
-                  <Card
-                    key={index}
-                    className="border-2 border-gray-100 hover:shadow-lg transition-shadow rounded-xl cursor-pointer"
-                    onClick={() => {
-                      const input = {
-                        company1: "Your Company",
-                        company2: "Partner Company",
-                      };
-                      generateContent("contracts", input);
-                    }}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
-                          <Icon className="h-5 w-5 text-purple-600" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-900">
-                            {template.name}
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            {template.desc}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-
-            {generatedContent && (
-              <>
-                <div className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50 max-h-60 overflow-y-auto">
-                  <pre className="whitespace-pre-wrap text-sm">
-                    {generatedContent}
-                  </pre>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={copyToClipboard}
-                    variant="outline"
-                    className="rounded-xl"
-                  >
-                    <Copy className="mr-2 h-4 w-4" />
-                    Copy Template
-                  </Button>
-                  <Button className="bg-purple-600 hover:bg-purple-700 text-white rounded-xl">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download as PDF
-                  </Button>
-                </div>
-              </>
-            )}
-          </div>
+          <InvestorEmailDraft />
         </DialogContent>
       </Dialog>
 
@@ -786,134 +405,14 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
         open={activeModal === "feedback"}
         onOpenChange={() => setActiveModal(null)}
       >
-        <DialogContent className="sm:max-w-2xl rounded-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className={modalContentClass}>
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               <MessageSquare className="h-5 w-5 text-pink-600" />
               360° Feedback Coach
             </DialogTitle>
-            <DialogDescription>
-              Create structured feedback frameworks for your team
-            </DialogDescription>
           </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Employee Name</Label>
-                <Input
-                  placeholder="Enter employee name"
-                  className="rounded-xl"
-                  id="employeeName"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Review Period</Label>
-                <Select>
-                  <SelectTrigger className="rounded-xl">
-                    <SelectValue placeholder="Select period" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="q1-2025">Q1 2025</SelectItem>
-                    <SelectItem value="q2-2025">Q2 2025</SelectItem>
-                    <SelectItem value="q3-2025">Q3 2025</SelectItem>
-                    <SelectItem value="q4-2025">Q4 2025</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Core Competencies (comma-separated)</Label>
-              <Textarea
-                placeholder="e.g. Communication, Technical Skills, Leadership, Teamwork"
-                className="rounded-xl"
-                id="competencies"
-              />
-            </div>
-
-            <Button
-              onClick={() => {
-                const formData = {
-                  employeeName:
-                    (
-                      document.getElementById(
-                        "employeeName"
-                      ) as HTMLInputElement
-                    )?.value || "Employee",
-                  period: "Q1 2025",
-                  competencies:
-                    (
-                      document.getElementById(
-                        "competencies"
-                      ) as HTMLTextAreaElement
-                    )?.value || "Communication, Technical Skills, Leadership",
-                };
-                generateContent("feedback", formData);
-              }}
-              className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white rounded-xl"
-              disabled={isGenerating}
-            >
-              {isGenerating ? "Generating..." : "Generate Feedback Framework"}
-            </Button>
-
-            {generatedContent && (
-              <>
-                <div className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50 max-h-60 overflow-y-auto">
-                  <pre className="whitespace-pre-wrap text-sm">
-                    {generatedContent}
-                  </pre>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={copyToClipboard}
-                    variant="outline"
-                    className="rounded-xl"
-                  >
-                    <Copy className="mr-2 h-4 w-4" />
-                    Copy Framework
-                  </Button>
-                  <Button className="bg-pink-600 hover:bg-pink-700 text-white rounded-xl">
-                    <Download className="mr-2 h-4 w-4" />
-                    Export Template
-                  </Button>
-                </div>
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Quick Tool Modals for Free Tools */}
-      <Dialog
-        open={activeModal === "interviews"}
-        onOpenChange={() => setActiveModal(null)}
-      >
-        <DialogContent className="sm:max-w-lg rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <ClipboardList className="h-5 w-5 text-blue-600" />
-              Customer Interview Guide
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <h4 className="font-semibold text-blue-900 mb-2">
-                Essential Interview Questions:
-              </h4>
-              <ul className="space-y-1 text-sm text-blue-800">
-                <li>• What's your biggest challenge with [problem area]?</li>
-                <li>• How do you currently solve this problem?</li>
-                <li>• What would an ideal solution look like?</li>
-                <li>• What tools do you currently use?</li>
-                <li>• How much time/money does this problem cost you?</li>
-              </ul>
-            </div>
-            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
-              <Download className="mr-2 h-4 w-4" />
-              Download Full Interview Template
-            </Button>
-          </div>
+          <FeedbackCoach />
         </DialogContent>
       </Dialog>
 
@@ -922,7 +421,7 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
         open={activeModal === "ai-hiring"}
         onOpenChange={() => setActiveModal(null)}
       >
-        <DialogContent className="w-3/4  rounded-2xl max-h-[80vh]   overflow-y-auto">
+        <DialogContent className={modalContentClass}>
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               <Users className="h-5 w-5 text-purple-600" />
@@ -938,80 +437,97 @@ PERFORMANCE REVIEW PERIOD: ${input.period}
         </DialogContent>
       </Dialog>
 
-      {/* Upgrade CTA */}
-      {/* {!isPremium && (
-        <Card className="mt-12 border-2 border-premium-purple bg-gradient-to-br from-premium-purple-50 to-white rounded-2xl">
-          <CardContent className="p-8">
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-              <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                  Unlock All Tools with Premium
-                </h3>
-                <p className="text-gray-600 text-lg">
-                  Get access to all 6 essential founder tools for just $10/month
+      {/* Logo Upload Modal */}
+      <Dialog
+        open={showLogoUploadModal}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowLogoUploadModal(false);
+            clearLogo();
+          }
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              Upload Your Logo (Optional)
+            </DialogTitle>
+            <DialogDescription>
+              Upload an SVG logo to include in your landing page. You can also
+              skip this step.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-4">
+            {/* File Upload Area */}
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-500 transition-colors">
+              <label htmlFor="logo-upload" className="cursor-pointer block">
+                <Upload className="mx-auto h-12 w-12 text-gray-400 mb-3" />
+                <p className="text-sm text-gray-600 mb-2">
+                  Click to upload or drag and drop
                 </p>
-                <ul className="mt-4 space-y-2">
-                  <li className="flex items-center gap-2 text-gray-700">
-                    <div className="w-5 h-5 rounded-full bg-premium-purple flex items-center justify-center">
-                      <svg
-                        className="w-3 h-3 text-white"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <span>All 6 essential founder tools</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-gray-700">
-                    <div className="w-5 h-5 rounded-full bg-premium-purple flex items-center justify-center">
-                      <svg
-                        className="w-3 h-3 text-white"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <span>AI-assisted pitch building</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-gray-700">
-                    <div className="w-5 h-5 rounded-full bg-premium-purple flex items-center justify-center">
-                      <svg
-                        className="w-3 h-3 text-white"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <span>Priority support</span>
-                  </li>
-                </ul>
+                <p className="text-xs text-gray-500">SVG files only</p>
+                <Input
+                  id="logo-upload"
+                  type="file"
+                  accept=".svg,image/svg+xml"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            {/* Show uploaded file */}
+            {logoFileName && (
+              <div className="flex items-center justify-between bg-purple-50 p-3 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <FileCheck className="h-5 w-5 text-purple-600" />
+                  <span className="text-sm text-gray-700">{logoFileName}</span>
+                </div>
+                <button
+                  onClick={clearLogo}
+                  className="text-gray-500 hover:text-red-500"
+                >
+                  <X className="h-5 w-5" />
+                </button>
               </div>
+            )}
+
+            {/* Error message */}
+            {uploadError && (
+              <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+                {uploadError}
+              </div>
+            )}
+
+            {/* Action buttons */}
+            <div className="flex gap-3 pt-4">
               <Button
-                onClick={onUpgrade}
-                className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl px-8 py-6 text-lg shadow-xl whitespace-nowrap"
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  // Skip logo upload and generate
+                  setLogoSvgContent(null);
+                  const firstPitch = (window as any).__firstPitch;
+                  proceedWithLandingPageGeneration(firstPitch);
+                }}
               >
-                Upgrade to Premium
-                <ArrowRight className="ml-2 h-5 w-5" />
+                Skip
+              </Button>
+              <Button
+                className="flex-1 bg-premium-purple hover:bg-premium-purple-dark"
+                onClick={() => {
+                  const firstPitch = (window as any).__firstPitch;
+                  proceedWithLandingPageGeneration(firstPitch);
+                }}
+                disabled={!!uploadError}
+              >
+                Generate Landing Page
               </Button>
             </div>
-          </CardContent>
-        </Card>
-      )} */}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
