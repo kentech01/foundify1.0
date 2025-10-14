@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -53,19 +53,56 @@ interface ContractTemplate {
   }[];
 }
 
-export function ContractTemplates() {
+interface ContractTemplatesProps {
+  onSuccess?: () => void;
+  editMode?: {
+    contractId: string;
+    templateId: string;
+    title: string;
+    formData: Record<string, string>;
+    contractText: string;
+  };
+}
+
+export function ContractTemplates({
+  onSuccess,
+  editMode,
+}: ContractTemplatesProps = {}) {
   const [step, setStep] = useState<"select" | "preview" | "customize" | "edit">(
-    "select"
+    editMode ? "edit" : "select"
   );
   const [selectedTemplate, setSelectedTemplate] =
-    useState<ContractTemplate | null>(null);
-  const [formData, setFormData] = useState<Record<string, string>>({});
-  const [editableContract, setEditableContract] = useState<string>("");
-  const [editablePreview, setEditablePreview] = useState<string>("");
+    useState<ContractTemplate | null>(
+      editMode
+        ? contractTemplates.find((t) => t.id === editMode.templateId) || null
+        : null
+    );
+  const [formData, setFormData] = useState<Record<string, string>>(
+    editMode?.formData || {}
+  );
+  const [editableContract, setEditableContract] = useState<string>(
+    editMode?.contractText || ""
+  );
+  const [editablePreview, setEditablePreview] = useState<string>(
+    editMode?.contractText || ""
+  );
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
-  const [generatedContractId, setGeneratedContractId] = useState<string>("");
+  const [generatedContractId, setGeneratedContractId] = useState<string>(
+    editMode?.contractId || ""
+  );
 
-  const { exportContractPdf } = useApiService();
+  console.log(editMode, "editmode");
+
+  useEffect(() => {
+    if (editMode && selectedTemplate) {
+      // Set the editable preview to the contract text for editing
+      setEditablePreview(editMode.contractText);
+      // Also set the editable contract
+      setEditableContract(editMode.contractText);
+    }
+  }, [editMode, selectedTemplate]);
+
+  const { generateContract, exportContractPdf, editContract } = useApiService();
 
   const handleSelectTemplate = (template: ContractTemplate) => {
     if (template.isPremium) {
@@ -136,54 +173,83 @@ export function ContractTemplates() {
       setIsGenerating(true);
 
       console.log(editablePreview, "editablePreview");
-      const payload = {
-        templateId: selectedTemplate!.id,
-        data: mapDataForApi(formData),
-        customContent: editablePreview, // ✅ Send the edited template content
-      };
 
-      const pdfBlob = await exportContractPdf(payload);
+      // If in edit mode, we're updating an existing contract
+      if (editMode) {
+        // First, update the contract in the backend
+        const editPayload = {
+          templateId: editMode.templateId,
+          originalData: editMode.formData, // The original form data
+          updates: {
+            data: formData, // The updated form data
+            customContent: editableContract, // The edited contract text
+          },
+        };
 
-      const url = window.URL.createObjectURL(pdfBlob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${selectedTemplate!.title.replace(
-        /\s+/g,
-        "_"
-      )}_${Date.now()}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+        // Call the edit endpoint to save changes
+        const editResponse = await editContract(editPayload);
+        console.log("Contract updated:", editResponse);
 
-      await navigator.clipboard.writeText(editableContract);
-      toast.success(
-        "Contract generated successfully! The PDF has been downloaded and the text copied."
-      );
+        // Then export the PDF with the updated content
+        const pdfPayload = {
+          templateId: editMode.templateId,
+          data: mapDataForApi(formData),
+          customContent: editableContract,
+        };
 
+        const pdfBlob = await exportContractPdf(pdfPayload);
+
+        const url = window.URL.createObjectURL(pdfBlob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${editMode.title.replace(
+          /\s+/g,
+          "_"
+        )}_${Date.now()}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        toast.success("Contract updated and downloaded!");
+      } else {
+        // Creating a new contract
+        const contractPayload = {
+          templateId: selectedTemplate!.id,
+          data: mapDataForApi(formData),
+          customContent: editablePreview,
+        };
+
+        const contractResponse = await generateContract(contractPayload);
+        setGeneratedContractId(contractResponse.data.contractId);
+        toast.success("Contract created successfully!");
+      }
+
+      // Reset state
       setStep("select");
       setSelectedTemplate(null);
       setFormData({});
       setEditableContract("");
       setEditablePreview("");
       setGeneratedContractId("");
+
+      // Call success callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error: any) {
-      console.error("Error exporting contract PDF:", error);
+      console.error("Error generating contract:", error);
       const msg =
         typeof error?.message === "string"
           ? error.message
           : "Failed to generate contract";
       toast.error(
-        `Failed to generate contract: ${msg}. The contract text has been copied to your clipboard as a fallback.`
-      );
-      await navigator.clipboard.writeText(
-        step === "edit" ? editableContract : editableContract
+        `Failed to ${editMode ? "update" : "generate"} contract: ${msg}`
       );
     } finally {
       setIsGenerating(false);
     }
   };
-
   const handleCopyText = () => {
     navigator.clipboard.writeText(editableContract);
     toast.success("Contract text copied to clipboard!");
@@ -198,26 +264,6 @@ export function ContractTemplates() {
     return (
       <div className=" space-y-6">
         {/* Breadcrumb */}
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink
-                href="#"
-                className="text-gray-600 hover:text-gray-900"
-              >
-                Founder Essentials
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator>
-              <ChevronRight className="h-4 w-4" />
-            </BreadcrumbSeparator>
-            <BreadcrumbItem>
-              <BreadcrumbPage className="text-gray-900">
-                Contracts
-              </BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
 
         {/* Header */}
         <div className="mb-8">
@@ -563,17 +609,17 @@ export function ContractTemplates() {
               onClick={handleGenerateContract}
               size="lg"
               disabled={isGenerating}
-              className="bg-premium-purple-700 hover:bg-premium-purple-800 text-white disabled:opacity-50"
+              className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg"
             >
               {isGenerating ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating...
+                  {editMode ? "Updating..." : "Generating..."}
                 </>
               ) : (
                 <>
                   <Download className="w-4 h-4 mr-2" />
-                  Generate Contract PDF
+                  {editMode ? "Update & Download" : "Generate Contract PDF"}
                 </>
               )}
             </Button>
