@@ -32,11 +32,11 @@ import { currentUserAtom } from "../atoms/userAtom";
 import { LoadingModal } from "../components/LoadingModal";
 import { useNavigate } from "react-router-dom";
 import { AIHiringAssistant } from "../components/AIHiringAssistant";
-import { ContractTemplates } from "../components/ContractTemplates";
 import { InvestorEmailDraft } from "../components/InvestorEmailDraft";
 import { FeedbackCoach } from "../components/FeedbackCoach";
 import { Input } from "../components/ui/input";
 import { InvoicesPage } from "./invoices/InvoicesPage";
+import { ContractsListPage } from "./ContractsListPage";
 
 const tools = [
   {
@@ -131,6 +131,7 @@ export function FounderEssentialsPage({
   const [logoFileName, setLogoFileName] = useState<string>("");
   const [uploadError, setUploadError] = useState<string>("");
   const [showInvoices, setShowInvoices] = useState(false);
+  const [showContracts, setShowContracts] = useState(false);
 
   const modalContentClass = "overflow-y-auto w-3/4 ";
 
@@ -220,7 +221,7 @@ export function FounderEssentialsPage({
     }
 
     if (toolId === "contracts") {
-      setActiveModal("contracts");
+      setShowContracts(true);
       return;
     }
 
@@ -273,6 +274,15 @@ export function FounderEssentialsPage({
       <InvoicesPage
         showInvoices={showInvoices}
         setShowInvoices={setShowInvoices}
+      />
+    );
+  }
+
+  if (showContracts) {
+    return (
+      <ContractsListPage
+        showContracts={showContracts}
+        setShowContracts={setShowContracts}
       />
     );
   }
@@ -387,22 +397,6 @@ export function FounderEssentialsPage({
             </DialogTitle>
           </DialogHeader>
           <InvestorEmailDraft />
-        </DialogContent>
-      </Dialog>
-
-      {/* Contract Templates Modal */}
-      <Dialog
-        open={activeModal === "contracts"}
-        onOpenChange={() => setActiveModal(null)}
-      >
-        <DialogContent className={modalContentClass}>
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <FileCheck className="h-5 w-5 text-purple-600" />
-              Legal Contract Templates
-            </DialogTitle>
-          </DialogHeader>
-          <ContractTemplates />
         </DialogContent>
       </Dialog>
 

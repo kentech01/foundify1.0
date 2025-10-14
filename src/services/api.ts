@@ -318,6 +318,26 @@ interface ContractExportPdfRequest {
   customContent?: string; // optional: send edited text if your API supports it
 }
 
+interface ContractEditRequest {
+  templateId: string;
+  originalData: Record<string, string>;
+  updates: {
+    data?: Record<string, string>;
+    customContent?: string;
+  };
+}
+
+interface ContractEditResponse {
+  success: boolean;
+  data: {
+    contractId?: string;
+    html: string;
+    templateId: string;
+    generatedAt?: string;
+  };
+  message?: string;
+}
+
 // Feedback interfaces
 interface FeedbackExportRequest {
   employeeName: string;
@@ -729,6 +749,120 @@ export const useApiService = () => {
     [axiosInstance]
   );
 
+  const deleteContract = useCallback(
+    async (
+      contractId: string
+    ): Promise<{ success: boolean; message: string }> => {
+      try {
+        const response = await axiosInstance.delete(`/contracts/${contractId}`);
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to delete contract"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const editContract = useCallback(
+    async (payload: ContractEditRequest): Promise<ContractEditResponse> => {
+      try {
+        const response = await axiosInstance.put("/contracts/edit", payload);
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to edit contract"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const getContracts = useCallback(
+    async (
+      limit: number = 20,
+      offset: number = 0
+    ): Promise<ContractListResponse> => {
+      try {
+        const response = await axiosInstance.get("/contracts", {
+          params: {
+            limit: Math.min(limit, 50),
+            offset,
+          },
+        });
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to get contracts"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const getContractTemplates =
+    useCallback(async (): Promise<ContractTemplatesResponse> => {
+      try {
+        const response = await axiosInstance.get("/contracts/templates");
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to get contract templates"
+        );
+      }
+    }, [axiosInstance]);
+
+  const getContractTemplate = useCallback(
+    async (templateId: string): Promise<ContractTemplateResponse> => {
+      try {
+        const response = await axiosInstance.get(
+          `/contracts/templates/${templateId}`
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to get contract template"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const getContractTemplatePreview = useCallback(
+    async (templateId: string): Promise<ContractTemplatePreviewResponse> => {
+      try {
+        const response = await axiosInstance.get(
+          `/contracts/templates/${templateId}/preview`
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message ||
+            "Failed to get contract template preview"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const previewContractPdf = useCallback(
+    async (
+      payload: ContractPreviewPdfRequest
+    ): Promise<ContractPreviewPdfResponse> => {
+      try {
+        const response = await axiosInstance.post(
+          "/contracts/preview-pdf",
+          payload
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(errorMessage(error));
+      }
+    },
+    [axiosInstance]
+  );
+
   // Feedback API methods
   const exportFeedbackPdf = useCallback(
     async (payload: FeedbackExportRequest): Promise<Blob> => {
@@ -780,6 +914,13 @@ export const useApiService = () => {
     generateContract,
     exportContractPdf,
     getContract,
+    deleteContract,
+    editContract,
+    getContracts,
+    getContractTemplates,
+    getContractTemplate,
+    getContractTemplatePreview,
+    previewContractPdf,
     // Feedback methods
     exportFeedbackPdf,
   };
@@ -1024,6 +1165,16 @@ export type {
   ContractGenerateResponse,
   ContractPdfResponse,
   ContractExportPdfRequest,
+  ContractEditRequest,
+  ContractEditResponse,
+  ContractTemplate,
+  ContractTemplatesResponse,
+  ContractTemplateResponse,
+  ContractTemplatePreview,
+  ContractTemplatePreviewResponse,
+  ContractPreviewPdfRequest,
+  ContractPreviewPdfResponse,
   // Feedback types
   FeedbackExportRequest,
+  ContractListResponse,
 };
