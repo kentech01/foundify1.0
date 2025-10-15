@@ -146,7 +146,9 @@ export function FeedbackCoach() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="employee-name">Employee Name</Label>
+              <Label className="mb-2" htmlFor="employee-name">
+                Employee Name
+              </Label>
               <Input
                 id="employee-name"
                 value={formData.employeeName}
@@ -155,7 +157,9 @@ export function FeedbackCoach() {
               />
             </div>
             <div>
-              <Label htmlFor="employee-role">Role</Label>
+              <Label className="mb-2" htmlFor="employee-role">
+                Role
+              </Label>
               <Select
                 value={formData.employeeRole}
                 onValueChange={(value) => updateField("employeeRole", value)}
@@ -174,7 +178,9 @@ export function FeedbackCoach() {
             </div>
           </div>
           <div>
-            <Label htmlFor="feedback-cycle">Feedback Cycle</Label>
+            <Label className="mb-2" htmlFor="feedback-cycle">
+              Feedback Cycle
+            </Label>
             <Select
               value={formData.feedbackCycle}
               onValueChange={(value) => updateField("feedbackCycle", value)}

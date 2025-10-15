@@ -18,6 +18,7 @@ import {
 import { Copy, Mail, Sparkles } from "lucide-react";
 import styles from "../styles/toolsComponents.module.scss";
 import { useApiService } from "../services/api";
+import React from "react";
 
 type EmailTemplate = { id: string; title: string };
 
@@ -48,6 +49,15 @@ export function InvestorEmailDraft() {
   });
 
   const [errors, setErrors] = useState<Errors>({});
+  const [touched, setTouched] = useState<
+    Partial<{
+      yourName: boolean;
+      companyName: boolean;
+      investorName: boolean;
+      valueProposition: boolean;
+      keyTraction: boolean;
+    }>
+  >({});
   const [generating, setGenerating] = useState(false);
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
@@ -86,7 +96,7 @@ export function InvestorEmailDraft() {
     };
 
     const errs: Errors = {};
-    if (!trimmed.template) errs.template = "Template is required";
+    // Template selection is optional
 
     if (
       !trimmed.yourName ||
@@ -192,8 +202,6 @@ export function InvestorEmailDraft() {
                 placeholder={
                   templatesLoading
                     ? "Loading templates..."
-                    : templatesError
-                    ? "Failed to load templates"
                     : "Select email type"
                 }
               />
@@ -230,40 +238,86 @@ export function InvestorEmailDraft() {
             <CardContent className={styles.form}>
               <div className={styles.formGrid}>
                 <div>
-                  <Label htmlFor="name">Your Name</Label>
+                  <Label className={styles.lableWrapper} htmlFor="name">
+                    Your Name
+                  </Label>
                   <Input
                     id="name"
                     value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setFormData({ ...formData, name: e.target.value });
+                      if (!touched.yourName)
+                        setTouched({ ...touched, yourName: true });
+                    }}
+                    onBlur={() => setTouched({ ...touched, yourName: true })}
                     placeholder="John Smith"
                     maxLength={100}
                   />
-                  {errors.yourName && (
-                    <div
-                      style={{
-                        color: "#b91c1c",
-                        fontSize: "0.8rem",
-                        marginTop: "0.375rem",
-                      }}
-                    >
-                      {errors.yourName}
-                    </div>
-                  )}
+                  {touched.yourName &&
+                    formData.name.trim().length > 0 &&
+                    errors.yourName && (
+                      <div
+                        style={{
+                          color: "#b91c1c",
+                          fontSize: "0.8rem",
+                          marginTop: "0.375rem",
+                        }}
+                      >
+                        {errors.yourName}
+                      </div>
+                    )}
                 </div>
                 <div>
-                  <Label htmlFor="company">Company Name</Label>
+                  <Label className={styles.lableWrapper} htmlFor="company">
+                    Company Name
+                  </Label>
                   <Input
                     id="company"
                     value={formData.company}
-                    onChange={(e) =>
-                      setFormData({ ...formData, company: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setFormData({ ...formData, company: e.target.value });
+                      if (!touched.companyName)
+                        setTouched({ ...touched, companyName: true });
+                    }}
+                    onBlur={() => setTouched({ ...touched, companyName: true })}
                     placeholder="Your Startup Inc."
                     maxLength={120}
                   />
-                  {errors.companyName && (
+                  {touched.companyName &&
+                    formData.company.trim().length > 0 &&
+                    errors.companyName && (
+                      <div
+                        style={{
+                          color: "#b91c1c",
+                          fontSize: "0.8rem",
+                          marginTop: "0.375rem",
+                        }}
+                      >
+                        {errors.companyName}
+                      </div>
+                    )}
+                </div>
+              </div>
+
+              <div>
+                <Label className={styles.lableWrapper} htmlFor="investor">
+                  Investor Name
+                </Label>
+                <Input
+                  id="investor"
+                  value={formData.investor}
+                  onChange={(e) => {
+                    setFormData({ ...formData, investor: e.target.value });
+                    if (!touched.investorName)
+                      setTouched({ ...touched, investorName: true });
+                  }}
+                  onBlur={() => setTouched({ ...touched, investorName: true })}
+                  placeholder="Alex Johnson"
+                  maxLength={120}
+                />
+                {touched.investorName &&
+                  formData.investor.trim().length > 0 &&
+                  errors.investorName && (
                     <div
                       style={{
                         color: "#b91c1c",
@@ -271,87 +325,80 @@ export function InvestorEmailDraft() {
                         marginTop: "0.375rem",
                       }}
                     >
-                      {errors.companyName}
+                      {errors.investorName}
                     </div>
                   )}
-                </div>
               </div>
 
               <div>
-                <Label htmlFor="investor">Investor Name</Label>
-                <Input
-                  id="investor"
-                  value={formData.investor}
-                  onChange={(e) =>
-                    setFormData({ ...formData, investor: e.target.value })
-                  }
-                  placeholder="Alex Johnson"
-                  maxLength={120}
-                />
-                {errors.investorName && (
-                  <div
-                    style={{
-                      color: "#b91c1c",
-                      fontSize: "0.8rem",
-                      marginTop: "0.375rem",
-                    }}
-                  >
-                    {errors.investorName}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="value-prop">Value Proposition</Label>
+                <Label className={styles.lableWrapper} htmlFor="value-prop">
+                  Value Proposition
+                </Label>
                 <Input
                   id="value-prop"
                   value={formData.valueProp}
-                  onChange={(e) =>
-                    setFormData({ ...formData, valueProp: e.target.value })
+                  onChange={(e) => {
+                    setFormData({ ...formData, valueProp: e.target.value });
+                    if (!touched.valueProposition)
+                      setTouched({ ...touched, valueProposition: true });
+                  }}
+                  onBlur={() =>
+                    setTouched({ ...touched, valueProposition: true })
                   }
                   placeholder="AI-powered project management"
                   maxLength={280}
                 />
-                {errors.valueProposition && (
-                  <div
-                    style={{
-                      color: "#b91c1c",
-                      fontSize: "0.8rem",
-                      marginTop: "0.375rem",
-                    }}
-                  >
-                    {errors.valueProposition}
-                  </div>
-                )}
+                {touched.valueProposition &&
+                  formData.valueProp.trim().length > 0 &&
+                  errors.valueProposition && (
+                    <div
+                      style={{
+                        color: "#b91c1c",
+                        fontSize: "0.8rem",
+                        marginTop: "0.375rem",
+                      }}
+                    >
+                      {errors.valueProposition}
+                    </div>
+                  )}
               </div>
 
               <div>
-                <Label htmlFor="traction">Key Traction</Label>
+                <Label className={styles.lableWrapper} htmlFor="traction">
+                  Key Traction
+                </Label>
                 <Input
                   id="traction"
                   value={formData.traction}
-                  onChange={(e) =>
-                    setFormData({ ...formData, traction: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setFormData({ ...formData, traction: e.target.value });
+                    if (!touched.keyTraction)
+                      setTouched({ ...touched, keyTraction: true });
+                  }}
+                  onBlur={() => setTouched({ ...touched, keyTraction: true })}
                   placeholder="$50K MRR, 1000+ users"
                   maxLength={280}
                 />
-                {errors.keyTraction && (
-                  <div
-                    style={{
-                      color: "#b91c1c",
-                      fontSize: "0.8rem",
-                      marginTop: "0.375rem",
-                    }}
-                  >
-                    {errors.keyTraction}
-                  </div>
-                )}
+                {touched.keyTraction &&
+                  formData.traction.trim().length > 0 &&
+                  errors.keyTraction && (
+                    <div
+                      style={{
+                        color: "#b91c1c",
+                        fontSize: "0.8rem",
+                        marginTop: "0.375rem",
+                      }}
+                    >
+                      {errors.keyTraction}
+                    </div>
+                  )}
               </div>
 
               {selectedTemplate === "warm_introduction" && (
                 <div>
-                  <Label htmlFor="contact">Mutual Contact</Label>
+                  <Label className={styles.lableWrapper} htmlFor="contact">
+                    Mutual Contact
+                  </Label>
                   <Input
                     id="contact"
                     value={formData.contact}

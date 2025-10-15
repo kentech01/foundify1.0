@@ -35,6 +35,7 @@ import { useApiService } from "../services/api";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { contractTemplates } from "../constants";
+import React from "react";
 
 interface ContractTemplate {
   id: string;
@@ -476,7 +477,9 @@ export function ContractTemplates({
                     className={field.type === "textarea" ? "md:col-span-2" : ""}
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <Label htmlFor={field.id}>{field.label}</Label>
+                      <Label className="mb-2" htmlFor={field.id}>
+                        {field.label}
+                      </Label>
                       {field.tooltip && (
                         <Tooltip>
                           <TooltipTrigger asChild>

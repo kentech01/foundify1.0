@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback } from "react";
 import useAxios from "../hooks/useAxios";
-// export const API_BASE_URL =
-("https://foundify-api-production.up.railway.app/api/v1");
-export const API_BASE_URL = "http://localhost:5001/api/v1/";
-  
+export const API_BASE_URL =
+  "https://foundify-api-production.up.railway.app/api/v1";
+//export const API_BASE_URL = "http://localhost:5001/api/v1/";
+
 interface ApiResponse<T> {
   success: boolean;
   user?: T;

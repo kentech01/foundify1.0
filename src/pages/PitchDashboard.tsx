@@ -23,6 +23,7 @@ import { useRecoilState } from "recoil";
 import { currentUserAtom } from "../atoms/userAtom";
 import { pitchesAtom } from "../atoms/pitchesAtom";
 import { useNavigate } from "react-router-dom";
+import React from "react";
 
 interface PitchDashboardProps {
   initialPitch?: any;

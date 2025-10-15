@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { UserAuth } from "../context/AuthContext";
 import SignInModal from "./signIn/SignInModal";
+import React from "react";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
