@@ -801,22 +801,31 @@ export function InvoicesPage({
               <CardTitle>Additional Information</CardTitle>
             </CardHeader>
             <CardContent className={styles.details}>
-              <div>
-                <Label htmlFor="edit-notes">Notes</Label>
+              <div className="flex flex-col gap-4">
+                <Label className={styles.lableWrapper} htmlFor="edit-notes">
+                  Notes
+                </Label>
                 <Textarea
                   id="edit-notes"
                   placeholder="Add any additional notes or terms (e.g., payment terms, thank you message)"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
+                  className="mt-4"
                 />
               </div>
-              <div>
-                <Label htmlFor="edit-bank-details">Bank Account Details</Label>
+              <div className="flex flex-col gap-4">
+                <Label
+                  className={styles.lableWrapper}
+                  htmlFor="edit-bank-details"
+                >
+                  Bank Account Details
+                </Label>
                 <Textarea
                   id="edit-bank-details"
                   placeholder="Bank name, account number, routing number, SWIFT/BIC code"
                   value={bankDetails}
                   onChange={(e) => setBankDetails(e.target.value)}
+                  className="mt-4"
                 />
               </div>
             </CardContent>
