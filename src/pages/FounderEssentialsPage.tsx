@@ -37,6 +37,7 @@ import { FeedbackCoach } from "../components/FeedbackCoach";
 import { Input } from "../components/ui/input";
 import { InvoicesPage } from "./invoices/InvoicesPage";
 import { ContractsListPage } from "./ContractsListPage";
+import React from "react";
 
 const tools = [
   {
@@ -507,12 +508,14 @@ export function FounderEssentialsPage({
                 className="flex-1"
                 onClick={() => {
                   // Skip logo upload and generate
-                  setLogoSvgContent(null);
-                  const firstPitch = (window as any).__firstPitch;
-                  proceedWithLandingPageGeneration(firstPitch);
+                  // setLogoSvgContent(null);
+                  // const firstPitch = (window as any).__firstPitch;
+                  // proceedWithLandingPageGeneration(firstPitch);
+                  setShowLogoUploadModal(false);
+                  clearLogo();
                 }}
               >
-                Skip
+                Cancel
               </Button>
               <Button
                 className="flex-1 bg-premium-purple hover:bg-premium-purple-dark"
@@ -520,7 +523,7 @@ export function FounderEssentialsPage({
                   const firstPitch = (window as any).__firstPitch;
                   proceedWithLandingPageGeneration(firstPitch);
                 }}
-                disabled={!!uploadError}
+                disabled={!logoSvgContent || !!uploadError}
               >
                 Generate Landing Page
               </Button>

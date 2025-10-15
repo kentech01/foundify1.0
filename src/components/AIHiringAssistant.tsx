@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -48,6 +48,14 @@ interface QuestionCategory {
   questions: Question[];
 }
 
+type Errors = Partial<{
+  candidateName: string;
+  role: string;
+  seniority: string;
+  industry: string;
+  interviewGoal: string;
+}>;
+
 export function AIHiringAssistant() {
   const [candidateName, setCandidateName] = useState("");
   const [role, setRole] = useState("");
@@ -60,18 +68,73 @@ export function AIHiringAssistant() {
   const [categories, setCategories] = useState<QuestionCategory[]>([]);
   const [openCategories, setOpenCategories] = useState<string[]>([]);
 
+  const [errors, setErrors] = useState<Errors>({});
+  const [touched, setTouched] = useState<
+    Partial<{
+      candidateName: boolean;
+      role: boolean;
+      seniority: boolean;
+      industry: boolean;
+      interviewGoal: boolean;
+    }>
+  >({});
+
   const { generateInterviewQuestions, exportInterviewPdf } = useApiService();
 
+  const validate = useMemo(() => {
+    const trimmed = {
+      candidateName: candidateName.trim(),
+      role: role.trim(),
+      seniority: seniority.trim(),
+      industry: industry.trim(),
+      interviewGoal: interviewGoal.trim(),
+    };
+
+    const errs: Errors = {};
+
+    if (
+      !trimmed.candidateName ||
+      trimmed.candidateName.length < 2 ||
+      trimmed.candidateName.length > 100
+    ) {
+      errs.candidateName = "2-100 characters";
+    }
+    if (!trimmed.role || trimmed.role.length < 2 || trimmed.role.length > 120) {
+      errs.role = "2-120 characters";
+    }
+    if (!trimmed.seniority) {
+      errs.seniority = "Please select a seniority level";
+    }
+    if (!trimmed.industry) {
+      errs.industry = "Please select an industry";
+    }
+    if (
+      !trimmed.interviewGoal ||
+      trimmed.interviewGoal.length < 10 ||
+      trimmed.interviewGoal.length > 500
+    ) {
+      errs.interviewGoal = "10-500 characters";
+    }
+
+    return { trimmed, errs, valid: Object.keys(errs).length === 0 };
+  }, [candidateName, role, seniority, industry, interviewGoal]);
+
+  useEffect(() => {
+    setErrors(validate.errs);
+  }, [validate]);
+
   const handleGenerateQuestions = async () => {
+    if (!validate.valid) return;
+
     setIsGenerating(true);
 
     try {
       const response = await generateInterviewQuestions({
-        candidateName,
-        role,
-        seniority,
-        industry,
-        interviewGoal,
+        candidateName: validate.trimmed.candidateName,
+        role: validate.trimmed.role,
+        seniority: validate.trimmed.seniority,
+        industry: validate.trimmed.industry,
+        interviewGoal: validate.trimmed.interviewGoal,
       });
 
       const generatedCategories: QuestionCategory[] = [
@@ -248,8 +311,7 @@ ${i + 1}. ${q.question}
     toast.success("Copied to clipboard! You can now paste into Notion.");
   };
 
-  const canGenerate =
-    candidateName && role && seniority && industry && interviewGoal;
+  const canGenerate = validate.valid;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -276,29 +338,77 @@ ${i + 1}. ${q.question}
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="candidate-name">Candidate Name</Label>
+              <Label className="mb-2" htmlFor="candidate-name">
+                Candidate Name
+              </Label>
               <Input
                 id="candidate-name"
                 value={candidateName}
-                onChange={(e) => setCandidateName(e.target.value)}
+                onChange={(e) => {
+                  setCandidateName(e.target.value);
+                  if (!touched.candidateName)
+                    setTouched({ ...touched, candidateName: true });
+                }}
+                onBlur={() => setTouched({ ...touched, candidateName: true })}
                 placeholder="e.g., Sarah Johnson"
+                maxLength={100}
               />
+              {touched.candidateName &&
+                candidateName.trim().length > 0 &&
+                errors.candidateName && (
+                  <div
+                    style={{
+                      color: "#b91c1c",
+                      fontSize: "0.8rem",
+                      marginTop: "0.375rem",
+                    }}
+                  >
+                    {errors.candidateName}
+                  </div>
+                )}
             </div>
             <div>
-              <Label htmlFor="role">Role / Position</Label>
+              <Label className="mb-2" htmlFor="role">
+                Role / Position
+              </Label>
               <Input
                 id="role"
                 value={role}
-                onChange={(e) => setRole(e.target.value)}
+                onChange={(e) => {
+                  setRole(e.target.value);
+                  if (!touched.role) setTouched({ ...touched, role: true });
+                }}
+                onBlur={() => setTouched({ ...touched, role: true })}
                 placeholder="e.g., Senior Frontend Developer"
+                maxLength={120}
               />
+              {touched.role && role.trim().length > 0 && errors.role && (
+                <div
+                  style={{
+                    color: "#b91c1c",
+                    fontSize: "0.8rem",
+                    marginTop: "0.375rem",
+                  }}
+                >
+                  {errors.role}
+                </div>
+              )}
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="seniority">Level of Seniority</Label>
-              <Select value={seniority} onValueChange={setSeniority}>
+              <Label className="mb-2" htmlFor="seniority">
+                Level of Seniority
+              </Label>
+              <Select
+                value={seniority}
+                onValueChange={(value) => {
+                  setSeniority(value);
+                  if (!touched.seniority)
+                    setTouched({ ...touched, seniority: true });
+                }}
+              >
                 <SelectTrigger id="seniority">
                   <SelectValue placeholder="Select level" />
                 </SelectTrigger>
@@ -310,10 +420,30 @@ ${i + 1}. ${q.question}
                   <SelectItem value="Lead">Lead</SelectItem>
                 </SelectContent>
               </Select>
+              {touched.seniority && errors.seniority && (
+                <div
+                  style={{
+                    color: "#b91c1c",
+                    fontSize: "0.8rem",
+                    marginTop: "0.375rem",
+                  }}
+                >
+                  {errors.seniority}
+                </div>
+              )}
             </div>
             <div>
-              <Label htmlFor="industry">Industry</Label>
-              <Select value={industry} onValueChange={setIndustry}>
+              <Label className="mb-2" htmlFor="industry">
+                Industry
+              </Label>
+              <Select
+                value={industry}
+                onValueChange={(value) => {
+                  setIndustry(value);
+                  if (!touched.industry)
+                    setTouched({ ...touched, industry: true });
+                }}
+              >
                 <SelectTrigger id="industry">
                   <SelectValue placeholder="Select industry" />
                 </SelectTrigger>
@@ -326,18 +456,50 @@ ${i + 1}. ${q.question}
                   <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
+              {touched.industry && errors.industry && (
+                <div
+                  style={{
+                    color: "#b91c1c",
+                    fontSize: "0.8rem",
+                    marginTop: "0.375rem",
+                  }}
+                >
+                  {errors.industry}
+                </div>
+              )}
             </div>
           </div>
 
           <div>
-            <Label htmlFor="interview-goal">Interview Goal / Focus</Label>
+            <Label className="mb-2" htmlFor="interview-goal">
+              Interview Goal / Focus
+            </Label>
             <Textarea
               id="interview-goal"
               value={interviewGoal}
-              onChange={(e) => setInterviewGoal(e.target.value)}
+              onChange={(e) => {
+                setInterviewGoal(e.target.value);
+                if (!touched.interviewGoal)
+                  setTouched({ ...touched, interviewGoal: true });
+              }}
+              onBlur={() => setTouched({ ...touched, interviewGoal: true })}
               placeholder="Example: Evaluate problem-solving and teamwork in real-world projects."
               rows={3}
+              maxLength={500}
             />
+            {touched.interviewGoal &&
+              interviewGoal.trim().length > 0 &&
+              errors.interviewGoal && (
+                <div
+                  style={{
+                    color: "#b91c1c",
+                    fontSize: "0.8rem",
+                    marginTop: "0.375rem",
+                  }}
+                >
+                  {errors.interviewGoal}
+                </div>
+              )}
           </div>
         </CardContent>
       </Card>
