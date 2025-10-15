@@ -131,7 +131,7 @@ export function FounderEssentialsPage({
   const [logoSvgContent, setLogoSvgContent] = useState<string | null>(null);
   const [logoFileName, setLogoFileName] = useState<string>("");
   const [uploadError, setUploadError] = useState<string>("");
-  const [showInvoices, setShowInvoices] = useState(false);
+
   const [showContracts, setShowContracts] = useState(false);
 
   const modalContentClass = "overflow-y-auto w-3/4 ";
@@ -217,7 +217,7 @@ export function FounderEssentialsPage({
 
   const handleToolAction = async (toolId: string) => {
     if (toolId === "invoice") {
-      setShowInvoices(true);
+      navigate("/dashboard/invoices");
       return;
     }
 
@@ -269,15 +269,6 @@ export function FounderEssentialsPage({
       return;
     }
   };
-
-  if (showInvoices) {
-    return (
-      <InvoicesPage
-        showInvoices={showInvoices}
-        setShowInvoices={setShowInvoices}
-      />
-    );
-  }
 
   if (showContracts) {
     return (
