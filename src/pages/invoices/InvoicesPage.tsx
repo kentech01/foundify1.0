@@ -55,6 +55,7 @@ import { useApiService, type Invoice as ApiInvoice } from "../../services/api";
 import { toast } from "sonner";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { useNavigate } from "react-router-dom";
+import React from "react";
 
 interface LineItem {
   description: string;
@@ -418,7 +419,9 @@ export function InvoicesPage({
               <CardContent className={styles.details}>
                 <div className={styles.twoCol}>
                   <div>
-                    <Label htmlFor="company">Your Company *</Label>
+                    <Label className={styles.lableWrapper} htmlFor="company">
+                      Your Company *
+                    </Label>
                     <Input
                       id="company"
                       value={companyName}
@@ -428,7 +431,9 @@ export function InvoicesPage({
                     />
                   </div>
                   <div>
-                    <Label htmlFor="client">Client Name *</Label>
+                    <Label className={styles.lableWrapper} htmlFor="client">
+                      Client Name *
+                    </Label>
                     <Input
                       id="client"
                       value={clientName}
@@ -441,7 +446,12 @@ export function InvoicesPage({
 
                 <div className={styles.twoCol}>
                   <div>
-                    <Label htmlFor="invoice-num">Invoice Number</Label>
+                    <Label
+                      className={styles.lableWrapper}
+                      htmlFor="invoice-num"
+                    >
+                      Invoice Number
+                    </Label>
                     <Input
                       id="invoice-num"
                       value={invoiceNumber}
@@ -449,7 +459,7 @@ export function InvoicesPage({
                     />
                   </div>
                   <div>
-                    <Label>Currency</Label>
+                    <Label className={styles.lableWrapper}>Currency</Label>
                     <Select
                       value={currency}
                       onValueChange={(v) => setCurrency(v as any)}
@@ -485,7 +495,9 @@ export function InvoicesPage({
                 {lineItems.map((item, index) => (
                   <div key={index} className={styles.itemRow}>
                     <div className={styles.flexGrow}>
-                      <Label>Description *</Label>
+                      <Label className={styles.lableWrapper}>
+                        Description *
+                      </Label>
                       <Input
                         value={item.description}
                         onChange={(e) =>
@@ -496,7 +508,7 @@ export function InvoicesPage({
                       />
                     </div>
                     <div className={styles.amountCol}>
-                      <Label>Quantity</Label>
+                      <Label className={styles.lableWrapper}>Quantity</Label>
                       <Input
                         type="number"
                         min="1"
@@ -508,7 +520,9 @@ export function InvoicesPage({
                       />
                     </div>
                     <div className={styles.amountCol}>
-                      <Label>Rate ({currencySymbol})</Label>
+                      <Label className={styles.lableWrapper}>
+                        Rate ({currencySymbol})
+                      </Label>
                       <Input
                         type="number"
                         min="0"
@@ -521,7 +535,7 @@ export function InvoicesPage({
                       />
                     </div>
                     <div className={styles.amountCol}>
-                      <Label>Amount</Label>
+                      <Label className={styles.lableWrapper}>Amount</Label>
                       <Input
                         readOnly
                         value={`${currencySymbol}${(
