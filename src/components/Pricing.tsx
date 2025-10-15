@@ -30,7 +30,7 @@ const plans = [
   {
     id: "premium",
     name: "Premium Plan",
-    priceMonthly: "€12",
+    priceMonthly: "€15",
     priceAnnually: "€10",
     savingsText: "Save €24/year",
     period: "per month",
