@@ -40,7 +40,7 @@ import {
   Send,
   Download,
   Search,
-  ChevronRight,
+  ArrowLeft,
 } from "lucide-react";
 import { useApiService, type Invoice as ApiInvoice } from "../../services/api";
 import { toast } from "sonner";
@@ -369,29 +369,24 @@ export function InvoicesPage({
 
   return (
     <div className="p-8">
-      {/* Breadcrumb Navigation */}
-      <div className="mb-6">
-        <div
-          className="flex items-center space-x-2 text-sm text-gray-600 cursor-pointer"
-          onClick={() => navigate("/dashboard/essentials")}
-        >
-          <button className="hover:text-gray-900 transition-colors cursor-pointer hover:text-gray-900">
-            Founder Essentials
-          </button>
-          <ChevronRight className="h-4 w-4 text-gray-400" />
-          <span className="text-gray-900 font-medium">Invoices</span>
-        </div>
-      </div>
-
-      {/* Header Actions */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Invoice Generator
-          </h2>
-          <p className="text-gray-600">
-            Create and manage professional invoices for your business
-          </p>
+      {/* Header: Back + Title on left, Action button on right */}
+      <div className="flex items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/dashboard/essentials")}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900">
+              Invoice Generator
+            </h2>
+            <p className="text-gray-600">
+              Create and manage professional invoices for your business
+            </p>
+          </div>
         </div>
         <Dialog
           open={isCreateModalOpen}

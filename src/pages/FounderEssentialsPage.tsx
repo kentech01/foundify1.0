@@ -49,7 +49,6 @@ const tools = [
     colorLight: "bg-purple-50",
     buttonColor: "bg-premium-purple hover:bg-premium-purple-dark",
     buttonText: "Generate Invoice",
-    isPremium: true,
   },
   {
     id: "contracts",
@@ -58,7 +57,6 @@ const tools = [
     icon: FileCheck,
     color: "bg-purple-500",
     colorLight: "bg-purple-50",
-    isPremium: true,
     buttonColor: "bg-premium-purple hover:bg-premium-purple-dark",
     buttonText: "Browse Templates",
   },
@@ -69,7 +67,6 @@ const tools = [
     icon: MessageSquare,
     color: "bg-purple-500",
     colorLight: "bg-purple-50",
-    isPremium: true,
     buttonColor: "bg-premium-purple hover:bg-premium-purple-dark",
     buttonText: "Create Feedback",
   },
@@ -82,7 +79,6 @@ const tools = [
     colorLight: "bg-purple-50",
     buttonColor: "bg-premium-purple hover:bg-premium-purple-dark",
     buttonText: "Draft Email",
-    isPremium: true,
   },
   {
     id: "ai-hiring",
@@ -91,7 +87,6 @@ const tools = [
     icon: Users,
     color: "bg-pink-500",
     colorLight: "bg-purple-50",
-    isPremium: true,
     buttonColor: "bg-premium-purple hover:bg-premium-purple-dark",
     buttonText: "AI Hiring Assistant",
   },
@@ -102,7 +97,6 @@ const tools = [
     icon: FileCheck,
     color: "bg-pink-500",
     colorLight: "bg-purple-50",
-    isPremium: true,
     buttonColor: "bg-premium-purple hover:bg-premium-purple-dark",
     buttonText: "Generate Landing Page",
   },
@@ -439,7 +433,7 @@ export function FounderEssentialsPage({
           }
         }}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md h-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
               Upload Your Logo (Optional)

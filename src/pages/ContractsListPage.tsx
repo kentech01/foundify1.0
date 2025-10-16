@@ -19,6 +19,7 @@ import {
   Plus,
   ChevronRight,
   Loader2,
+  ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ContractTemplates } from "../components/ContractTemplates";
@@ -168,27 +169,22 @@ export function ContractsListPage({
 
   return (
     <div className="p-8">
-      {/* Breadcrumb Navigation */}
-      <div className="mb-6">
-        <div
-          className="flex items-center space-x-2 text-sm text-gray-600 cursor-pointer"
-          onClick={() => setShowContracts(!showContracts)}
-        >
-          <button className="hover:text-gray-900 transition-colors cursor-pointer hover:text-gray-900">
-            Founder Essentials
-          </button>
-          <ChevronRight className="h-4 w-4 text-gray-400" />
-          <span className="text-gray-900 font-medium">Contracts</span>
-        </div>
-      </div>
-
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h3 className="text-2xl font-bold text-gray-900">Your Contracts</h3>
-          <p className="text-gray-600 mt-1">
-            Manage and download your generated contracts
-          </p>
+      {/* Header: Back + Title on left, Action button on right */}
+      <div className="flex items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            onClick={() => setShowContracts(!showContracts)}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h3 className="text-2xl font-bold text-gray-900">Your Contracts</h3>
+            <p className="text-gray-600 mt-1">
+              Manage and download your generated contracts
+            </p>
+          </div>
         </div>
         <Button
           onClick={() => setIsCreateModalOpen(true)}

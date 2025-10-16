@@ -178,16 +178,16 @@ export function InvestorEmailDraft() {
   };
 
   return (
-    <div className={styles.wrap}>
-      <div className={styles.head}>
-        <h2 className={styles.title}>Investor Email Generator</h2>
-        <p className={styles.subtitle}>
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div className="text-center">
+        <h2 className="text-2xl font-semibold">Investor Email Generator</h2>
+        <p className="text-muted-foreground mt-1">
           Create professional investor outreach emails in minutes
         </p>
       </div>
 
       {/* Template Picker */}
-      <Card className="mb-8">
+      <Card>
         <CardHeader>
           <CardTitle>Choose Template</CardTitle>
         </CardHeader>

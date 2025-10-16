@@ -59,7 +59,6 @@ export function DashboardLayout({
 
   const currentPath = location.pathname;
 
-  console.log(currentPath, "currentPath");
   const currentTitle =
     navItems.find((item) => currentPath.startsWith(item.path))?.label ||
     "Dashboard";
