@@ -58,6 +58,8 @@ export function DashboardLayout({
   ];
 
   const currentPath = location.pathname;
+
+  console.log(currentPath, "currentPath");
   const currentTitle =
     navItems.find((item) => currentPath.startsWith(item.path))?.label ||
     "Dashboard";
@@ -99,7 +101,10 @@ export function DashboardLayout({
         <nav className="flex-1 p-4 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = currentPath.startsWith(item.path);
+            const isActive =
+              currentPath.startsWith(item.path) ||
+              (item.path === "/dashboard/essentials" &&
+                currentPath === "/dashboard/invoices");
             return (
               <button
                 key={item.path}
