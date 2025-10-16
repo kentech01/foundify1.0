@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -24,6 +24,7 @@ import {
   ArrowRight,
   Upload,
   X,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useApiService } from "../services/api";
@@ -125,6 +126,9 @@ export function FounderEssentialsPage({
   const [showLandingLoading, setShowLandingLoading] = useState(false);
   const [landingProgress, setLandingProgress] = useState(0);
 
+  // Loading state while fetching the first pitch for Landing Page
+  const [isFetchingFirstPitch, setIsFetchingFirstPitch] = useState(false);
+
   // Add new states for logo upload
   const [showLogoUploadModal, setShowLogoUploadModal] = useState(false);
   const [logoSvgContent, setLogoSvgContent] = useState<string | null>(null);
@@ -134,6 +138,23 @@ export function FounderEssentialsPage({
   const [showContracts, setShowContracts] = useState(false);
 
   const modalContentClass = "overflow-y-auto w-3/4 ";
+
+  // First pitch meta and premium landing status
+  const [firstPitchMeta, setFirstPitchMeta] = useState<any>(null);
+  const [firstPitchHasPremiumLanding, setFirstPitchHasPremiumLanding] =
+    useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const fp = await apiService.getFirstPitch();
+        if (fp) {
+          setFirstPitchMeta(fp);
+          setFirstPitchHasPremiumLanding(!!fp.hasLandingPagePremium);
+        }
+      } catch (_e) {}
+    })();
+  }, []);
 
   // Add function to handle SVG file upload
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -184,7 +205,7 @@ export function FounderEssentialsPage({
 
       progressInterval = window.setInterval(() => {
         setLandingProgress((p) => Math.min(p + 5, 95));
-      }, 500);
+      }, 5000);
 
       const response = await apiService.generateLandingPage(
         firstPitch.id,
@@ -200,6 +221,17 @@ export function FounderEssentialsPage({
 
       // Clear logo after successful generation
       clearLogo();
+
+      // Refetch first pitch to refresh landing page status in UI
+      try {
+        const refreshed = await apiService.getFirstPitch();
+        if (refreshed) {
+          setFirstPitchMeta(refreshed);
+          setFirstPitchHasPremiumLanding(!!refreshed.hasLandingPagePremium);
+        }
+      } catch (_e) {
+        // no-op: keep previous state if refresh fails
+      }
     } catch (error: any) {
       toast.error("Failed to generate premium landing page", {
         description: error.message || "Please try again later.",
@@ -211,6 +243,8 @@ export function FounderEssentialsPage({
         setLandingProgress(0);
       }, 400);
       setIsGenerating(false);
+      // Clear temporary reference if used
+      (window as any).__firstPitch = undefined;
     }
   };
 
@@ -236,25 +270,35 @@ export function FounderEssentialsPage({
     }
 
     if (toolId === "landing-page") {
-      const firstPitch = await apiService.getFirstPitch();
+      try {
+        if (firstPitchHasPremiumLanding) {
+          navigate(`/${firstPitchMeta.startupName}`);
+          return;
+        }
+        setIsFetchingFirstPitch(true);
 
-      if (!firstPitch) {
-        toast.error("No first pitch found", {
-          description:
-            "Please create your first pitch to generate a premium landing page.",
-        });
-        return;
+        const firstPitch = await apiService.getFirstPitch();
+
+        if (!firstPitch) {
+          toast.error("No first pitch found", {
+            description:
+              "Please create your first pitch to generate a premium landing page.",
+          });
+          return;
+        }
+
+        if (isLocked) {
+          onUpgrade();
+          return;
+        }
+
+        // Open logo upload modal instead of generating immediately
+        setShowLogoUploadModal(true);
+        // Store firstPitch in state or pass it through
+        (window as any).__firstPitch = firstPitch; // Temporary storage
+      } finally {
+        setIsFetchingFirstPitch(false);
       }
-
-      if (isLocked) {
-        onUpgrade();
-        return;
-      }
-
-      // Open logo upload modal instead of generating immediately
-      setShowLogoUploadModal(true);
-      // Store firstPitch in state or pass it through
-      (window as any).__firstPitch = firstPitch; // Temporary storage
 
       return;
     }
@@ -346,16 +390,27 @@ export function FounderEssentialsPage({
                   onClick={() =>
                     isLocked ? onUpgrade() : handleToolAction(tool.id)
                   }
-                  disabled={isLocked || isGenerating}
+                  disabled={
+                    isLocked ||
+                    isGenerating ||
+                    (tool.id === "landing-page" && isFetchingFirstPitch)
+                  }
                 >
                   {isLocked ? (
                     <>
                       Unlock with Premium
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </>
+                  ) : tool.id === "landing-page" && isFetchingFirstPitch ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading...
+                    </>
                   ) : (
                     <>
-                      {tool.buttonText}
+                      {tool.id === "landing-page" && firstPitchHasPremiumLanding
+                        ? "View Landing Page"
+                        : tool.buttonText}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </>
                   )}
@@ -394,7 +449,7 @@ export function FounderEssentialsPage({
               360° Feedback Coach
             </DialogTitle>
           </DialogHeader>
-          <FeedbackCoach />
+          <FeedbackCoach setActiveModal={setActiveModal} />
         </DialogContent>
       </Dialog>
 
