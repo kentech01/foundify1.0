@@ -97,7 +97,9 @@ export function DashboardLayout({
             const isActive =
               currentPath.startsWith(item.path) ||
               (item.path === "/dashboard/essentials" &&
-                currentPath === "/dashboard/invoices");
+                currentPath === "/dashboard/invoices") ||
+              (item.path === "/dashboard/essentials" &&
+                currentPath === "/dashboard/contracts");
             return (
               <button
                 key={item.path}

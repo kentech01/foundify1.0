@@ -829,6 +829,22 @@ export const useApiService = () => {
     [axiosInstance]
   );
 
+  const exportContractPdfById = useCallback(
+    async (contractId: string): Promise<Blob> => {
+      try {
+        const response = await axiosInstance.post(
+          `/contracts/${contractId}/export-pdf`,
+          {}, // No body needed since we're using the contract ID
+          { responseType: "blob" }
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(errorMessage(error));
+      }
+    },
+    [axiosInstance]
+  );
+
   const getContractTemplatePreview = useCallback(
     async (templateId: string): Promise<ContractTemplatePreviewResponse> => {
       try {
@@ -913,6 +929,7 @@ export const useApiService = () => {
     // Contract methods
     generateContract,
     exportContractPdf,
+    exportContractPdfById,
     getContract,
     deleteContract,
     editContract,
