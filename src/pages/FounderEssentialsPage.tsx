@@ -62,7 +62,7 @@ const tools = [
   },
   {
     id: "feedback",
-    title: "Feedback Coach",
+    title: "360° Feedback Coach",
     description: "Structure meaningful feedback for your team",
     icon: MessageSquare,
     color: "bg-purple-500",
@@ -318,7 +318,7 @@ export function FounderEssentialsPage({
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <div>
+          {/* <div>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
               Founder Essentials
             </h2>
@@ -333,7 +333,7 @@ export function FounderEssentialsPage({
             >
               Upgrade to Premium
             </Button>
-          )}
+          )} */}
         </div>
       </div>
 
@@ -481,17 +481,17 @@ export function FounderEssentialsPage({
         <DialogContent className="max-w-md h-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
-              Upload Your Logo (Optional)
+              Upload Your Logo
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="mb-12">
               Upload an SVG logo to include in your landing page. You can also
               skip this step.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 mt-4">
+          <div className="space-y-12">
             {/* File Upload Area */}
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-500 transition-colors">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg mb-8 p-6 text-center hover:border-purple-500 transition-colors">
               <label htmlFor="logo-upload" className="cursor-pointer block">
                 <Upload className="mx-auto h-12 w-12 text-gray-400 mb-3" />
                 <p className="text-sm text-gray-600 mb-2">
@@ -532,7 +532,7 @@ export function FounderEssentialsPage({
             )}
 
             {/* Action buttons */}
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-3 pt-8">
               <Button
                 variant="outline"
                 className="flex-1"

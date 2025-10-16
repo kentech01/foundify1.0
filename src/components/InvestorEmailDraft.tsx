@@ -187,7 +187,7 @@ export function InvestorEmailDraft() {
       </div>
 
       {/* Template Picker */}
-      <Card>
+      <Card className={`${styles.investorEmailDraftWrapp} mx-auto`}>
         <CardHeader>
           <CardTitle>Choose Template</CardTitle>
         </CardHeader>
@@ -231,7 +231,7 @@ export function InvestorEmailDraft() {
       {selectedTemplate && (
         <>
           {/* Form */}
-          <Card>
+          <Card className={`${styles.investorEmailDraftWrapp} mx-auto`}>
             <CardHeader>
               <CardTitle>Your Details</CardTitle>
             </CardHeader>
@@ -427,7 +427,7 @@ export function InvestorEmailDraft() {
       )}
 
       {(emailSubject || emailBody) && (
-        <Card>
+        <Card className={`${styles.investorEmailDraftWrapp} mx-auto`}>
           <CardHeader>
             <div className={styles.emailHeader}>
               <CardTitle>Your Email</CardTitle>
@@ -456,7 +456,9 @@ export function InvestorEmailDraft() {
       )}
 
       {/* Tips */}
-      <Card className={styles.tipsCard}>
+      <Card
+        className={`${styles.tipsCard} ${styles.investorEmailDraftWrapp} mx-auto`}
+      >
         <CardContent className={styles.tipsContent}>
           <div className={styles.tipsInner}>
             <h3 className={styles.tipsTitle}>Pro Tips</h3>

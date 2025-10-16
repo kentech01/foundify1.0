@@ -133,7 +133,7 @@ export function FeedbackCoach({
       <div className="text-center">
         <div className="flex items-center justify-center gap-2 mb-2">
           <h2 className="text-2xl font-semibold">Feedback Coach</h2>
-          <Badge className="bg-purple-100 text-purple-600">Premium</Badge>
+          {/* <Badge className="bg-purple-100 text-purple-600">Premium</Badge> */}
         </div>
         <p className="text-muted-foreground">
           Structure meaningful feedback conversations with your team

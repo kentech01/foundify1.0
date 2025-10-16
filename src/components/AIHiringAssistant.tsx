@@ -322,7 +322,6 @@ ${i + 1}. ${q.question}
         </div>
         <div className="flex items-center justify-center gap-3 mb-2">
           <h2 className="text-2xl font-semibold">AI Hiring Assistant</h2>
-          <Badge className="bg-purple-600 text-white">Premium</Badge>
         </div>
         <p className="text-muted-foreground">
           Generate smart interview questions, evaluate candidates, and make

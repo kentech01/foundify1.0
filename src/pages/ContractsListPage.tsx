@@ -36,6 +36,7 @@ import { toast } from "sonner";
 import { ContractTemplates } from "../components/ContractTemplates";
 import { useApiService } from "../services/api";
 import { useNavigate } from "react-router-dom";
+import React from "react";
 
 interface Contract {
   id: string;
@@ -193,7 +194,7 @@ export function ContractsListPage({
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
-            onClick={() => setShowContracts(!showContracts)}
+            onClick={() => navigate("/dashboard/essentials")}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg"
           >
             <ArrowLeft className="h-4 w-4" />
