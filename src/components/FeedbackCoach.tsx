@@ -57,7 +57,11 @@ const cycles = [
   "Project Review",
 ];
 
-export function FeedbackCoach() {
+export function FeedbackCoach({
+  setActiveModal,
+}: {
+  setActiveModal: (modal: string) => void;
+}) {
   const { exportFeedbackPdf } = useApiService();
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState<FeedbackForm>({
@@ -112,6 +116,7 @@ export function FeedbackCoach() {
       window.URL.revokeObjectURL(url);
 
       toast.success("Feedback report generated successfully!");
+      setActiveModal("");
     } catch (error: any) {
       console.error("Error generating feedback PDF:", error);
       toast.error(error.message || "Failed to generate feedback report");
