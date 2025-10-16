@@ -35,8 +35,7 @@ import { AIHiringAssistant } from "../components/AIHiringAssistant";
 import { InvestorEmailDraft } from "../components/InvestorEmailDraft";
 import { FeedbackCoach } from "../components/FeedbackCoach";
 import { Input } from "../components/ui/input";
-import { InvoicesPage } from "./invoices/InvoicesPage";
-import { ContractsListPage } from "./ContractsListPage";
+
 import React from "react";
 
 const tools = [
@@ -222,7 +221,7 @@ export function FounderEssentialsPage({
     }
 
     if (toolId === "contracts") {
-      setShowContracts(true);
+      navigate("/dashboard/contracts");
       return;
     }
 
@@ -269,15 +268,6 @@ export function FounderEssentialsPage({
       return;
     }
   };
-
-  if (showContracts) {
-    return (
-      <ContractsListPage
-        showContracts={showContracts}
-        setShowContracts={setShowContracts}
-      />
-    );
-  }
 
   return (
     <div className="p-8">

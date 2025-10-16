@@ -7,6 +7,7 @@ import { FounderEssentialsPage } from "./FounderEssentialsPage";
 import { useApp } from "../context/AppContext";
 import { UserAuth } from "../context/AuthContext";
 import SignInModal from "../components/signIn/SignInModal";
+import { ContractsListPage } from "./ContractsListPage";
 
 export function DashboardMain() {
   const navigate = useNavigate();
@@ -94,6 +95,7 @@ export function DashboardMain() {
           }
         />
         <Route path="invoices" element={<InvoicesPage />} />
+        <Route path="contracts" element={<ContractsListPage />} />
         <Route
           path="essentials"
           element={
