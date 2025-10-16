@@ -10,7 +10,18 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "../components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../components/ui/alert-dialog";
 import {
   FileCheck,
   Download,
@@ -24,7 +35,7 @@ import {
 import { toast } from "sonner";
 import { ContractTemplates } from "../components/ContractTemplates";
 import { useApiService } from "../services/api";
-import React from "react";
+import { useNavigate } from "react-router-dom";
 
 interface Contract {
   id: string;
@@ -44,15 +55,25 @@ export function ContractsListPage({
   showContracts: boolean;
   setShowContracts: (showContracts: boolean) => void;
 }) {
+  const navigate = useNavigate();
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editContractData, setEditContractData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [contractToDelete, setContractToDelete] = useState<Contract | null>(
+    null
+  );
 
-  const { getContracts, deleteContract, exportContractPdf, getContract } =
-    useApiService();
+  const {
+    getContracts,
+    deleteContract,
+    exportContractPdf,
+    getContract,
+    exportContractPdfById,
+  } = useApiService();
 
   // Fetch contracts on mount
   useEffect(() => {
@@ -72,46 +93,44 @@ export function ContractsListPage({
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this contract?")) {
-      return;
-    }
+  const handleDeleteClick = (contract: Contract) => {
+    setContractToDelete(contract);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!contractToDelete) return;
 
     try {
-      await deleteContract(id);
-      setContracts(contracts.filter((c) => c.id !== id));
+      await deleteContract(contractToDelete.id);
+      setContracts(contracts.filter((c) => c.id !== contractToDelete.id));
       toast.success("Contract deleted successfully");
     } catch (error: any) {
       console.error("Error deleting contract:", error);
       toast.error(error.message || "Failed to delete contract");
+    } finally {
+      setDeleteDialogOpen(false);
+      setContractToDelete(null);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setContractToDelete(null);
   };
 
   const handleDownload = async (contract: Contract) => {
     try {
       setDownloadingId(contract.id);
 
-      // Get the full contract details if needed
-      const contractDetails = await getContract(contract.id);
-
-      console.log(contractDetails, "contractDetails");
-
-      // Prepare the payload for PDF export
-      const pdfPayload = {
-        templateId: contractDetails.data?.template_id || "",
-        data: contract.data || {},
-        customContent: contractDetails.data?.custom_content || "",
-      };
-
-      console.log(pdfPayload, "pdfPayload");
-
-      const pdfBlob = await exportContractPdf(pdfPayload);
+      // Use the new endpoint that exports directly from the saved contract
+      const pdfBlob = await exportContractPdfById(contract.id);
 
       // Download the PDF
       const url = window.URL.createObjectURL(pdfBlob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${contractDetails.data?.template_name.replace(
+      link.download = `${contract.template_name?.replace(
         /\s+/g,
         "_"
       )}_${Date.now()}.pdf`;
@@ -120,7 +139,7 @@ export function ContractsListPage({
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      toast.success(`Downloaded ${contractDetails.data?.template_name}`);
+      toast.success(`Downloaded ${contract.template_name}`);
     } catch (error: any) {
       console.error("Error downloading contract:", error);
       toast.error(error.message || "Failed to download contract");
@@ -295,7 +314,7 @@ export function ContractsListPage({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDelete(contract.id)}
+                      onClick={() => handleDeleteClick(contract)}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -344,6 +363,25 @@ export function ContractsListPage({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Contract</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{contractToDelete?.template_name}
+              "? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDeleteCancel}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

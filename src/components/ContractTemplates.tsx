@@ -159,11 +159,13 @@ export function ContractTemplates({
   };
 
   // add mapping and content helpers near other handlers
-  const toCamel = (s: string) =>
-    s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+  // const toCamel = (s: string) =>
+  //   s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
   const mapDataForApi = (data: Record<string, string>) => {
-    const out: Record<string, string> = {};
-    Object.keys(data).forEach((k) => (out[toCamel(k)] = data[k]));
+    console.log(data, "data");
+
+    const out: Record<string, string> = data;
+
     if (out["date"] && !out["agreementDate"])
       out["agreementDate"] = out["date"];
     return out;
@@ -173,33 +175,38 @@ export function ContractTemplates({
     try {
       setIsGenerating(true);
 
-      console.log(editablePreview, "editablePreview");
-
       // If in edit mode, we're updating an existing contract
       if (editMode) {
-        // First, update the contract in the backend
+        // Prepare the edit payload
         const editPayload = {
           templateId: editMode.templateId,
-          originalData: editMode.formData, // The original form data
+          originalData: editMode.formData, // Use the original data from editMode
           updates: {
-            data: formData, // The updated form data
-            customContent: editableContract, // The edited contract text
+            data: mapDataForApi(formData), // Use the updated form data
+            customContent: editableContract, // Use the edited contract text
           },
+          contractId: editMode.contractId, // Include the contract ID
+          saveToDb: true, // Make sure to save to database
         };
+
+        console.log("Edit payload:", editPayload);
 
         // Call the edit endpoint to save changes
         const editResponse = await editContract(editPayload);
         console.log("Contract updated:", editResponse);
 
-        // Then export the PDF with the updated content
+        // Export the PDF with the updated content
         const pdfPayload = {
           templateId: editMode.templateId,
-          data: mapDataForApi(formData),
-          customContent: editableContract,
+          data: mapDataForApi(formData), // Use updated form data
+          customContent: editableContract, // Use edited contract text
         };
+
+        console.log("PDF payload:", pdfPayload);
 
         const pdfBlob = await exportContractPdf(pdfPayload);
 
+        // Download the PDF
         const url = window.URL.createObjectURL(pdfBlob);
         const link = document.createElement("a");
         link.href = url;
@@ -558,7 +565,7 @@ export function ContractTemplates({
           </Button>
           <div className="flex-1">
             <h1 className="text-2xl mb-1">
-              Review & Edit {selectedTemplate.title}
+              vestingYears Review & Edit {selectedTemplate.title}
             </h1>
             <p className="text-gray-600">
               Make any final changes before generating your contract
