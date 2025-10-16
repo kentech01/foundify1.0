@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import { ContractTemplates } from "../components/ContractTemplates";
 import { useApiService } from "../services/api";
+import React from "react";
 
 interface Contract {
   id: string;

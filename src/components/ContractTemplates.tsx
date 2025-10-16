@@ -477,7 +477,7 @@ export function ContractTemplates({
                     className={field.type === "textarea" ? "md:col-span-2" : ""}
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <Label className="mb-2" htmlFor={field.id}>
+                      <Label className="" htmlFor={field.id}>
                         {field.label}
                       </Label>
                       {field.tooltip && (
