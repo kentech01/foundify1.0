@@ -157,6 +157,18 @@ export function InvestorEmailDraft() {
       const res = await generateInvestorEmail(payload);
       setEmailSubject(res.subject || "");
       setEmailBody(res.body || "");
+
+      // Clear form fields after successful generation
+      setFormData({
+        name: "",
+        company: "",
+        investor: "",
+        valueProp: "",
+        traction: "",
+        contact: "",
+      });
+      setSelectedTemplate("");
+      setTouched({});
     } catch (e: any) {
       console.error(e);
     } finally {
@@ -178,9 +190,11 @@ export function InvestorEmailDraft() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold">Investor Email Generator</h2>
+    <div className="max-w-2xl mx-auto  space-y-6 ">
+      <div className="text-center ">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <h2 className="text-2xl font-semibold">Investor Email Generator</h2>
+        </div>
         <p className="text-muted-foreground mt-1">
           Create professional investor outreach emails in minutes
         </p>

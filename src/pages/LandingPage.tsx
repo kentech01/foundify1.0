@@ -35,10 +35,9 @@ export function LandingPage() {
       <WhatYouGet />
       <BenefitsModern />
       <PricingModern />
-      <SocialProofModern />
+      {/* <SocialProofModern /> */}
       <CTASection onStart={handleStartPitch} />
       <FooterModern />
-
       {/* Sign In Modal - only for Header sign in button */}
       <SignInModal
         isOpen={isSignInModalOpen}

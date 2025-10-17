@@ -491,7 +491,7 @@ export function FounderEssentialsPage({
 
           <div className="space-y-12">
             {/* File Upload Area */}
-            <div className="border-2 border-dashed border-gray-300 rounded-lg mb-8 p-6 text-center hover:border-purple-500 transition-colors">
+            <div className="w-full border-2 border-dashed border-gray-300 rounded-lg mb-8 p-4 sm:p-6 text-center hover:border-purple-500 transition-colors">
               <label htmlFor="logo-upload" className="cursor-pointer block">
                 <Upload className="mx-auto h-12 w-12 text-gray-400 mb-3" />
                 <p className="text-sm text-gray-600 mb-2">

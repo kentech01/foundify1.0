@@ -965,12 +965,6 @@ export function InvoicesPage({
                         {invoice.total.toLocaleString()}
                       </p>
                     </div>
-                    {/* <div>
-                      <p className="text-sm text-gray-600 mb-1">Status</p>
-                      <Badge className={getStatusBadgeColor(invoice.status)}>
-                        {invoice.status}
-                      </Badge>
-                    </div> */}
                   </div>
 
                   {/* Actions */}

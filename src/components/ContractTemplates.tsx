@@ -293,7 +293,7 @@ export function ContractTemplates({
               }`}
             >
               <CardContent className="p-6">
-                <div className="flex items-start gap-4 mb-4">
+                <div className="flex items-center gap-4 mb-4">
                   <div
                     className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
                       template.isPremium ? "bg-purple-100" : "bg-blue-100"
