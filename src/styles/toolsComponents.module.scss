@@ -40,9 +40,6 @@
     grid-template-columns: 1fr 1fr;
   }
 }
-.lableWrapper {
-  margin-bottom: 8px;
-}
 
 /* Items section */
 .itemsHeader {
@@ -448,6 +445,9 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+.lableWrapper {
+  margin-bottom: 8px;
+}
 
 .ctaWrap {
   display: flex;
@@ -481,6 +481,19 @@
 .ctaIcon {
   width: 1rem;
   height: 1rem;
+}
+.investorEmailDraftWrapp {
+  width: 600px;
+  max-width: 100%;
+  margin-top: 60px;
+
+  /* Make cards fluid on small screens */
+  @media (max-width: 960px) {
+    width: 400px;
+  }
+  @media (max-width: 760px) {
+    width: 100%;
+  }
 }
 
 /* Email header + preview */
@@ -524,6 +537,7 @@
 }
 
 .tipsCard {
+  background-color: #eff6ff;
   margin-top: 2rem;
 }
 

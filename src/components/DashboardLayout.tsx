@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { UserAuth } from "../context/AuthContext";
 import SignInModal from "./signIn/SignInModal";
+import React from "react";
+const favicon = new URL("../assets/FOUNDIFY-LOGO.svg", import.meta.url).href;
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -46,12 +48,7 @@ export function DashboardLayout({
       label: "Pitch Dashboard",
       icon: LayoutDashboard,
     },
-    {
-      path: "/dashboard/invoices",
-      label: "Invoices",
-      icon: FileText,
-      premium: false,
-    },
+
     {
       path: "/dashboard/essentials",
       label: "Founder Essentials",
@@ -61,6 +58,7 @@ export function DashboardLayout({
   ];
 
   const currentPath = location.pathname;
+
   const currentTitle =
     navItems.find((item) => currentPath.startsWith(item.path))?.label ||
     "Dashboard";
@@ -86,16 +84,14 @@ export function DashboardLayout({
         {/* Logo */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-premium-purple to-deep-blue flex items-center justify-center">
-              <span className="text-white font-bold text-xl">F</span>
-            </div>
             <div className="flex-1">
-              <h1 className="text-xl font-bold text-gray-900">Foundify</h1>
-              {isPremium && (
-                <Badge className="bg-gradient-to-r from-premium-purple to-deep-blue text-white text-xs mt-1">
-                  Premium
-                </Badge>
-              )}
+              <img
+                src={favicon}
+                alt="Foundify"
+                className="h-8 w-auto cursor-pointer select-none"
+                onClick={() => navigate("/")}
+              />
+              {/* <h1 className="text-2xl font-bold text-deep-blue">Foundify</h1> */}
             </div>
           </div>
         </div>
@@ -104,7 +100,12 @@ export function DashboardLayout({
         <nav className="flex-1 p-4 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = currentPath.startsWith(item.path);
+            const isActive =
+              currentPath.startsWith(item.path) ||
+              (item.path === "/dashboard/essentials" &&
+                currentPath === "/dashboard/invoices") ||
+              (item.path === "/dashboard/essentials" &&
+                currentPath === "/dashboard/contracts");
             return (
               <button
                 key={item.path}

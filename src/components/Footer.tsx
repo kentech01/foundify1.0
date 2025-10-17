@@ -1,4 +1,5 @@
-import { Separator } from './ui/separator';
+import React from "react";
+import { Separator } from "./ui/separator";
 
 export function Footer() {
   return (
@@ -18,22 +19,34 @@ export function Footer() {
             <h4 className="font-semibold text-white mb-4">Product</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#" className="text-deep-blue-100 hover:text-white transition-colors">
+                <a
+                  href="#"
+                  className="text-deep-blue-100 hover:text-white transition-colors"
+                >
                   Dashboard
                 </a>
               </li>
               <li>
-                <a href="#" className="text-deep-blue-100 hover:text-white transition-colors">
+                <a
+                  href="#"
+                  className="text-deep-blue-100 hover:text-white transition-colors"
+                >
                   Features
                 </a>
               </li>
               <li>
-                <a href="#" className="text-deep-blue-100 hover:text-white transition-colors">
+                <a
+                  href="#"
+                  className="text-deep-blue-100 hover:text-white transition-colors"
+                >
                   Pricing
                 </a>
               </li>
               <li>
-                <a href="#" className="text-deep-blue-100 hover:text-white transition-colors">
+                <a
+                  href="#"
+                  className="text-deep-blue-100 hover:text-white transition-colors"
+                >
                   Roadmap
                 </a>
               </li>
@@ -45,22 +58,34 @@ export function Footer() {
             <h4 className="font-semibold text-white mb-4">Company</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#" className="text-deep-blue-100 hover:text-white transition-colors">
+                <a
+                  href="#"
+                  className="text-deep-blue-100 hover:text-white transition-colors"
+                >
                   About
                 </a>
               </li>
               <li>
-                <a href="#" className="text-deep-blue-100 hover:text-white transition-colors">
+                <a
+                  href="#"
+                  className="text-deep-blue-100 hover:text-white transition-colors"
+                >
                   Blog
                 </a>
               </li>
               <li>
-                <a href="#" className="text-deep-blue-100 hover:text-white transition-colors">
+                <a
+                  href="#"
+                  className="text-deep-blue-100 hover:text-white transition-colors"
+                >
                   Careers
                 </a>
               </li>
               <li>
-                <a href="#" className="text-deep-blue-100 hover:text-white transition-colors">
+                <a
+                  href="#"
+                  className="text-deep-blue-100 hover:text-white transition-colors"
+                >
                   Contact
                 </a>
               </li>
@@ -72,17 +97,26 @@ export function Footer() {
             <h4 className="font-semibold text-white mb-4">Legal</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#" className="text-deep-blue-100 hover:text-white transition-colors">
+                <a
+                  href="#"
+                  className="text-deep-blue-100 hover:text-white transition-colors"
+                >
                   Terms of Service
                 </a>
               </li>
               <li>
-                <a href="#" className="text-deep-blue-100 hover:text-white transition-colors">
+                <a
+                  href="#"
+                  className="text-deep-blue-100 hover:text-white transition-colors"
+                >
                   Privacy Policy
                 </a>
               </li>
               <li>
-                <a href="#" className="text-deep-blue-100 hover:text-white transition-colors">
+                <a
+                  href="#"
+                  className="text-deep-blue-100 hover:text-white transition-colors"
+                >
                   Cookie Policy
                 </a>
               </li>

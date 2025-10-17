@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent } from "../components/ui/dialog";
 import { useApp } from "../context/AppContext";
+import React from "react";
 
 export function UpgradePage() {
   const navigate = useNavigate();
@@ -33,7 +34,7 @@ export function UpgradePage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  const monthlyPrice = 10;
+  const monthlyPrice = 15;
   const annualPrice = 10;
   const annualTotal = annualPrice * 12;
 
@@ -115,12 +116,14 @@ export function UpgradePage() {
                       Save with annual billing
                     </p>
                   </div>
-                  <Badge
-                    variant="secondary"
-                    className="bg-green-100 text-green-700 hover:bg-green-100"
-                  >
-                    Save 17%
-                  </Badge>
+                  {billingCycle === "annually" && (
+                    <Badge
+                      variant="secondary"
+                      className="bg-green-100 text-green-700 hover:bg-green-100"
+                    >
+                      Save 33%
+                    </Badge>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -134,7 +137,7 @@ export function UpgradePage() {
                   >
                     <div className="text-sm text-gray-600 mb-1">Monthly</div>
                     <div className="text-2xl font-bold text-gray-900">
-                      ${monthlyPrice}
+                      €{monthlyPrice}
                     </div>
                     <div className="text-xs text-gray-500">per month</div>
                   </button>
@@ -149,7 +152,7 @@ export function UpgradePage() {
                   >
                     <div className="text-sm text-gray-600 mb-1">Annually</div>
                     <div className="text-2xl font-bold text-gray-900">
-                      ${annualPrice}
+                      €{annualPrice}
                     </div>
                     <div className="text-xs text-gray-500">per month</div>
                   </button>
@@ -158,8 +161,8 @@ export function UpgradePage() {
                 {billingCycle === "annually" && (
                   <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                     <p className="text-sm text-green-800">
-                      💰 You'll be charged ${annualTotal} annually (saves you
-                      $24/year)
+                      💰 You'll be charged €{annualTotal} annually (saves you
+                      €60/year)
                     </p>
                   </div>
                 )}
@@ -336,7 +339,7 @@ export function UpgradePage() {
                   <Separator />
 
                   {/* Order Summary */}
-                  <div className="space-y-3">
+                  {/* <div className="space-y-3">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">
                         Premium Plan (
@@ -352,7 +355,7 @@ export function UpgradePage() {
                     {billingCycle === "annually" && (
                       <div className="flex justify-between text-sm text-green-600">
                         <span>Annual discount</span>
-                        <span>-$24</span>
+                        <span>-$60</span>
                       </div>
                     )}
                     <Separator />
@@ -367,7 +370,7 @@ export function UpgradePage() {
                           : annualTotal}
                       </span>
                     </div>
-                  </div>
+                  </div> */}
 
                   {/* Submit Button */}
                   <Button

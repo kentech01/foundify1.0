@@ -23,6 +23,7 @@ import { useRecoilState } from "recoil";
 import { currentUserAtom } from "../atoms/userAtom";
 import { pitchesAtom } from "../atoms/pitchesAtom";
 import { useNavigate } from "react-router-dom";
+import React from "react";
 
 interface PitchDashboardProps {
   initialPitch?: any;
@@ -158,7 +159,7 @@ export function PitchDashboard({
           }
           return prev + 10;
         });
-      }, 200);
+      }, 4000);
 
       // Call the actual API to generate landing page with basic plan
       const response = await apiService.generateLandingPage(pitchId, "basic");
@@ -345,7 +346,7 @@ export function PitchDashboard({
                         <h3 className="text-xl font-semibold text-gray-900">
                           {pitch.startupName}
                         </h3>
-                        <Badge
+                        {/* <Badge
                           variant={
                             pitch.status === "published"
                               ? "default"
@@ -358,7 +359,7 @@ export function PitchDashboard({
                           }
                         >
                           {pitch.status}
-                        </Badge>
+                        </Badge> */}
                       </div>
                       <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                         <div className="flex items-center gap-1">
@@ -389,44 +390,25 @@ export function PitchDashboard({
                         Download PDF
                       </Button>
 
-                      {pitch.hasLandingPagePremium ? (
-                        <>
-                          <Button
-                            onClick={() => handleViewLanding(pitch)}
-                            className="rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
-                          >
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            Download Landing
-                          </Button>
-
-                          {pitch.hasLandingPagePremium && (
-                            <Button
-                              onClick={() => handleViewLandingPage(pitch)}
-                              className="rounded-xl bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
-                            >
-                              <Eye className="mr-2 h-4 w-4" />
-                              View Landing Page
-                            </Button>
-                          )}
-                        </>
-                      ) : pitch.landingPage ? (
-                        <Button
-                          onClick={() => handleViewLanding(pitch)}
-                          className="rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
-                        >
+                      <Button
+                        onClick={() =>
+                          !pitch.hasLandingPage
+                            ? handleGenerateLanding(pitch.id)
+                            : handleViewLanding(pitch)
+                        }
+                        className={`rounded-xl ${
+                          pitch.hasLandingPage
+                            ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
+                            : "bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
+                        }`}
+                      >
+                        {pitch.hasLandingPage ? (
                           <ExternalLink className="mr-2 h-4 w-4" />
-                          Download Landing
-                        </Button>
-                      ) : (
-                        <Button
-                          onClick={() => handleGenerateLanding(pitch.id)}
-                          className="rounded-xl bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
-                          disabled={loadingModal.isOpen}
-                        >
-                          <Globe className="mr-2 h-4 w-4" />
-                          Create Landing
-                        </Button>
-                      )}
+                        ) : null}
+                        {pitch.hasLandingPage
+                          ? "View Landing Page"
+                          : "Generate Landing Page"}
+                      </Button>
                     </div>
                   </div>
                 </CardContent>

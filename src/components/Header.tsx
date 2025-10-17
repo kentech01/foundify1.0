@@ -8,15 +8,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { useNavigate } from "react-router-dom";
 import {
   User,
-  Settings,
   LogOut,
   ChevronDown,
   LayoutDashboard,
   LogIn,
 } from "lucide-react";
 import { UserAuth } from "../context/AuthContext";
+// import favicon from "../assets/FOUNDIFY-LOGO.svg";
 
 interface HeaderProps {
   onDashboardClick?: () => void;
@@ -29,6 +30,8 @@ export function Header({
 }: HeaderProps = {}) {
   const { user, logOut } = UserAuth();
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const navigate = useNavigate();
+  const favicon = new URL("../assets/FOUNDIFY-LOGO.svg", import.meta.url).href;
 
   const handleSignOut = async () => {
     try {
@@ -42,13 +45,18 @@ export function Header({
     setIsSignInModalOpen(false);
   };
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50 backdrop-blur-sm bg-white/95">
+    <header className="bg-white border-b border-gray-200 bg-white/95">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-deep-blue">Foundify</h1>
+              <img
+                src={favicon}
+                alt="Foundify"
+                className="h-8 w-auto cursor-pointer select-none"
+                onClick={() => navigate("/")}
+              />
             </div>
           </div>
 

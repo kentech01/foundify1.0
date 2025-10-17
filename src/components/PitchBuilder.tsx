@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Card,
@@ -23,6 +23,7 @@ export function PitchBuilder() {
   const { user, loading } = UserAuth();
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [shouldAutoSubmit, setShouldAutoSubmit] = useState(false);
   const [formData, setFormData] = useState<PitchData>({
     startupName: "",
     problem: "",
@@ -33,6 +34,14 @@ export function PitchBuilder() {
   });
 
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
+
+  // Auto-submit after successful sign-in when user is ready
+  useEffect(() => {
+    if (shouldAutoSubmit && user && !loading) {
+      setShouldAutoSubmit(false);
+      handleComplete(formData);
+    }
+  }, [shouldAutoSubmit, user, loading, formData]);
 
   const validateField = (name: string, value: string): string | undefined => {
     switch (name) {
@@ -158,7 +167,8 @@ export function PitchBuilder() {
     if (currentStep < questions.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      handleComplete(formData);
+      // Changed: Check auth before completing
+      handleCreatePitch();
     }
   };
 
@@ -243,13 +253,15 @@ export function PitchBuilder() {
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
+    } else {
+      navigate("/");
     }
-
-    navigate("/");
   };
 
   const handleSignInSuccess = () => {
     setIsSignInModalOpen(false);
+    // Set flag to trigger auto-submit in useEffect when user is ready
+    setShouldAutoSubmit(true);
   };
 
   const handleCreatePitch = () => {
@@ -259,61 +271,6 @@ export function PitchBuilder() {
       setIsSignInModalOpen(true);
     }
   };
-
-  // Show loading or sign-in prompt if not authenticated
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-premium-purple-50 via-white to-deep-blue-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-2xl shadow-2xl border-2 border-gray-100">
-          <CardContent className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="w-8 h-8 border-4 border-premium-purple border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading...</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-premium-purple-50 via-white to-deep-blue-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-2xl shadow-2xl border-2 border-gray-100">
-          <CardContent className="flex flex-col items-center justify-center py-12 space-y-6">
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-premium-purple to-deep-blue flex items-center justify-center mx-auto mb-4">
-                <LogIn className="h-8 w-8 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Sign In Required
-              </h2>
-              <p className="text-gray-600 mb-6">
-                You need to be signed in to create a pitch. Please sign in to
-                continue.
-              </p>
-              <Button
-                onClick={() => setIsSignInModalOpen(true)}
-                className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white px-8 py-3 rounded-xl shadow-lg"
-              >
-                <LogIn className="mr-2 h-4 w-4" />
-                Sign In
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Sign In Modal */}
-        <SignInModal
-          isOpen={isSignInModalOpen}
-          onClose={() => {
-            setIsSignInModalOpen(false);
-          }}
-          onSignInSuccess={handleSignInSuccess}
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-premium-purple-50 via-white to-deep-blue-50 flex items-center justify-center p-4">

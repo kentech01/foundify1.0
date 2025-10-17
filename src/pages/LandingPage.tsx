@@ -8,12 +8,10 @@ import { PricingModern } from "../components/PricingModern";
 import { SocialProofModern } from "../components/SocialProofModern";
 import { CTASection } from "../components/CTASection";
 import { FooterModern } from "../components/FooterModern";
-import { UserAuth } from "../context/AuthContext";
 import SignInModal from "../components/signIn/SignInModal";
 
 export function LandingPage() {
   const navigate = useNavigate();
-  const { user } = UserAuth();
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [isHandlingStart, setIsHandlingStart] = useState(false);
 
@@ -23,15 +21,7 @@ export function LandingPage() {
     if (isHandlingStart) return;
     setIsHandlingStart(true);
     setTimeout(() => setIsHandlingStart(false), 800);
-    if (user) {
-      navigate("/builder");
-    } else {
-      setIsSignInModalOpen(true);
-    }
-  };
-
-  const handleSignInSuccess = () => {
-    setIsSignInModalOpen(false);
+    // Always navigate to builder - auth check happens there on submit
     navigate("/builder");
   };
 
@@ -45,15 +35,17 @@ export function LandingPage() {
       <WhatYouGet />
       <BenefitsModern />
       <PricingModern />
-      <SocialProofModern />
+      {/* <SocialProofModern /> */}
       <CTASection onStart={handleStartPitch} />
       <FooterModern />
-
-      {/* Sign In Modal */}
+      {/* Sign In Modal - only for Header sign in button */}
       <SignInModal
         isOpen={isSignInModalOpen}
         onClose={() => setIsSignInModalOpen(false)}
-        onSignInSuccess={handleSignInSuccess}
+        onSignInSuccess={() => {
+          setIsSignInModalOpen(false);
+          navigate("/dashboard");
+        }}
       />
     </div>
   );

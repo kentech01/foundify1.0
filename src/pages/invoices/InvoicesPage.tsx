@@ -27,16 +27,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../../components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "../../components/ui/alert-dialog";
+
 import {
   FileText,
   Eye,
@@ -46,18 +37,32 @@ import {
   Trash2,
   DollarSign,
   Loader2,
+  Send,
+  Download,
+  Search,
+  ArrowLeft,
 } from "lucide-react";
 import { useApiService, type Invoice as ApiInvoice } from "../../services/api";
 import { toast } from "sonner";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
+import { useNavigate } from "react-router-dom";
+import React from "react";
 
 interface LineItem {
   description: string;
-  quantity: number;
-  rate: number;
+  quantity: string; // Change from number to string
+  rate: string; // Change from number to string
 }
 
-export function InvoicesPage() {
+export function InvoicesPage({
+  showInvoices,
+  setShowInvoices,
+}: {
+  showInvoices: boolean;
+  setShowInvoices: (showInvoices: boolean) => void;
+}) {
+  const navigate = useNavigate();
+
   const [companyName, setCompanyName] = useState("");
   const [clientName, setClientName] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState(
@@ -69,7 +74,7 @@ export function InvoicesPage() {
   const [notes, setNotes] = useState("");
   const [bankDetails, setBankDetails] = useState("");
   const [lineItems, setLineItems] = useState<LineItem[]>([
-    { description: "", quantity: 1, rate: 0 },
+    { description: "", quantity: "", rate: "0" }, // Change "1" to ""
   ]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -84,8 +89,9 @@ export function InvoicesPage() {
     deleteInvoice,
     updateInvoice,
     downloadInvoicePdf,
+    getInvoice,
   } = useApiService();
-  const { user } = useCurrentUser();
+  const { currentUser } = useCurrentUser();
 
   const [invoices, setInvoices] = useState<ApiInvoice[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -127,15 +133,15 @@ export function InvoicesPage() {
   };
 
   // Calculate totals
-  const subtotal = lineItems.reduce(
-    (sum, item) => sum + item.quantity * item.rate,
-    0
-  );
-  const tax = subtotal * 0.1; // 10% tax
-  const total = subtotal + tax;
+  const subtotal = lineItems.reduce((sum, item) => {
+    const quantity = parseFloat(item.quantity) || 0;
+    const rate = parseFloat(item.rate) || 0;
+    return sum + quantity * rate;
+  }, 0);
+  const total = subtotal;
 
   const addLineItem = () => {
-    setLineItems([...lineItems, { description: "", quantity: 1, rate: 0 }]);
+    setLineItems([...lineItems, { description: "", quantity: "1", rate: "0" }]);
   };
 
   const removeLineItem = (index: number) => {
@@ -147,24 +153,10 @@ export function InvoicesPage() {
   const updateLineItem = (
     index: number,
     field: keyof LineItem,
-    value: string | number
+    value: string
   ) => {
     const updatedItems = [...lineItems];
-    if (field === "quantity") {
-      const numValue = typeof value === "string" ? parseInt(value, 10) : value;
-      updatedItems[index] = {
-        ...updatedItems[index],
-        [field]: isNaN(numValue) ? 1 : Math.max(1, numValue),
-      };
-    } else if (field === "rate") {
-      const numValue = typeof value === "string" ? parseFloat(value) : value;
-      updatedItems[index] = {
-        ...updatedItems[index],
-        [field]: isNaN(numValue) ? 0 : Math.max(0, numValue),
-      };
-    } else {
-      updatedItems[index] = { ...updatedItems[index], [field]: value };
-    }
+    updatedItems[index] = { ...updatedItems[index], [field]: value };
     setLineItems(updatedItems);
   };
 
@@ -175,7 +167,7 @@ export function InvoicesPage() {
     setCurrency("USD");
     setNotes("");
     setBankDetails("");
-    setLineItems([{ description: "", quantity: 1, rate: 0 }]);
+    setLineItems([{ description: "", quantity: "", rate: "0" }]); // Change "1" to ""
     setEditingInvoice(null);
   };
 
@@ -191,10 +183,10 @@ export function InvoicesPage() {
       invoice.items.length > 0
         ? invoice.items.map((item) => ({
             description: item.description || "",
-            quantity: Number(item.quantity) || 1,
-            rate: Number(item.rate) || 0,
+            quantity: String(item.quantity) || "1", // Use String
+            rate: String(item.rate) || "0", // Use String
           }))
-        : [{ description: "", quantity: 1, rate: 0 }]
+        : [{ description: "", quantity: "1", rate: "0" }]
     );
     setIsEditModalOpen(true);
   };
@@ -218,12 +210,12 @@ export function InvoicesPage() {
         currency,
         items: lineItems.map((item) => ({
           description: item.description,
-          quantity: item.quantity,
-          rate: item.rate,
-          amount: item.quantity * item.rate,
+          quantity: parseFloat(item.quantity) || 1,
+          rate: parseFloat(item.rate) || 0,
+          amount:
+            (parseFloat(item.quantity) || 0) * (parseFloat(item.rate) || 0),
         })),
         subtotal,
-        tax,
         total,
         notes: notes || undefined,
         bankDetails: bankDetails || undefined,
@@ -307,15 +299,35 @@ export function InvoicesPage() {
       invoice.companyName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Calculate stats from actual invoices
+  // Update stats calculation to remove overdue-specific stat
   const totalInvoices = invoices.length;
   const paidInvoices = invoices.filter((i) => i.status === "paid").length;
   const pendingInvoices = invoices.filter(
     (i) => i.status === "pending" || i.status === "draft"
   ).length;
-  const totalRevenue = invoices
-    .filter((i) => i.status === "paid")
-    .reduce((sum, i) => sum + i.total, 0);
+  console.log(
+    "All invoices:",
+    invoices.map((i) => ({ id: i.id, status: i.status, total: i.total }))
+  );
+  console.log(
+    "Paid invoices:",
+    invoices.filter((i) => i.status === "paid")
+  );
+
+  const totalRevenue = invoices.reduce((sum, i) => {
+    // Convert all currencies to USD for consistent calculation
+    const conversionRates: Record<string, number> = {
+      USD: 1,
+      EUR: 1.1,
+      GBP: 1.25,
+      CAD: 0.75,
+      AUD: 0.65,
+    };
+
+    const rate = conversionRates[i.currency] || 1;
+    return sum + i.total * rate;
+  }, 0);
+  console.log("Total revenue:", totalRevenue);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
@@ -335,6 +347,15 @@ export function InvoicesPage() {
     }
   };
 
+  const handleDownload = async (invoice: ApiInvoice) => {
+    const response = await getInvoice(invoice.id);
+    if (response.success) {
+      console.log(response.data, "response.data");
+    } else {
+      toast.error("Failed to download invoice");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="p-8 flex items-center justify-center">
@@ -348,15 +369,24 @@ export function InvoicesPage() {
 
   return (
     <div className="p-8">
-      {/* Header Actions */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Invoice Generator
-          </h2>
-          <p className="text-gray-600">
-            Create and manage professional invoices for your business
-          </p>
+      {/* Header: Back + Title on left, Action button on right */}
+      <div className="flex items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/dashboard/essentials")}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900">
+              Invoice Generator
+            </h2>
+            <p className="text-gray-600">
+              Create and manage professional invoices for your business
+            </p>
+          </div>
         </div>
         <Dialog
           open={isCreateModalOpen}
@@ -391,7 +421,9 @@ export function InvoicesPage() {
               <CardContent className={styles.details}>
                 <div className={styles.twoCol}>
                   <div>
-                    <Label htmlFor="company">Your Company *</Label>
+                    <Label className={styles.lableWrapper} htmlFor="company">
+                      Your Company *
+                    </Label>
                     <Input
                       id="company"
                       value={companyName}
@@ -401,7 +433,9 @@ export function InvoicesPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="client">Client Name *</Label>
+                    <Label className={styles.lableWrapper} htmlFor="client">
+                      Client Name *
+                    </Label>
                     <Input
                       id="client"
                       value={clientName}
@@ -414,7 +448,12 @@ export function InvoicesPage() {
 
                 <div className={styles.twoCol}>
                   <div>
-                    <Label htmlFor="invoice-num">Invoice Number</Label>
+                    <Label
+                      className={styles.lableWrapper}
+                      htmlFor="invoice-num"
+                    >
+                      Invoice Number
+                    </Label>
                     <Input
                       id="invoice-num"
                       value={invoiceNumber}
@@ -422,7 +461,7 @@ export function InvoicesPage() {
                     />
                   </div>
                   <div>
-                    <Label>Currency</Label>
+                    <Label className={styles.lableWrapper}>Currency</Label>
                     <Select
                       value={currency}
                       onValueChange={(v) => setCurrency(v as any)}
@@ -458,7 +497,9 @@ export function InvoicesPage() {
                 {lineItems.map((item, index) => (
                   <div key={index} className={styles.itemRow}>
                     <div className={styles.flexGrow}>
-                      <Label>Description *</Label>
+                      <Label className={styles.lableWrapper}>
+                        Description *
+                      </Label>
                       <Input
                         value={item.description}
                         onChange={(e) =>
@@ -469,19 +510,22 @@ export function InvoicesPage() {
                       />
                     </div>
                     <div className={styles.amountCol}>
-                      <Label>Quantity</Label>
+                      <Label className={styles.lableWrapper}>Quantity</Label>
                       <Input
                         type="number"
-                        min="1"
+                        min="0"
                         step="1"
                         value={item.quantity}
                         onChange={(e) =>
                           updateLineItem(index, "quantity", e.target.value)
                         }
+                        placeholder="1"
                       />
                     </div>
                     <div className={styles.amountCol}>
-                      <Label>Rate ({currencySymbol})</Label>
+                      <Label className={styles.lableWrapper}>
+                        Rate ({currencySymbol})
+                      </Label>
                       <Input
                         type="number"
                         min="0"
@@ -494,11 +538,12 @@ export function InvoicesPage() {
                       />
                     </div>
                     <div className={styles.amountCol}>
-                      <Label>Amount</Label>
+                      <Label className={styles.lableWrapper}>Amount</Label>
                       <Input
                         readOnly
                         value={`${currencySymbol}${(
-                          item.quantity * item.rate
+                          (parseFloat(item.quantity) || 0) *
+                          (parseFloat(item.rate) || 0)
                         ).toFixed(2)}`}
                       />
                     </div>
@@ -521,13 +566,6 @@ export function InvoicesPage() {
                     <span className={styles.summaryValue}>
                       {currencySymbol}
                       {subtotal.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <span className={styles.summaryLabel}>Tax (10%):</span>
-                    <span className={styles.summaryValue}>
-                      {currencySymbol}
-                      {tax.toFixed(2)}
                     </span>
                   </div>
                   <div className={styles.totalRow}>
@@ -688,12 +726,13 @@ export function InvoicesPage() {
                     <Label>Quantity</Label>
                     <Input
                       type="number"
-                      min="1"
+                      min="0"
                       step="1"
                       value={item.quantity}
                       onChange={(e) =>
                         updateLineItem(index, "quantity", e.target.value)
                       }
+                      placeholder={item.quantity === "" ? "1" : undefined}
                     />
                   </div>
                   <div className={styles.amountCol}>
@@ -714,7 +753,8 @@ export function InvoicesPage() {
                     <Input
                       readOnly
                       value={`${currencySymbol}${(
-                        item.quantity * item.rate
+                        (parseFloat(item.quantity) || 0) *
+                        (parseFloat(item.rate) || 0)
                       ).toFixed(2)}`}
                     />
                   </div>
@@ -739,13 +779,6 @@ export function InvoicesPage() {
                     {subtotal.toFixed(2)}
                   </span>
                 </div>
-                <div className={styles.summaryRow}>
-                  <span className={styles.summaryLabel}>Tax (10%):</span>
-                  <span className={styles.summaryValue}>
-                    {currencySymbol}
-                    {tax.toFixed(2)}
-                  </span>
-                </div>
                 <div className={styles.totalRow}>
                   <span className={styles.totalLabel}>Total:</span>
                   <span className={styles.totalValue}>
@@ -763,22 +796,31 @@ export function InvoicesPage() {
               <CardTitle>Additional Information</CardTitle>
             </CardHeader>
             <CardContent className={styles.details}>
-              <div>
-                <Label htmlFor="edit-notes">Notes</Label>
+              <div className="flex flex-col gap-4">
+                <Label className={styles.lableWrapper} htmlFor="edit-notes">
+                  Notes
+                </Label>
                 <Textarea
                   id="edit-notes"
                   placeholder="Add any additional notes or terms (e.g., payment terms, thank you message)"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
+                  className="mt-4"
                 />
               </div>
-              <div>
-                <Label htmlFor="edit-bank-details">Bank Account Details</Label>
+              <div className="flex flex-col gap-4">
+                <Label
+                  className={styles.lableWrapper}
+                  htmlFor="edit-bank-details"
+                >
+                  Bank Account Details
+                </Label>
                 <Textarea
                   id="edit-bank-details"
                   placeholder="Bank name, account number, routing number, SWIFT/BIC code"
                   value={bankDetails}
                   onChange={(e) => setBankDetails(e.target.value)}
+                  className="mt-4"
                 />
               </div>
             </CardContent>
@@ -809,7 +851,7 @@ export function InvoicesPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-gray-100 rounded-2xl">
+        {/* <Card className="border-2 border-gray-100 rounded-2xl">
           <CardContent className="p-6">
             <div>
               <p className="text-sm text-gray-600 mb-1">Paid</p>
@@ -818,9 +860,9 @@ export function InvoicesPage() {
               </p>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
-        <Card className="border-2 border-gray-100 rounded-2xl">
+        {/* <Card className="border-2 border-gray-100 rounded-2xl">
           <CardContent className="p-6">
             <div>
               <p className="text-sm text-gray-600 mb-1">Pending</p>
@@ -829,7 +871,7 @@ export function InvoicesPage() {
               </p>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         <Card className="border-2 border-gray-100 rounded-2xl">
           <CardContent className="p-6">
@@ -837,7 +879,7 @@ export function InvoicesPage() {
               <div>
                 <p className="text-sm text-gray-600 mb-1">Total Revenue</p>
                 <p className="text-3xl font-bold text-gray-900">
-                  ${totalRevenue.toLocaleString()}
+                  {totalRevenue.toLocaleString()}
                 </p>
               </div>
               <div className="w-14 h-14 rounded-xl bg-green-50 flex items-center justify-center">
@@ -848,20 +890,22 @@ export function InvoicesPage() {
         </Card>
       </div>
 
+      {/* Search Bar */}
+      <div className="mb-6">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Input
+            placeholder="Search invoices..."
+            className="pl-10 border-2 border-gray-200 rounded-xl"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+
       {/* Invoices List */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold text-gray-900">Recent Invoices</h3>
-          <Button
-            onClick={loadInvoices}
-            variant="outline"
-            size="sm"
-            className="border-2 border-gray-200 rounded-xl"
-          >
-            <Loader2 className="mr-2 h-4 w-4" />
-            Refresh
-          </Button>
-        </div>
+        <h3 className="text-xl font-bold text-gray-900">Recent Invoices</h3>
 
         {filteredInvoices.length === 0 ? (
           <Card className="border-2 border-gray-100 rounded-2xl">
@@ -908,11 +952,6 @@ export function InvoicesPage() {
                         <p className="text-sm text-gray-600">
                           {invoice.clientName || "Unknown Client"}
                         </p>
-                        {invoice.companyName && (
-                          <p className="text-xs text-gray-500">
-                            From: {invoice.companyName}
-                          </p>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -922,21 +961,9 @@ export function InvoicesPage() {
                     <div>
                       <p className="text-sm text-gray-600 mb-1">Amount</p>
                       <p className="text-2xl font-bold text-gray-900">
-                        ${invoice.total.toLocaleString()}
+                        {getCurrencySymbol(invoice.currency)}
+                        {invoice.total.toLocaleString()}
                       </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Status</p>
-                      <Badge className={getStatusBadgeColor(invoice.status)}>
-                        {invoice.status}
-                      </Badge>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Created</p>
-                      <div className="flex items-center gap-1 text-sm text-gray-900">
-                        <Calendar className="h-4 w-4" />
-                        {formatDate(invoice.createdAt)}
-                      </div>
                     </div>
                   </div>
 
@@ -958,41 +985,19 @@ export function InvoicesPage() {
                       <Edit className="mr-2 h-4 w-4" />
                       Edit
                     </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="border-2 border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently
-                            delete the invoice "
-                            {invoice.invoiceNumber ||
-                              `INV-${invoice.id.slice(-6)}`}
-                            ".
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-
-                          <Button
-                            variant="outline"
-                            disabled={deletingId === invoice.id}
-                            onClick={() => handleDelete(invoice.id)}
-                            className="border-2 border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
-                          >
-                            Confirm
-                          </Button>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    {invoice.status === "pending" && (
+                      <Button className="bg-green-600 hover:bg-green-700 text-white rounded-xl">
+                        <Send className="mr-2 h-4 w-4" />
+                        Send
+                      </Button>
+                    )}
+                    <Button
+                      onClick={() => handleDownload(invoice)}
+                      className="bg-deep-blue hover:bg-deep-blue-dark text-white rounded-xl"
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Download
+                    </Button>
                   </div>
                 </div>
               </CardContent>
