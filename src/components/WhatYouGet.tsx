@@ -1,40 +1,52 @@
-import { Card } from './ui/card';
-import { Presentation, FileText, FileCheck, MessageSquare, Mail, Download, Sparkles } from 'lucide-react';
+import { Card } from "./ui/card";
+import {
+  Presentation,
+  FileText,
+  FileCheck,
+  MessageSquare,
+  Mail,
+  Download,
+  Sparkles,
+} from "lucide-react";
 
 const features = [
   {
-    id: 'pitch',
-    title: 'Pitch Dashboard',
-    description: 'Create stunning pitch decks and landing pages',
+    id: "pitch",
+    title: "Pitch Dashboard",
+    description: "Create stunning pitch decks and landing pages",
     icon: Presentation,
     free: true,
-    highlights: ['Landing page generator', 'PDF downloads', 'Professional templates']
+    highlights: [
+      "Landing page generator",
+      "PDF downloads",
+      "Professional templates",
+    ],
   },
   {
-    id: 'invoice',
-    title: 'Invoice Generator',
-    description: 'Professional invoices in seconds',
+    id: "invoice",
+    title: "Invoice Generator",
+    description: "Professional invoices in seconds",
     icon: FileText,
     free: false,
   },
   {
-    id: 'contracts',
-    title: 'Contract Templates',
-    description: 'NDAs, founder agreements, and more',
+    id: "contracts",
+    title: "Contract Templates",
+    description: "NDAs, founder agreements, and more",
     icon: FileCheck,
     free: false,
   },
   {
-    id: 'feedback',
-    title: '360° Team Feedback',
-    description: 'Comprehensive team feedback framework',
+    id: "feedback",
+    title: "360° Team Feedback",
+    description: "Comprehensive team feedback framework",
     icon: MessageSquare,
     free: false,
   },
   {
-    id: 'investor',
-    title: 'Investor Email Generator',
-    description: 'Professional outreach templates',
+    id: "investor",
+    title: "Investor Email Generator",
+    description: "Professional outreach templates",
     icon: Mail,
     free: false,
   },
@@ -53,13 +65,14 @@ export function WhatYouGet() {
             </span>
           </div>
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900">
-            Everything You Need to{' '}
+            Everything You Need to{" "}
             <span className="bg-gradient-to-r from-premium-purple to-deep-blue bg-clip-text text-transparent">
               Succeed
             </span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Essential tools designed specifically for founders. Start with our free pitch dashboard, upgrade when you're ready.
+            Essential tools designed specifically for founders. Start with our
+            free pitch dashboard, upgrade when you're ready.
           </p>
         </div>
 
@@ -82,13 +95,25 @@ export function WhatYouGet() {
                     Pitch Dashboard
                   </h3>
                   <p className="text-lg text-gray-600 mb-4">
-                    Create stunning pitch decks and export basic landing pages in minutes. Download as PDF—completely free, forever.
+                    Create stunning pitch decks and export basic landing pages
+                    in minutes. Download as PDF—completely free, forever.
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {features[0].highlights?.map((highlight, idx) => (
-                      <span key={idx} className="inline-flex items-center gap-1 bg-white border border-green-200 px-3 py-1 rounded-full text-sm text-gray-700">
-                        <svg className="h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      <span
+                        key={idx}
+                        className="inline-flex items-center gap-1 bg-white border border-green-200 px-3 py-1 rounded-full text-sm text-gray-700"
+                      >
+                        <svg
+                          className="h-4 w-4 text-green-500"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                         {highlight}
                       </span>
@@ -105,15 +130,17 @@ export function WhatYouGet() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <h3 className="text-2xl font-bold text-gray-900">
               Premium Features
-              <span className="ml-3 text-sm font-normal text-gray-500">Unlock everything for $10/month</span>
+              <span className="ml-3 text-sm font-normal text-gray-500">
+                Unlock everything for 10/month
+              </span>
             </h3>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.slice(1).map((feature) => {
               const Icon = feature.icon;
               return (
-                <Card 
+                <Card
                   key={feature.id}
                   className="group relative overflow-hidden border-2 border-gray-100 bg-white hover:border-premium-purple/30 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                 >

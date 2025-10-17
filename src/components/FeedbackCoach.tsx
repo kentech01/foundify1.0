@@ -128,12 +128,17 @@ export function FeedbackCoach({
   const isFormValid =
     formData.employeeName && formData.employeeRole && formData.feedbackCycle;
 
+  // Enable actions only when every field has at least one word
+  const hasAtLeastOneWord = (value: string) => /\b\w+\b/.test(value.trim());
+  const allFieldsHaveAtLeastOneWord =
+    Object.values(formData).every(hasAtLeastOneWord);
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="text-center">
         <div className="flex items-center justify-center gap-2 mb-2">
           <h2 className="text-2xl font-semibold">Feedback Coach</h2>
-          <Badge className="bg-purple-100 text-purple-600">Premium</Badge>
+          {/* <Badge className="bg-purple-100 text-purple-600">Premium</Badge> */}
         </div>
         <p className="text-muted-foreground">
           Structure meaningful feedback conversations with your team
@@ -315,9 +320,7 @@ Examples:
             <Button
               onClick={generatePDF}
               size="lg"
-              disabled={
-                !formData.strengths || !formData.improvements || isGenerating
-              }
+              disabled={!allFieldsHaveAtLeastOneWord || isGenerating}
               className="bg-purple-600 hover:bg-purple-700"
             >
               {isGenerating ? (

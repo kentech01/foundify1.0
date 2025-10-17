@@ -62,7 +62,7 @@ export function PricingModern() {
             {billingCycle === "annually" && (
               <span className="ml-2 inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold animate-in slide-in-from-right">
                 <Sparkles className="h-3 w-3" />
-                Save 17%
+                Save 33%
               </span>
             )}
           </div>
@@ -223,7 +223,7 @@ export function PricingModern() {
         </div>
 
         {/* Trust badges */}
-        <div className="mt-16 text-center space-y-4">
+        {/* <div className="mt-16 text-center space-y-4">
           <p className="text-gray-600">Trusted by 5,000+ founders worldwide</p>
           <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-gray-500">
             <div className="flex items-center gap-2">
@@ -269,7 +269,7 @@ export function PricingModern() {
               <span>Secure payments</span>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </section>
   );

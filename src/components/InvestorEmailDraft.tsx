@@ -157,6 +157,18 @@ export function InvestorEmailDraft() {
       const res = await generateInvestorEmail(payload);
       setEmailSubject(res.subject || "");
       setEmailBody(res.body || "");
+
+      // Clear form fields after successful generation
+      setFormData({
+        name: "",
+        company: "",
+        investor: "",
+        valueProp: "",
+        traction: "",
+        contact: "",
+      });
+      setSelectedTemplate("");
+      setTouched({});
     } catch (e: any) {
       console.error(e);
     } finally {
@@ -178,16 +190,18 @@ export function InvestorEmailDraft() {
   };
 
   return (
-    <div className={styles.wrap}>
-      <div className={styles.head}>
-        <h2 className={styles.title}>Investor Email Generator</h2>
-        <p className={styles.subtitle}>
+    <div className="max-w-2xl mx-auto  space-y-6 ">
+      <div className="text-center ">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <h2 className="text-2xl font-semibold">Investor Email Generator</h2>
+        </div>
+        <p className="text-muted-foreground mt-1">
           Create professional investor outreach emails in minutes
         </p>
       </div>
 
       {/* Template Picker */}
-      <Card className="mb-8">
+      <Card className={`${styles.investorEmailDraftWrapp} mx-auto`}>
         <CardHeader>
           <CardTitle>Choose Template</CardTitle>
         </CardHeader>
@@ -231,7 +245,7 @@ export function InvestorEmailDraft() {
       {selectedTemplate && (
         <>
           {/* Form */}
-          <Card>
+          <Card className={`${styles.investorEmailDraftWrapp} mx-auto`}>
             <CardHeader>
               <CardTitle>Your Details</CardTitle>
             </CardHeader>
@@ -427,7 +441,7 @@ export function InvestorEmailDraft() {
       )}
 
       {(emailSubject || emailBody) && (
-        <Card>
+        <Card className={`${styles.investorEmailDraftWrapp} mx-auto`}>
           <CardHeader>
             <div className={styles.emailHeader}>
               <CardTitle>Your Email</CardTitle>
@@ -456,7 +470,9 @@ export function InvestorEmailDraft() {
       )}
 
       {/* Tips */}
-      <Card className={styles.tipsCard}>
+      <Card
+        className={`${styles.tipsCard} ${styles.investorEmailDraftWrapp} mx-auto`}
+      >
         <CardContent className={styles.tipsContent}>
           <div className={styles.tipsInner}>
             <h3 className={styles.tipsTitle}>Pro Tips</h3>

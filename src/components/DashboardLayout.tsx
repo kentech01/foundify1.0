@@ -25,6 +25,7 @@ import {
 import { UserAuth } from "../context/AuthContext";
 import SignInModal from "./signIn/SignInModal";
 import React from "react";
+const favicon = new URL("../assets/FOUNDIFY-LOGO.svg", import.meta.url).href;
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -58,7 +59,6 @@ export function DashboardLayout({
 
   const currentPath = location.pathname;
 
-  console.log(currentPath, "currentPath");
   const currentTitle =
     navItems.find((item) => currentPath.startsWith(item.path))?.label ||
     "Dashboard";
@@ -85,7 +85,13 @@ export function DashboardLayout({
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-deep-blue">Foundify</h1>
+              <img
+                src={favicon}
+                alt="Foundify"
+                className="h-8 w-auto cursor-pointer select-none"
+                onClick={() => navigate("/")}
+              />
+              {/* <h1 className="text-2xl font-bold text-deep-blue">Foundify</h1> */}
             </div>
           </div>
         </div>

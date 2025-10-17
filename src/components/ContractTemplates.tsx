@@ -293,7 +293,7 @@ export function ContractTemplates({
               }`}
             >
               <CardContent className="p-6">
-                <div className="flex items-start gap-4 mb-4">
+                <div className="flex items-center gap-4 mb-4">
                   <div
                     className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
                       template.isPremium ? "bg-purple-100" : "bg-blue-100"
@@ -484,7 +484,7 @@ export function ContractTemplates({
                     className={field.type === "textarea" ? "md:col-span-2" : ""}
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <Label className="mb-2" htmlFor={field.id}>
+                      <Label className="" htmlFor={field.id}>
                         {field.label}
                       </Label>
                       {field.tooltip && (

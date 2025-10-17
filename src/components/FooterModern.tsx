@@ -12,14 +12,6 @@ export function FooterModern() {
         <div className="flex flex-col md:flex-row items-start justify-between gap-8 mb-12">
           {/* Left: Brand and description */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <img
-                src={favicon}
-                alt="Foundify"
-                className="h-8 w-auto cursor-pointer select-none"
-                onClick={() => navigate("/")}
-              />
-            </div>
             <p className="text-gray-400 max-w-md leading-relaxed">
               The complete toolkit for founders. From pitch decks to essential
               business tools—everything you need in one place.

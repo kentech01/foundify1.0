@@ -11,7 +11,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import {
   User,
-  Settings,
   LogOut,
   ChevronDown,
   LayoutDashboard,
