@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "../components/Header";
-import { HeroModern } from "../components/HeroModern";
-import { WhatYouGet } from "../components/WhatYouGet";
-import { BenefitsModern } from "../components/BenefitsModern";
-import { PricingModern } from "../components/PricingModern";
-import { SocialProofModern } from "../components/SocialProofModern";
-import { CTASection } from "../components/CTASection";
+import { HeroModern } from "../components/landingpage/HeroModern";
+import { WhatYouGet } from "../components/landingpage/WhatYouGet";
+import { BenefitsModern } from "../components/landingpage/BenefitsModern";
+import { CTASection } from "../components/landingpage/CTASection";
 import { FooterModern } from "../components/FooterModern";
 import SignInModal from "../components/signIn/SignInModal";
+import React from "react";
+import { PricingModern } from "../components/landingpage/PricingModern";
 
 export function LandingPage() {
   const navigate = useNavigate();

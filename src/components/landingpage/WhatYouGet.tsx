@@ -1,4 +1,4 @@
-import { Card } from "./ui/card";
+import { Card } from "../ui/card";
 import {
   Presentation,
   FileText,
