@@ -13,9 +13,11 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
+  ArrowLeft,
+  Plus,
 } from "lucide-react";
 import { LoadingModal } from "../components/LoadingModal";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { useApiService } from "../services/api";
 import type { PitchHistoryItem, PitchHistoryResponse } from "../services/api";
 import html2pdf from "html2pdf.js";
@@ -27,6 +29,7 @@ import React from "react";
 
 interface PitchDashboardProps {
   initialPitch?: any;
+  onCreatePitch: () => void;
   isPremium: boolean;
   onUpgrade: () => void;
 }
@@ -34,6 +37,7 @@ interface PitchDashboardProps {
 export function PitchDashboard({
   initialPitch,
   isPremium,
+  onCreatePitch,
   onUpgrade,
 }: PitchDashboardProps) {
   const navigate = useNavigate();
@@ -254,49 +258,76 @@ export function PitchDashboard({
 
   return (
     <div className="p-8">
+      <div className="flex justify-between gap-3 mb-8">
+        {/* <Button
+          variant="ghost"
+          onClick={() => navigate("/dashboard/pitches")}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button> */}
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900">Pitch Dashboard</h2>
+        </div>
+
+        <Button
+          onClick={onCreatePitch}
+          className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          New Pitch
+        </Button>
+      </div>
+
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
         <Card className="border-2 border-gray-100 rounded-2xl">
-          <CardContent className="p-6">
+          <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total Pitches</p>
-                <p className="text-4xl font-bold text-gray-900">
+                <p className="text-xs md:text-sm text-gray-600 mb-1">
+                  Total Pitches
+                </p>
+                <p className="text-2xl md:text-4xl font-bold text-gray-900">
                   {pitches?.length || 0}
                 </p>
               </div>
-              <div className="w-14 h-14 rounded-xl bg-premium-purple-50 flex items-center justify-center">
-                <FileText className="h-7 w-7 text-premium-purple" />
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-premium-purple-50 flex items-center justify-center flex-shrink-0">
+                <FileText className="h-6 w-6 md:h-7 md:w-7 text-premium-purple" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-2 border-gray-100 rounded-2xl">
-          <CardContent className="p-6">
+          <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total Views</p>
-                <p className="text-4xl font-bold text-gray-900">{totalViews}</p>
+                <p className="text-xs md:text-sm text-gray-600 mb-1">
+                  Total Views
+                </p>
+                <p className="text-2xl md:text-4xl font-bold text-gray-900">
+                  {totalViews}
+                </p>
               </div>
-              <div className="w-14 h-14 rounded-xl bg-deep-blue-50 flex items-center justify-center">
-                <TrendingUp className="h-7 w-7 text-deep-blue" />
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-deep-blue-50 flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="h-6 w-6 md:h-7 md:w-7 text-deep-blue" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-2 border-gray-100 rounded-2xl">
-          <CardContent className="p-6">
+          <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                {/* <p className="text-sm text-gray-600 mb-1">Published</p> */}
-                <p className="text-4xl font-bold text-gray-900">
+                {/* <p className="text-xs md:text-sm text-gray-600 mb-1">Published</p> */}
+                <p className="text-2xl md:text-4xl font-bold text-gray-900">
                   {publishedCount}
                 </p>
               </div>
-              <div className="w-14 h-14 rounded-xl bg-green-50 flex items-center justify-center">
-                <Globe className="h-7 w-7 text-green-600" />
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
+                <Globe className="h-6 w-6 md:h-7 md:w-7 text-green-600" />
               </div>
             </div>
           </CardContent>
@@ -305,7 +336,9 @@ export function PitchDashboard({
 
       {/* Pitches List */}
       <div>
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Your Pitches</h3>
+        <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4">
+          Your Pitches
+        </h3>
 
         {loading && (pitches?.length || 0) === 0 ? (
           <div className="flex items-center justify-center py-12">
@@ -338,12 +371,12 @@ export function PitchDashboard({
                 key={pitch.id}
                 className="border-2 border-gray-100 hover:shadow-lg transition-shadow rounded-2xl"
               >
-                <CardContent className="p-6 min-w-[1200px]">
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <CardContent className="p-4 md:p-6">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6">
                     {/* Pitch Info */}
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-semibold text-gray-900">
+                        <h3 className="text-lg md:text-xl font-semibold text-gray-900 truncate">
                           {pitch.startupName}
                         </h3>
                         {/* <Badge
@@ -379,15 +412,15 @@ export function PitchDashboard({
                     </div>
 
                     {/* Actions */}
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full lg:w-auto">
                       <Button
                         variant="outline"
                         onClick={() => handleDownload(pitch)}
-                        className="border-2 border-gray-200 rounded-xl hover:bg-gray-50"
+                        className="border-2 border-gray-200 rounded-xl hover:bg-gray-50 w-full sm:w-auto"
                         disabled={loadingModal.isOpen}
                       >
                         <Download className="mr-2 h-4 w-4" />
-                        Download PDF
+                        <span className="whitespace-nowrap">Download PDF</span>
                       </Button>
 
                       <Button
@@ -396,7 +429,7 @@ export function PitchDashboard({
                             ? handleGenerateLanding(pitch.id)
                             : handleViewLanding(pitch)
                         }
-                        className={`rounded-xl ${
+                        className={`rounded-xl w-full sm:w-auto ${
                           pitch.hasLandingPage
                             ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
                             : "bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
@@ -405,9 +438,11 @@ export function PitchDashboard({
                         {pitch.hasLandingPage ? (
                           <ExternalLink className="mr-2 h-4 w-4" />
                         ) : null}
-                        {pitch.hasLandingPage
-                          ? "View Landing Page"
-                          : "Generate Landing Page"}
+                        <span className="whitespace-nowrap">
+                          {pitch.hasLandingPage
+                            ? "View Landing Page"
+                            : "Generate Landing Page"}
+                        </span>
                       </Button>
                     </div>
                   </div>
@@ -444,22 +479,22 @@ export function PitchDashboard({
 
       {/* Premium Status */}
       {isPremium && (
-        <Card className="mt-8 border-2 border-green-200 bg-gradient-to-br from-green-50 to-white rounded-2xl">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-green-500 flex items-center justify-center flex-shrink-0">
-                <Sparkles className="h-6 w-6 text-white" />
+        <Card className="mt-6 md:mt-8 border-2 border-green-200 bg-gradient-to-br from-green-50 to-white rounded-2xl">
+          <CardContent className="p-4 md:p-6">
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-green-500 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="h-5 w-5 md:h-6 md:w-6 text-white" />
               </div>
-              <div>
-                <div className="flex items-center gap-3 mb-1">
-                  <h3 className="text-lg font-bold text-gray-900">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-1">
+                  <h3 className="text-base md:text-lg font-bold text-gray-900">
                     Premium Active
                   </h3>
-                  <Badge className="bg-green-500 text-white hover:bg-green-600">
+                  <Badge className="bg-green-500 text-white hover:bg-green-600 text-xs">
                     ✓ Premium
                   </Badge>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-xs md:text-sm text-gray-600">
                   You have full access to all premium features, AI assistance,
                   and founder tools
                 </p>

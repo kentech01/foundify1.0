@@ -16,6 +16,7 @@ import { useApp, PitchData, Pitch } from "../context/AppContext";
 import { UserAuth } from "../context/AuthContext";
 import SignInModal from "./signIn/SignInModal";
 import { useApiService } from "../services/api";
+import React from "react";
 
 export function PitchBuilder() {
   const navigate = useNavigate();
@@ -172,9 +173,6 @@ export function PitchBuilder() {
     }
   };
 
-  console.log(currentStep, "currentStep");
-  console.log(questions.length, "questions.length");
-
   const handleComplete = async (data: PitchData) => {
     // Validate all fields before submitting
     const allErrors: Record<string, string | undefined> = {};
@@ -254,7 +252,8 @@ export function PitchBuilder() {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     } else {
-      navigate("/");
+      // Go back to previous page in history (could be dashboard or landing page)
+      navigate(-1);
     }
   };
 

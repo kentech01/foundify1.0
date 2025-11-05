@@ -49,13 +49,7 @@ interface Contract {
   html?: string;
 }
 
-export function ContractsListPage({
-  showContracts,
-  setShowContracts,
-}: {
-  showContracts: boolean;
-  setShowContracts: (showContracts: boolean) => void;
-}) {
+export function ContractsListPage() {
   const navigate = useNavigate();
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -194,14 +188,14 @@ export function ContractsListPage({
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
-            onClick={() => navigate("/dashboard/essentials")}
+            onClick={() => navigate("/dashboard/pitches")}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h3 className="text-2xl font-bold text-gray-900">Your Contracts</h3>
-            <p className="text-gray-600 mt-1">
+            <h2 className="text-3xl font-bold text-gray-900">Your Contracts</h2>
+            <p className="text-gray-600">
               Manage and download your generated contracts
             </p>
           </div>

@@ -54,13 +54,7 @@ interface LineItem {
   rate: string; // Change from number to string
 }
 
-export function InvoicesPage({
-  showInvoices,
-  setShowInvoices,
-}: {
-  showInvoices: boolean;
-  setShowInvoices: (showInvoices: boolean) => void;
-}) {
+export function InvoicesPage() {
   const navigate = useNavigate();
 
   const [companyName, setCompanyName] = useState("");
@@ -374,7 +368,7 @@ export function InvoicesPage({
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
-            onClick={() => navigate("/dashboard/essentials")}
+            onClick={() => navigate("/dashboard/pitches")}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -957,9 +951,9 @@ export function InvoicesPage({
                   </div>
 
                   {/* Amount & Status */}
-                  <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-6 mb-4">
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Amount</p>
+                      <p className="text-sm text-gray-600 ">Amount</p>
                       <p className="text-2xl font-bold text-gray-900">
                         {getCurrencySymbol(invoice.currency)}
                         {invoice.total.toLocaleString()}

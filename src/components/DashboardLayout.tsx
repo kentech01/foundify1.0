@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -17,10 +17,19 @@ import {
   Settings,
   LogOut,
   ChevronDown,
+  ChevronRight,
   User,
   Plus,
   Home,
   LogIn,
+  DollarSign,
+  FileCheck,
+  MessageSquare,
+  Mail,
+  Users,
+  Globe,
+  Menu,
+  X,
 } from "lucide-react";
 import { UserAuth } from "../context/AuthContext";
 import SignInModal from "./signIn/SignInModal";
@@ -29,19 +38,17 @@ const favicon = new URL("../assets/FOUNDIFY-LOGO.svg", import.meta.url).href;
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
-  onCreatePitch: () => void;
   isPremium: boolean;
 }
 
-export function DashboardLayout({
-  children,
-  onCreatePitch,
-  isPremium,
-}: DashboardLayoutProps) {
+export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logOut, loading } = UserAuth();
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const [isEssentialsOpen, setIsEssentialsOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const navItems = [
     {
       path: "/dashboard/pitches",
@@ -50,18 +57,64 @@ export function DashboardLayout({
     },
 
     {
-      path: "/dashboard/essentials",
+      path: "", // No path - just a menu header
       label: "Founder Essentials",
       icon: Wrench,
       premium: false,
+      hasSubMenu: true,
+    },
+  ];
+
+  const essentialsSubItems = [
+    {
+      path: "/dashboard/invoices",
+      label: "Invoice Generator",
+      icon: DollarSign,
+    },
+    {
+      path: "/dashboard/contracts",
+      label: "Contract Templates",
+      icon: FileCheck,
+    },
+    {
+      path: "/dashboard/feedbackCoach",
+      label: "360° Feedback Generator",
+      icon: MessageSquare,
+    },
+    {
+      path: "/dashboard/investor-email-draft",
+      label: "Investor Email Draft",
+      icon: Mail,
+    },
+    {
+      path: "/dashboard/ai-hiring-assistant",
+      label: "AI Hiring Assistant",
+      icon: Users,
+    },
+    {
+      path: "/dashboard/landing-page-generator",
+      label: "Landing Page Generator",
+      icon: Globe,
     },
   ];
 
   const currentPath = location.pathname;
 
-  const currentTitle =
-    navItems.find((item) => currentPath.startsWith(item.path))?.label ||
-    "Dashboard";
+  // Auto-open essentials menu when on any essentials page
+  useEffect(() => {
+    const essentialsPages = [
+      "/dashboard/invoices",
+      "/dashboard/contracts",
+      "/dashboard/feedbackCoach",
+      "/dashboard/investor-email-draft",
+      "/dashboard/ai-hiring-assistant",
+      "/dashboard/landing-page-generator",
+    ];
+
+    if (essentialsPages.some((page) => currentPath.startsWith(page))) {
+      setIsEssentialsOpen(true);
+    }
+  }, [currentPath]);
 
   const handleSignOut = async () => {
     try {
@@ -79,12 +132,24 @@ export function DashboardLayout({
 
   return (
     <div className="flex h-screen bg-gray-50">
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
+      <aside
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transform transition-transform duration-300 ease-in-out ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        }`}
+      >
         {/* Logo */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="flex-1">
+            <div className="flex-1 pb-1">
               <img
                 src={favicon}
                 alt="Foundify"
@@ -93,6 +158,13 @@ export function DashboardLayout({
               />
               {/* <h1 className="text-2xl font-bold text-deep-blue">Foundify</h1> */}
             </div>
+            {/* Close button for mobile */}
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="lg:hidden p-1 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <X className="h-5 w-5 text-gray-600" />
+            </button>
           </div>
         </div>
 
@@ -100,27 +172,83 @@ export function DashboardLayout({
         <nav className="flex-1 p-4 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive =
-              currentPath.startsWith(item.path) ||
-              (item.path === "/dashboard/essentials" &&
-                currentPath === "/dashboard/invoices") ||
-              (item.path === "/dashboard/essentials" &&
-                currentPath === "/dashboard/contracts");
+
+            // Check if this is an essentials-related page
+            const essentialsPages = [
+              "/dashboard/invoices",
+              "/dashboard/contracts",
+              "/dashboard/feedbackCoach",
+              "/dashboard/investor-email-draft",
+              "/dashboard/ai-hiring-assistant",
+              "/dashboard/landing-page-generator",
+            ];
+
+            const isActive = item.hasSubMenu
+              ? essentialsPages.some((page) => currentPath.startsWith(page))
+              : item.path && currentPath.startsWith(item.path);
+
             return (
-              <button
-                key={item.path}
-                onClick={() => navigate(item.path)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? "bg-gradient-to-r from-premium-purple to-deep-blue text-white shadow-lg"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                <Icon className="h-5 w-5 flex-shrink-0" />
-                <span className="flex-1 text-left font-medium">
-                  {item.label}
-                </span>
-              </button>
+              <div key={item.label}>
+                <button
+                  onClick={() => {
+                    if (item.hasSubMenu) {
+                      setIsEssentialsOpen(!isEssentialsOpen);
+                    } else {
+                      navigate(item.path);
+                      setIsSidebarOpen(false); // Close sidebar on mobile after navigation
+                    }
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                    isActive
+                      ? "bg-gradient-to-r from-premium-purple to-deep-blue text-white shadow-lg"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <span className="flex-1 text-left font-medium">
+                    {item.label}
+                  </span>
+                  {item.hasSubMenu && (
+                    <ChevronRight
+                      className={`h-4 w-4 transition-transform duration-200 ${
+                        isEssentialsOpen ? "rotate-90" : ""
+                      }`}
+                    />
+                  )}
+                </button>
+
+                {/* Sub-menu items */}
+                {item.hasSubMenu && isEssentialsOpen && (
+                  <div className="mt-1 space-y-1">
+                    {essentialsSubItems.map((subItem) => {
+                      const SubIcon = subItem.icon;
+                      const isSubItemActive = currentPath.startsWith(
+                        subItem.path
+                      );
+
+                      return (
+                        <button
+                          key={subItem.path}
+                          onClick={() => {
+                            navigate(subItem.path);
+                            setIsSidebarOpen(false); // Close sidebar on mobile after navigation
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3  rounded-xl transition-all duration-200 ${
+                            isSubItemActive
+                              ? "bg-purple-50 text-premium-purple font-medium"
+                              : "text-gray-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          <SubIcon className="h-4 w-4 flex-shrink-0" />
+                          <span className="flex-1 text-left text-sm">
+                            {subItem.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>
@@ -128,7 +256,10 @@ export function DashboardLayout({
         {/* Bottom Section */}
         <div className="p-4 border-t border-gray-200 space-y-2">
           <button
-            onClick={() => navigate("/")}
+            onClick={() => {
+              navigate("/");
+              setIsSidebarOpen(false); // Close sidebar on mobile after navigation
+            }}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200"
           >
             <Home className="h-5 w-5" />
@@ -144,25 +275,22 @@ export function DashboardLayout({
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <header className="bg-white border-b border-gray-200 px-8 py-4">
+        <header className="bg-white border-b border-gray-200 px-4 lg:px-8 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold text-gray-900">
+            <div className="flex items-center gap-4 flex-1">
+              {/* Hamburger Menu Button for Mobile/Tablet */}
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <Menu className="h-6 w-6 text-gray-600" />
+              </button>
+              {/* <h2 className="text-xl lg:text-2xl font-bold text-gray-900">
                 {currentTitle}
-              </h2>
+              </h2> */}
             </div>
 
             <div className="flex items-center gap-4">
-              {currentPath.startsWith("/dashboard/pitches") && (
-                <Button
-                  onClick={onCreatePitch}
-                  className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  New Pitch
-                </Button>
-              )}
-
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
