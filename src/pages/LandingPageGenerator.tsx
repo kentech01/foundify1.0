@@ -19,8 +19,12 @@ export function LandingPageGenerator() {
   const navigate = useNavigate();
   const apiService = useApiService();
   const { pitches } = useApp();
-  console.log(pitches, "hhhhhhhhh");
-  const firstPitch = pitches[0];
+
+  // First pitch meta and premium landing status
+  const [firstPitchMeta, setFirstPitchMeta] = useState<any>(null);
+  const [firstPitchHasPremiumLanding, setFirstPitchHasPremiumLanding] =
+    useState(false);
+  const [isFetchingFirstPitch, setIsFetchingFirstPitch] = useState(false);
 
   // Logo upload states
   const [logoSvgContent, setLogoSvgContent] = useState<string | null>(null);
@@ -31,6 +35,54 @@ export function LandingPageGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showLandingLoading, setShowLandingLoading] = useState(false);
   const [landingProgress, setLandingProgress] = useState(0);
+
+  // Fetch first pitch on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        setIsFetchingFirstPitch(true);
+        const fp = await apiService.getFirstPitch();
+        if (fp) {
+          setFirstPitchMeta(fp);
+          setFirstPitchHasPremiumLanding(!!fp.hasLandingPagePremium);
+
+          // If already has premium landing, navigate to it
+          if (fp.hasLandingPagePremium && fp.startupName) {
+            toast.success("Landing page already exists!", {
+              description: "Redirecting to your premium landing page...",
+            });
+            setTimeout(() => {
+              navigate(`/${fp.startupName}`);
+            }, 1000);
+          }
+        } else {
+          toast.error("No first pitch found", {
+            description:
+              "Please create your first pitch to generate a premium landing page.",
+          });
+          navigate("/dashboard/pitches");
+        }
+      } catch (_e) {
+        toast.error("Failed to load pitch data");
+        navigate("/dashboard/pitches");
+      } finally {
+        setIsFetchingFirstPitch(false);
+      }
+    })();
+  }, []);
+
+  // Refresh first pitch data after landing page generation
+  const refreshFirstPitch = async () => {
+    try {
+      const refreshed = await apiService.getFirstPitch();
+      if (refreshed) {
+        setFirstPitchMeta(refreshed);
+        setFirstPitchHasPremiumLanding(!!refreshed.hasLandingPagePremium);
+      }
+    } catch (_e) {
+      // no-op: keep previous state if refresh fails
+    }
+  };
 
   // Handle SVG file upload
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,7 +123,7 @@ export function LandingPageGenerator() {
 
   // Generate landing page
   const generateLandingPage = async () => {
-    if (!firstPitch) {
+    if (!firstPitchMeta) {
       toast.error("No pitch data available");
       return;
     }
@@ -88,7 +140,7 @@ export function LandingPageGenerator() {
       }, 5000);
 
       const response = await apiService.generateLandingPage(
-        firstPitch.id,
+        firstPitchMeta.id,
         "premium",
         logoSvgContent || undefined
       );
@@ -102,10 +154,13 @@ export function LandingPageGenerator() {
       // Clear logo after successful generation
       clearLogo();
 
+      // Refresh first pitch data
+      await refreshFirstPitch();
+
       // Navigate to the landing page
-      if (firstPitch.name) {
+      if (firstPitchMeta.startupName) {
         setTimeout(() => {
-          navigate(`/${firstPitch.name}`);
+          navigate(`/${firstPitchMeta.startupName}`);
         }, 500);
       }
     } catch (error: any) {
@@ -121,6 +176,23 @@ export function LandingPageGenerator() {
       setIsGenerating(false);
     }
   };
+
+  // Show loading while fetching first pitch
+  if (isFetchingFirstPitch) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-purple-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading pitch data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render the form if landing page already exists (will redirect)
+  if (firstPitchHasPremiumLanding) {
+    return null;
+  }
 
   return (
     <>
