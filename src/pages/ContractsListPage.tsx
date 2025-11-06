@@ -186,13 +186,6 @@ export function ContractsListPage() {
       {/* Header: Back + Title on left, Action button on right */}
       <div className="flex items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/dashboard/pitches")}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
           <div>
             <h2 className="text-3xl font-bold text-gray-900">Your Contracts</h2>
             <p className="text-gray-600">
@@ -224,16 +217,6 @@ export function ContractsListPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               No contracts yet
             </h3>
-            <p className="text-gray-600 mb-6">
-              Create your first contract to get started
-            </p>
-            <Button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Create Contract
-            </Button>
           </CardContent>
         </Card>
       )}

@@ -24,6 +24,14 @@ import {
   CollapsibleTrigger,
 } from "../components/ui/collapsible";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
+import {
   Briefcase,
   Sparkles,
   Settings,
@@ -75,6 +83,11 @@ export function AIHiringAssistant() {
   const [questionsGenerated, setQuestionsGenerated] = useState(false);
   const [categories, setCategories] = useState<QuestionCategory[]>([]);
   const [openCategories, setOpenCategories] = useState<string[]>([]);
+  const [isAddQuestionModalOpen, setIsAddQuestionModalOpen] = useState(false);
+  const [customQuestionInput, setCustomQuestionInput] = useState("");
+  const [currentCategoryId, setCurrentCategoryId] = useState<string | null>(
+    null
+  );
 
   const [errors, setErrors] = useState<Errors>({});
   const [touched, setTouched] = useState<
@@ -214,19 +227,24 @@ export function AIHiringAssistant() {
   };
 
   const handleAddCustomQuestion = (categoryId: string) => {
-    const customQuestion = prompt("Enter your custom question:");
-    if (!customQuestion) return;
+    setCurrentCategoryId(categoryId);
+    setCustomQuestionInput("");
+    setIsAddQuestionModalOpen(true);
+  };
+
+  const handleSaveCustomQuestion = () => {
+    if (!customQuestionInput.trim() || !currentCategoryId) return;
 
     setCategories(
       categories.map((category) => {
-        if (category.id === categoryId) {
+        if (category.id === currentCategoryId) {
           return {
             ...category,
             questions: [
               ...category.questions,
               {
                 id: `custom_${Date.now()}`,
-                question: customQuestion,
+                question: customQuestionInput.trim(),
                 answer: "",
               },
             ],
@@ -235,6 +253,11 @@ export function AIHiringAssistant() {
         return category;
       })
     );
+
+    setIsAddQuestionModalOpen(false);
+    setCustomQuestionInput("");
+    setCurrentCategoryId(null);
+    toast.success("Custom question added successfully!");
   };
 
   const toggleCategory = (categoryId: string) => {
@@ -324,16 +347,9 @@ ${i + 1}. ${q.question}
   return (
     <div className="p-8">
       {/* Header: Back + Title */}
-      <div className="flex items-center gap-3 mb-8">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/dashboard/pitches")}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+      <div className="flex items-center justify-center gap-3 mb-8">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">
+          <h2 className="mb-3 text-center text-3xl font-bold text-gray-900">
             AI Hiring Assistant
           </h2>
           <p className="text-gray-600">
@@ -695,6 +711,61 @@ ${i + 1}. ${q.question}
           </>
         )}
       </div>
+
+      {/* Add Custom Question Modal */}
+      <Dialog
+        open={isAddQuestionModalOpen}
+        onOpenChange={setIsAddQuestionModalOpen}
+      >
+        <DialogContent className="sm:max-w-[500px] w-full h-auto">
+          <DialogHeader>
+            <DialogTitle>Add Custom Question</DialogTitle>
+            <DialogDescription>
+              Enter your custom interview question below. This will be added to
+              the selected category.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="custom-question" className="mb-4">
+              Question
+            </Label>
+            <Textarea
+              id="custom-question"
+              value={customQuestionInput}
+              onChange={(e) => setCustomQuestionInput(e.target.value)}
+              placeholder="Example: Can you describe a challenging project you've worked on?"
+              rows={4}
+              className="resize-none"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && e.ctrlKey) {
+                  handleSaveCustomQuestion();
+                }
+              }}
+            />
+            <p className="text-xs text-muted-foreground mt-2">
+              Press Ctrl+Enter to save quickly
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsAddQuestionModalOpen(false);
+                setCustomQuestionInput("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveCustomQuestion}
+              disabled={!customQuestionInput.trim()}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              Add Question
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

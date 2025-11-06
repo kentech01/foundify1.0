@@ -366,13 +366,6 @@ export function InvoicesPage() {
       {/* Header: Back + Title on left, Action button on right */}
       <div className="flex items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/dashboard/pitches")}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
           <div>
             <h2 className="text-3xl font-bold text-gray-900">
               Invoice Generator
@@ -909,19 +902,8 @@ export function InvoicesPage() {
                 {searchTerm ? "No invoices found" : "No invoices yet"}
               </h3>
               <p className="text-gray-600 mb-4">
-                {searchTerm
-                  ? "Try adjusting your search terms"
-                  : "Create your first invoice to get started"}
+                {searchTerm && "Try adjusting your search terms"}
               </p>
-              {!searchTerm && (
-                <Button
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Invoice
-                </Button>
-              )}
             </CardContent>
           </Card>
         ) : (

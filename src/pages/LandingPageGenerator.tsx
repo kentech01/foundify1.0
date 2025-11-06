@@ -45,16 +45,6 @@ export function LandingPageGenerator() {
         if (fp) {
           setFirstPitchMeta(fp);
           setFirstPitchHasPremiumLanding(!!fp.hasLandingPagePremium);
-
-          // If already has premium landing, navigate to it
-          if (fp.hasLandingPagePremium && fp.startupName) {
-            toast.success("Landing page already exists!", {
-              description: "Redirecting to your premium landing page...",
-            });
-            setTimeout(() => {
-              navigate(`/${fp.startupName}`);
-            }, 1000);
-          }
         } else {
           toast.error("No first pitch found", {
             description:
@@ -121,6 +111,13 @@ export function LandingPageGenerator() {
     setUploadError("");
   };
 
+  // Open landing page in new tab
+  const openLandingPage = () => {
+    if (firstPitchMeta?.startupName) {
+      window.open(`/${firstPitchMeta.startupName}`, "_blank");
+    }
+  };
+
   // Generate landing page
   const generateLandingPage = async () => {
     if (!firstPitchMeta) {
@@ -156,13 +153,6 @@ export function LandingPageGenerator() {
 
       // Refresh first pitch data
       await refreshFirstPitch();
-
-      // Navigate to the landing page
-      if (firstPitchMeta.startupName) {
-        setTimeout(() => {
-          navigate(`/${firstPitchMeta.startupName}`);
-        }, 500);
-      }
     } catch (error: any) {
       toast.error("Failed to generate premium landing page", {
         description: error.message || "Please try again later.",
@@ -189,11 +179,6 @@ export function LandingPageGenerator() {
     );
   }
 
-  // Don't render the form if landing page already exists (will redirect)
-  if (firstPitchHasPremiumLanding) {
-    return null;
-  }
-
   return (
     <>
       <LoadingModal
@@ -204,16 +189,9 @@ export function LandingPageGenerator() {
 
       <div className="p-8">
         {/* Header: Back + Title */}
-        <div className="flex items-center gap-3 mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/dashboard/pitches")}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+        <div className="flex items-center justify-center gap-3 mb-8">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900">
+            <h2 className="mb-3 text-center text-3xl font-bold text-gray-900">
               Landing Page Generator
             </h2>
             <p className="text-gray-600">
@@ -281,27 +259,32 @@ export function LandingPageGenerator() {
 
               {/* Action buttons */}
               <div className="flex gap-3 pt-4">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => navigate("/essentials")}
-                >
+                <Button variant="outline" className="flex-1">
                   Close
                 </Button>
-                <Button
-                  className="flex-1 bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
-                  onClick={generateLandingPage}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    "Generate with Logo"
-                  )}
-                </Button>
+                {firstPitchHasPremiumLanding ? (
+                  <Button
+                    className="flex-1 bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
+                    onClick={openLandingPage}
+                  >
+                    View Landing Page
+                  </Button>
+                ) : (
+                  <Button
+                    className="flex-1 bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
+                    onClick={generateLandingPage}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      "Generate with Logo"
+                    )}
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>

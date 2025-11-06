@@ -139,16 +139,11 @@ export function FeedbackCoach() {
   return (
     <div className="p-8">
       {/* Header: Back + Title */}
-      <div className="flex items-center gap-3 mb-8">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/dashboard/pitches")}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+      <div className="flex items-center justify-center gap-3 mb-8">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Feedback Coach</h2>
+          <h2 className="mb-3 text-center text-3xl font-bold text-gray-900">
+            Feedback Coach
+          </h2>
           <p className="text-gray-600">
             Structure meaningful feedback conversations with your team
           </p>
