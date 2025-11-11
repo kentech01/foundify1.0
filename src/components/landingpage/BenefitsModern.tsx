@@ -1,5 +1,4 @@
-import { Clock, Award, Rocket, Zap } from "lucide-react";
-import React from "react";
+import { Clock, Award, Rocket, Zap } from 'lucide-react';
 
 const benefits = [
   {
