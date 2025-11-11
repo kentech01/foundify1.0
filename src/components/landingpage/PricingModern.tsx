@@ -59,12 +59,10 @@ export function PricingModern() {
             >
               Annually
             </span>
-            {billingCycle === "annually" && (
-              <span className="ml-2 inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold animate-in slide-in-from-right">
+              <span className={`ml-2 inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold animate-in slide-in-from-right ${billingCycle === "annually"? "visible" : "invisible"}`}>
                 <Sparkles className="h-3 w-3" />
                 Save 33%
               </span>
-            )}
           </div>
         </div>
 
@@ -139,11 +137,9 @@ export function PricingModern() {
                 </span>
                 <span className="text-gray-600">/ month</span>
               </div>
-              {billingCycle === "annually" && (
-                <p className="text-sm text-gray-600">
+                <p className={`text-sm text-gray-600 ${billingCycle === "annually" ? "visible" : "invisible"}`}>
                   Billed as ${priceAnnually * 12}/year
                 </p>
-              )}
               <p className="text-gray-600 mt-2">Everything you need to scale</p>
             </CardHeader>
 
