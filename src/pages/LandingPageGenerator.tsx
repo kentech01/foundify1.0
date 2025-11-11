@@ -261,7 +261,7 @@ export function LandingPageGenerator() {
               <div className="flex justify-center gap-3 pt-4">
                 {firstPitchHasPremiumLanding ? (
                   <Button
-                    className="px-6 bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
+                    className="px-6 bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:to-deep-blue-dark text-white"
                     onClick={openLandingPage}
                   >
                     View Landing Page

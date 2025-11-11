@@ -200,7 +200,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                     isActive
-                      ? "bg-gradient-to-r from-premium-purple to-deep-blue text-white shadow-lg"
+                      ? "bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white shadow-lg"
                       : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
@@ -235,7 +235,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
                           }}
                           className={`w-full flex items-center gap-3 px-4 py-3  rounded-xl transition-all duration-200 ${
                             isSubItemActive
-                              ? "bg-purple-50 text-premium-purple font-medium"
+                              ? "bg-blue-50 text-premium-purple font-medium"
                               : "text-gray-600 hover:bg-gray-50"
                           }`}
                         >

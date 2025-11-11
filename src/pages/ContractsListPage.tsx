@@ -206,7 +206,7 @@ export function ContractsListPage() {
             setIsCreateModalOpen(true);
             setShowCreateHeader(true);
           }}
-          className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl"
+          className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:to-deep-blue-dark text-white rounded-xl"
         >
           <Plus className="mr-2 h-4 w-4" />
           New Contract

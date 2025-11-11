@@ -548,7 +548,7 @@ ${i + 1}. ${q.question}
             <Button
               onClick={handleGenerateQuestions}
               disabled={!canGenerate || isGenerating}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
+              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:bg-purple-700 text-white"
             >
               {isGenerating ? (
                 <>

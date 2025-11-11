@@ -440,7 +440,7 @@ export function InvestorEmailDraft() {
               <Button
                 onClick={generateEmail}
                 disabled={generating || !validate.valid}
-                className={styles.generateBtn}
+                className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]"
               >
                 <Sparkles className={styles.ctaIcon} />
                 {generating ? "Generating..." : "Generate Email"}

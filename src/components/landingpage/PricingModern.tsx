@@ -122,7 +122,7 @@ export function PricingModern() {
           {/* Premium Plan */}
           <Card className="relative border-2 border-premium-purple shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-3xl overflow-hidden transform lg:scale-105">
             {/* Popular badge */}
-            <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-premium-purple to-deep-blue text-white text-center py-3 px-4">
+            <div className="absolute top-0 left-0 right-0 bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white text-center py-3 px-4">
               <div className="flex items-center justify-center gap-2">
                 <Sparkles className="h-4 w-4" />
                 <span className="text-sm font-semibold">MOST POPULAR</span>
@@ -211,7 +211,7 @@ export function PricingModern() {
                 </li>
               </ul>
 
-              <Button className="w-full py-6 rounded-xl bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+              <Button className="w-full py-6 rounded-xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:from-premium-purple-dark hover:to-deep-blue-dark text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                 Upgrade to Premium
               </Button>
             </CardContent>
