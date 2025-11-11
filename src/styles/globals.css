@@ -236,3 +236,9 @@
     }
   }
 }
+
+@layer base {
+  [data-sonner-toast] {
+    @apply rounded-xl border-2 shadow-lg;
+  }
+}

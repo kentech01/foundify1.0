@@ -65,7 +65,6 @@ const cycles = [
 ];
 
 export function FeedbackCoach() {
-  const navigate = useNavigate();
   const { exportFeedbackPdf } = useApiService();
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState<FeedbackForm>({
@@ -327,7 +326,6 @@ Examples:
             <div className="text-center">
               <Button
                 onClick={generatePDF}
-                size="lg"
                 disabled={!allFieldsHaveAtLeastOneWord || isGenerating}
                 className="bg-purple-600 hover:bg-purple-700"
               >

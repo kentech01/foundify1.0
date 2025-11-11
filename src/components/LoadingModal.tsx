@@ -1,3 +1,4 @@
+import React from "react";
 import { Dialog, DialogContent } from "./ui/dialog";
 import { Loader2, FileText, Globe, Sparkles } from "lucide-react";
 

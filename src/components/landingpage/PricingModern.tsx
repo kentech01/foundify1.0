@@ -114,7 +114,7 @@ export function PricingModern() {
                 variant="outline"
                 className="w-full py-6 rounded-xl border-2 border-gray-300 hover:bg-gray-50 transition-all duration-300"
               >
-                Get Started Free
+                Get started free
               </Button>
             </CardContent>
           </Card>
@@ -212,7 +212,7 @@ export function PricingModern() {
               </ul>
 
               <Button className="w-full py-6 rounded-xl bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                Start 14-Day Free Trial
+                Start 14-day free trial
               </Button>
 
               <p className="text-center text-sm text-gray-500 mt-4">

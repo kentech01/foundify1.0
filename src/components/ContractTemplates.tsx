@@ -37,6 +37,8 @@ import { toast } from "sonner";
 import { contractTemplates } from "../constants";
 import React from "react";
 
+export type ContractTemplatesStep = "select" | "preview" | "customize" | "edit";
+
 interface ContractTemplate {
   id: string;
   title: string;
@@ -49,7 +51,7 @@ interface ContractTemplate {
     id: string;
     label: string;
     placeholder: string;
-    type: "text" | "textarea" | "date";
+    type: string;
     tooltip?: string;
   }[];
 }
@@ -63,13 +65,15 @@ interface ContractTemplatesProps {
     formData: Record<string, string>;
     contractText: string;
   };
+  onStepChange?: (step: ContractTemplatesStep) => void;
 }
 
 export function ContractTemplates({
   onSuccess,
   editMode,
+  onStepChange,
 }: ContractTemplatesProps = {}) {
-  const [step, setStep] = useState<"select" | "preview" | "customize" | "edit">(
+  const [step, setStep] = useState<ContractTemplatesStep>(
     editMode ? "edit" : "select"
   );
   const [selectedTemplate, setSelectedTemplate] =
@@ -102,6 +106,10 @@ export function ContractTemplates({
       setEditableContract(editMode.contractText);
     }
   }, [editMode, selectedTemplate]);
+
+  useEffect(() => {
+    onStepChange?.(step);
+  }, [step, onStepChange]);
 
   const { generateContract, exportContractPdf, editContract } = useApiService();
 
@@ -195,31 +203,7 @@ export function ContractTemplates({
         const editResponse = await editContract(editPayload);
         console.log("Contract updated:", editResponse);
 
-        // Export the PDF with the updated content
-        const pdfPayload = {
-          templateId: editMode.templateId,
-          data: mapDataForApi(formData), // Use updated form data
-          customContent: editableContract, // Use edited contract text
-        };
-
-        console.log("PDF payload:", pdfPayload);
-
-        const pdfBlob = await exportContractPdf(pdfPayload);
-
-        // Download the PDF
-        const url = window.URL.createObjectURL(pdfBlob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `${editMode.title.replace(
-          /\s+/g,
-          "_"
-        )}_${Date.now()}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-
-        toast.success("Contract updated and downloaded!");
+        toast.success("Contract updated successfully!");
       } else {
         // Creating a new contract
         const contractPayload = {
@@ -384,15 +368,6 @@ export function ContractTemplates({
       <div className=" space-y-6">
         {/* Back Button & Header */}
         <div className="flex items-start gap-4">
-          <Button
-            onClick={handleBack}
-            variant="outline"
-            size="sm"
-            className="mt-1"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
           <div className="flex-1">
             <h1 className="text-2xl mb-1">{selectedTemplate.title}</h1>
             <p className="text-gray-600">Preview and edit before customizing</p>
@@ -554,18 +529,9 @@ export function ContractTemplates({
     return (
       <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex items-start gap-4">
-          <Button
-            onClick={handleBack}
-            variant="outline"
-            size="sm"
-            className="mt-1"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
           <div className="flex-1">
             <h1 className="text-2xl mb-1">
-              vestingYears Review & Edit {selectedTemplate.title}
+              Vesting years Review & Edit {selectedTemplate.title}
             </h1>
             <p className="text-gray-600">
               Make any final changes before generating your contract
@@ -592,7 +558,7 @@ export function ContractTemplates({
           </CardContent>
         </Card>
 
-        <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl p-6">
+        <div className="flex items-center justify-between gap-6 bg-green-50 border border-green-200 rounded-xl p-6">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
               <Check className="w-6 h-6 text-white" />
@@ -602,13 +568,14 @@ export function ContractTemplates({
                 Contract ready to finalize?
               </p>
               <p className="text-sm text-gray-600">
-                Generate PDF or copy the text to use elsewhere
+                Save your changes or copy the text to use elsewhere
               </p>
             </div>
           </div>
           <div className="flex gap-3">
             <Button
               onClick={handleCopyText}
+              size="lg"
               variant="outline"
               className="border-blue-300 text-blue-700 hover:bg-blue-50"
             >
@@ -628,8 +595,17 @@ export function ContractTemplates({
                 </>
               ) : (
                 <>
-                  <Download className="w-4 h-4 mr-2" />
-                  {editMode ? "Update & Download" : "Generate Contract PDF"}
+                  {editMode ? (
+                    <>
+                      <Edit className="w-4 h-4 mr-2" />
+                      Update Contract
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 mr-2" />
+                      Generate Contract PDF
+                    </>
+                  )}
                 </>
               )}
             </Button>

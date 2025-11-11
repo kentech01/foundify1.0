@@ -342,10 +342,11 @@ export function InvoicesPage() {
   };
 
   const handleDownload = async (invoice: ApiInvoice) => {
-    const response = await getInvoice(invoice.id);
-    if (response.success) {
-      console.log(response.data, "response.data");
-    } else {
+    try {
+      await downloadInvoicePdf(invoice.firebaseUid, invoice.id);
+      toast.success("Invoice downloaded successfully");
+    } catch (error) {
+      console.error("Error downloading invoice:", error);
       toast.error("Failed to download invoice");
     }
   };
@@ -386,7 +387,7 @@ export function InvoicesPage() {
         >
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg">
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-1 h-4 w-4" />
               Create Invoice
             </Button>
           </DialogTrigger>
@@ -947,31 +948,34 @@ export function InvoicesPage() {
                   <div className="flex gap-3">
                     <Button
                       onClick={() => handleView(invoice)}
-                      variant="outline"
+                      variant="secondary"
+                      size="lg"
                       className="border-2 border-gray-200 rounded-xl hover:bg-gray-50"
                     >
-                      <Eye className="mr-2 h-4 w-4" />
+                      <Eye className="mr-1 h-4 w-4" />
                       View
                     </Button>
                     <Button
                       onClick={() => openEditModal(invoice)}
                       variant="outline"
+                      size="lg"
                       className="border-2 border-gray-200 rounded-xl hover:bg-gray-50"
                     >
-                      <Edit className="mr-2 h-4 w-4" />
+                      <Edit className="mr-1 h-4 w-4" />
                       Edit
                     </Button>
                     {invoice.status === "pending" && (
                       <Button className="bg-green-600 hover:bg-green-700 text-white rounded-xl">
-                        <Send className="mr-2 h-4 w-4" />
+                        <Send className="mr-1 h-4 w-4" />
                         Send
                       </Button>
                     )}
                     <Button
+                      size="lg"
                       onClick={() => handleDownload(invoice)}
                       className="bg-deep-blue hover:bg-deep-blue-dark text-white rounded-xl"
                     >
-                      <Download className="mr-2 h-4 w-4" />
+                      <Download className="mr-1 h-4 w-4" />
                       Download
                     </Button>
                   </div>

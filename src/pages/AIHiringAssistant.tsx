@@ -540,7 +540,6 @@ ${i + 1}. ${q.question}
             <Button
               onClick={handleGenerateQuestions}
               disabled={!canGenerate || isGenerating}
-              size="lg"
               className="bg-purple-600 hover:bg-purple-700 text-white"
             >
               {isGenerating ? (

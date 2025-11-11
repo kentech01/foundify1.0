@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { ContractTemplates } from "../components/ContractTemplates";
+import type { ContractTemplatesStep } from "../components/ContractTemplates";
 import { useApiService } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import React from "react";
@@ -45,6 +46,7 @@ interface Contract {
   status: "completed" | "draft";
   createdDate: string;
   templateId?: string;
+  template_name?: string;
   data?: Record<string, string>;
   html?: string;
 }
@@ -61,6 +63,8 @@ export function ContractsListPage() {
   const [contractToDelete, setContractToDelete] = useState<Contract | null>(
     null
   );
+  const [showCreateHeader, setShowCreateHeader] = useState(true);
+  const [showEditHeader, setShowEditHeader] = useState(true);
 
   const {
     getContracts,
@@ -149,14 +153,18 @@ export function ContractsListPage() {
 
       // Fetch the full contract details from the API
       const contractDetails = await getContract(contract.id);
+      const details = (contractDetails?.data ?? {}) as {
+        template_id?: string;
+        custom_content?: string;
+      };
 
       // Prepare the edit data for ContractTemplates
       setEditContractData({
         contractId: contract.id,
-        templateId: contractDetails.data?.template_id || "",
-        title: contract.data?.template_name || "",
+        templateId: details.template_id || "",
+        title: contract.data?.template_name || contract.template_name || "",
         formData: contract.data || {},
-        contractText: contractDetails.data?.custom_content || "",
+        contractText: details.custom_content || "",
       });
 
       setIsEditModalOpen(true);
@@ -194,7 +202,10 @@ export function ContractsListPage() {
           </div>
         </div>
         <Button
-          onClick={() => setIsCreateModalOpen(true)}
+          onClick={() => {
+            setIsCreateModalOpen(true);
+            setShowCreateHeader(true);
+          }}
           className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl"
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -264,7 +275,7 @@ export function ContractsListPage() {
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <Button
                       variant="outline"
-                      size="sm"
+                      size="lg"
                       onClick={() => handleEdit(contract)}
                       className="rounded-xl border-2"
                     >
@@ -272,7 +283,7 @@ export function ContractsListPage() {
                       Edit
                     </Button>
                     <Button
-                      size="sm"
+                      size="lg"
                       onClick={() => handleDownload(contract)}
                       disabled={downloadingId === contract.id}
                       className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl disabled:opacity-50"
@@ -284,14 +295,14 @@ export function ContractsListPage() {
                         </>
                       ) : (
                         <>
-                          <Download className="h-4 w-4 mr-2" />
+                          <Download className="h-4 w-4 mr-1" />
                           Download
                         </>
                       )}
                     </Button>
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="lg"
                       onClick={() => handleDeleteClick(contract)}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl"
                     >
@@ -306,15 +317,30 @@ export function ContractsListPage() {
       )}
 
       {/* Create Modal */}
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+      <Dialog
+        open={isCreateModalOpen}
+        onOpenChange={(open) => {
+          setIsCreateModalOpen(open);
+          if (!open) {
+            setShowCreateHeader(true);
+          }
+        }}
+      >
         <DialogContent className="overflow-y-auto max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>Create New Contract</DialogTitle>
-            <DialogDescription>
-              Choose a contract template to get started
-            </DialogDescription>
-          </DialogHeader>
-          <ContractTemplates onSuccess={handleCreateSuccess} />
+          {showCreateHeader && (
+            <DialogHeader>
+              <DialogTitle>Create New Contract</DialogTitle>
+              <DialogDescription>
+                Choose a contract template to get started
+              </DialogDescription>
+            </DialogHeader>
+          )}
+          <ContractTemplates
+            onSuccess={handleCreateSuccess}
+            onStepChange={(step: ContractTemplatesStep) =>
+              setShowCreateHeader(step === "select")
+            }
+          />
         </DialogContent>
       </Dialog>
 
@@ -324,19 +350,29 @@ export function ContractsListPage() {
         onOpenChange={(open) => {
           setIsEditModalOpen(open);
           if (!open) {
+            setShowEditHeader(true);
+          }
+          if (!open) {
             setEditContractData(null);
           }
         }}
       >
         <DialogContent className="overflow-y-auto max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>Edit Contract</DialogTitle>
-            <DialogDescription>Make changes to your contract</DialogDescription>
-          </DialogHeader>
+          {showEditHeader && (
+            <DialogHeader>
+              <DialogTitle>Edit Contract</DialogTitle>
+              <DialogDescription>
+                Make changes to your contract
+              </DialogDescription>
+            </DialogHeader>
+          )}
           {editContractData && (
             <ContractTemplates
               editMode={editContractData}
               onSuccess={handleEditSuccess}
+              onStepChange={(step: ContractTemplatesStep) =>
+                setShowEditHeader(step === "select")
+              }
             />
           )}
         </DialogContent>

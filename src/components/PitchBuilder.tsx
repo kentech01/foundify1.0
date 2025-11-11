@@ -11,7 +11,15 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
-import { ArrowRight, ArrowLeft, Sparkles, LogIn } from "lucide-react";
+import { ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
 import { useApp, PitchData, Pitch } from "../context/AppContext";
 import { UserAuth } from "../context/AuthContext";
 import SignInModal from "./signIn/SignInModal";
@@ -23,6 +31,8 @@ export function PitchBuilder() {
   const { addPitch, setIsGenerating, setProgress } = useApp();
   const { user, loading } = UserAuth();
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const [isLimitModalOpen, setIsLimitModalOpen] = useState(false);
+  const [limitModalMessage, setLimitModalMessage] = useState("");
   const [currentStep, setCurrentStep] = useState(0);
   const [shouldAutoSubmit, setShouldAutoSubmit] = useState(false);
   const [formData, setFormData] = useState<PitchData>({
@@ -244,7 +254,14 @@ export function PitchBuilder() {
       console.error("Failed to generate pitch:", err);
       setIsGenerating(false);
       setProgress(0);
-      alert(err?.message || "Failed to generate pitch");
+      const rawMessage = err?.message || "Failed to generate pitch";
+      const normalized = rawMessage.toLowerCase();
+      const limitMessage =
+        "You have reached the pitch limit for the free plan. Upgrade to create more pitches.";
+      setLimitModalMessage(
+        normalized.includes("only create one pitch") ? limitMessage : rawMessage
+      );
+      setIsLimitModalOpen(true);
     }
   };
 
@@ -363,6 +380,30 @@ export function PitchBuilder() {
         }}
         onSignInSuccess={handleSignInSuccess}
       />
+
+      <Dialog open={isLimitModalOpen} onOpenChange={setIsLimitModalOpen}>
+        <DialogContent className="sm:max-w-md w-full h-auto border-0 shadow-2xl p-8 space-y-6 text-center">
+          <DialogHeader className="space-y-3">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-premium-purple to-deep-blue shadow-lg">
+              <Sparkles className="h-7 w-7 text-white" />
+            </div>
+            <DialogTitle className="text-2xl text-center font-semibold text-gray-900">
+              Upgrade To Keep Creating
+            </DialogTitle>
+            <DialogDescription className="text-center text-base text-gray-600">
+              {limitModalMessage}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-center">
+            <Button
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-premium-purple to-deep-blue text-white shadow-lg"
+              onClick={() => setIsLimitModalOpen(false)}
+            >
+              OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

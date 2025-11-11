@@ -418,6 +418,7 @@ export function PitchDashboard({
                         onClick={() => handleDownload(pitch)}
                         className="border-2 border-gray-200 rounded-xl hover:bg-gray-50 w-full sm:w-auto"
                         disabled={loadingModal.isOpen}
+                        size="lg"
                       >
                         <Download className="mr-2 h-4 w-4" />
                         <span className="whitespace-nowrap">Download PDF</span>
@@ -434,6 +435,7 @@ export function PitchDashboard({
                             ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
                             : "bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
                         }`}
+                        size="lg"
                       >
                         {pitch.hasLandingPage ? (
                           <ExternalLink className="mr-2 h-4 w-4" />

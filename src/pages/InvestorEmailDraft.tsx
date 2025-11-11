@@ -439,7 +439,6 @@ export function InvestorEmailDraft() {
             <div className={styles.ctaWrap}>
               <Button
                 onClick={generateEmail}
-                size="lg"
                 disabled={generating || !validate.valid}
                 className={styles.generateBtn}
               >

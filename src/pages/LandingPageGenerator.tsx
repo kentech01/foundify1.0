@@ -200,7 +200,7 @@ export function LandingPageGenerator() {
           </div>
         </div>
 
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-4xl mx-auto space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="text-xl font-bold">
