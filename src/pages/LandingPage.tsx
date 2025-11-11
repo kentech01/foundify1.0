@@ -5,7 +5,7 @@ import { HeroModern } from "../components/landingpage/HeroModern";
 import { WhatYouGet } from "../components/landingpage/WhatYouGet";
 import { BenefitsModern } from "../components/landingpage/BenefitsModern";
 import { CTASection } from "../components/landingpage/CTASection";
-import { FooterModern } from "../components/FooterModern";
+import { Footer } from "../components/Footer";
 import SignInModal from "../components/signIn/SignInModal";
 import React from "react";
 import { PricingModern } from "../components/landingpage/PricingModern";
@@ -35,9 +35,8 @@ export function LandingPage() {
       <WhatYouGet />
       <BenefitsModern />
       <PricingModern />
-      {/* <SocialProofModern /> */}
       <CTASection onStart={handleStartPitch} />
-      <FooterModern />
+      <Footer />
       {/* Sign In Modal - only for Header sign in button */}
       <SignInModal
         isOpen={isSignInModalOpen}

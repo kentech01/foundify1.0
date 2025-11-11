@@ -18,14 +18,6 @@ export function HeroModern({ onStart }: HeroModernProps) {
 
       <div className="mx-auto max-w-7xl">
         <div className="text-center space-y-8">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-premium-purple/10 to-deep-blue/10 px-4 py-2 border border-premium-purple/20 backdrop-blur-sm">
-            <Sparkles className="h-4 w-4 text-premium-purple" />
-            <span className="text-sm font-medium bg-gradient-to-r from-premium-purple to-deep-blue bg-clip-text text-transparent">
-              Everything founders need in one place
-            </span>
-          </div>
-
           {/* Main headline */}
           <div className="space-y-6">
             <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight text-gray-900 max-w-5xl mx-auto leading-tight">

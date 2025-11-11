@@ -1,33 +1,37 @@
-import { Card } from './ui/card';
-import { Star } from 'lucide-react';
+import React from "react";
+import { Card } from "./ui/card";
+import { Star } from "lucide-react";
 
 const testimonials = [
   {
     id: 1,
-    name: 'Sarah Chen',
-    role: 'Founder',
-    company: 'TechFlow AI',
-    content: 'Foundify saved me weeks. The pitch deck tool alone is worth 10x the price. Everything just works.',
+    name: "Sarah Chen",
+    role: "Founder",
+    company: "TechFlow AI",
+    content:
+      "Foundify saved me weeks. The pitch deck tool alone is worth 10x the price. Everything just works.",
     rating: 5,
-    avatar: 'SC',
+    avatar: "SC",
   },
   {
     id: 2,
-    name: 'Marcus Johnson',
-    role: 'Co-founder',
-    company: 'GrowthLabs',
-    content: 'The feedback coach changed how I communicate with my team. Best investment for early-stage founders.',
+    name: "Marcus Johnson",
+    role: "Co-founder",
+    company: "GrowthLabs",
+    content:
+      "The feedback coach changed how I communicate with my team. Best investment for early-stage founders.",
     rating: 5,
-    avatar: 'MJ',
+    avatar: "MJ",
   },
   {
     id: 3,
-    name: 'Emily Rodriguez',
-    role: 'Founder',
-    company: 'DesignCo',
-    content: 'From idea to investor pitch in 3 days. The professional results gave me the confidence I needed.',
+    name: "Emily Rodriguez",
+    role: "Founder",
+    company: "DesignCo",
+    content:
+      "From idea to investor pitch in 3 days. The professional results gave me the confidence I needed.",
     rating: 5,
-    avatar: 'ER',
+    avatar: "ER",
   },
 ];
 
@@ -60,7 +64,7 @@ export function SocialProofModern() {
         {/* Testimonials */}
         <div className="text-center mb-16 space-y-4">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900">
-            Loved by{' '}
+            Loved by{" "}
             <span className="bg-gradient-to-r from-premium-purple to-deep-blue bg-clip-text text-transparent">
               Founders
             </span>
@@ -72,15 +76,18 @@ export function SocialProofModern() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
-            <Card 
-              key={testimonial.id} 
+            <Card
+              key={testimonial.id}
               className="p-8 border-2 border-gray-100 hover:border-premium-purple/30 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 rounded-2xl"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               {/* Rating */}
               <div className="flex gap-1 mb-4">
                 {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                  <Star
+                    key={i}
+                    className="h-5 w-5 text-yellow-400 fill-current"
+                  />
                 ))}
               </div>
 
@@ -95,7 +102,9 @@ export function SocialProofModern() {
                   {testimonial.avatar}
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-900">{testimonial.name}</div>
+                  <div className="font-semibold text-gray-900">
+                    {testimonial.name}
+                  </div>
                   <div className="text-sm text-gray-600">
                     {testimonial.role}, {testimonial.company}
                   </div>

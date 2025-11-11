@@ -173,7 +173,7 @@ export function LandingPageGenerator() {
       <div className="p-8 flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-purple-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading pitch data...</p>
+          <p className="text-gray-600">Loading</p>
         </div>
       </div>
     );
@@ -258,13 +258,10 @@ export function LandingPageGenerator() {
               )}
 
               {/* Action buttons */}
-              <div className="flex gap-3 pt-4">
-                <Button variant="outline" className="flex-1">
-                  Close
-                </Button>
+              <div className="flex justify-center gap-3 pt-4">
                 {firstPitchHasPremiumLanding ? (
                   <Button
-                    className="flex-1 bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
+                    className="px-6 bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
                     onClick={openLandingPage}
                   >
                     View Landing Page

@@ -80,7 +80,7 @@ export function PricingModern() {
                 </div>
               </div>
               <div className="mb-2">
-                <span className="text-5xl font-bold text-gray-900">€0</span>
+                <span className="text-5xl font-bold text-gray-900">$0</span>
                 <span className="text-gray-600 ml-2">/ month</span>
               </div>
               <p className="text-gray-600">Perfect for experimenting</p>
@@ -114,7 +114,7 @@ export function PricingModern() {
                 variant="outline"
                 className="w-full py-6 rounded-xl border-2 border-gray-300 hover:bg-gray-50 transition-all duration-300"
               >
-                Get started free
+                Get Started Free
               </Button>
             </CardContent>
           </Card>
@@ -135,13 +135,13 @@ export function PricingModern() {
               </div>
               <div className="mb-2 flex items-baseline gap-2">
                 <span className="text-5xl font-bold bg-gradient-to-r from-premium-purple to-deep-blue bg-clip-text text-transparent">
-                  €{billingCycle === "monthly" ? priceMonthly : priceAnnually}
+                  ${billingCycle === "monthly" ? priceMonthly : priceAnnually}
                 </span>
                 <span className="text-gray-600">/ month</span>
               </div>
               {billingCycle === "annually" && (
                 <p className="text-sm text-gray-600">
-                  Billed as €{priceAnnually * 12}/year
+                  Billed as ${priceAnnually * 12}/year
                 </p>
               )}
               <p className="text-gray-600 mt-2">Everything you need to scale</p>
@@ -212,12 +212,8 @@ export function PricingModern() {
               </ul>
 
               <Button className="w-full py-6 rounded-xl bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                Start 14-day free trial
+                Upgrade to Premium
               </Button>
-
-              <p className="text-center text-sm text-gray-500 mt-4">
-                No credit card required
-              </p>
             </CardContent>
           </Card>
         </div>

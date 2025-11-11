@@ -250,11 +250,11 @@ export function PitchDashboard({
   };
 
   // Fix: Add null checks for all pitches usage
-  const totalViews =
-    pitches?.reduce((sum, pitch) => sum + (pitch.views || 0), 0) || 0;
+  // const totalViews =
+  //   pitches?.reduce((sum, pitch) => sum + (pitch.views || 0), 0) || 0;
 
-  const publishedCount =
-    pitches?.filter((pitch) => pitch.status === "published").length || 0;
+  // const publishedCount =
+  //   pitches?.filter((pitch) => pitch.status === "published").length || 0;
 
   return (
     <div className="p-8">
@@ -272,7 +272,8 @@ export function PitchDashboard({
 
         <Button
           onClick={onCreatePitch}
-          className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg"
+          disabled={(pitches?.length || 0) > 0}
+          className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus className="mr-2 h-4 w-4" />
           New Pitch
@@ -280,7 +281,7 @@ export function PitchDashboard({
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+      {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
         <Card className="border-2 border-gray-100 rounded-2xl">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
@@ -321,7 +322,7 @@ export function PitchDashboard({
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                {/* <p className="text-xs md:text-sm text-gray-600 mb-1">Published</p> */}
+                 <p className="text-xs md:text-sm text-gray-600 mb-1">Published</p> 
                 <p className="text-2xl md:text-4xl font-bold text-gray-900">
                   {publishedCount}
                 </p>
@@ -332,7 +333,7 @@ export function PitchDashboard({
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       {/* Pitches List */}
       <div>

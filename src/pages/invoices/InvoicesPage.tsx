@@ -321,7 +321,6 @@ export function InvoicesPage() {
     const rate = conversionRates[i.currency] || 1;
     return sum + i.total * rate;
   }, 0);
-  console.log("Total revenue:", totalRevenue);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
@@ -861,7 +860,7 @@ export function InvoicesPage() {
           </CardContent>
         </Card> */}
 
-        <Card className="border-2 border-gray-100 rounded-2xl">
+        {/* <Card className="border-2 border-gray-100 rounded-2xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -875,7 +874,7 @@ export function InvoicesPage() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       {/* Search Bar */}

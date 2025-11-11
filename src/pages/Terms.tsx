@@ -1,6 +1,6 @@
 import React from "react";
 import { Header } from "../components/Header";
-import { FooterModern } from "../components/FooterModern";
+import { Footer } from "../components/Footer";
 
 // app/terms/page.tsx (or components/Terms.tsx)
 function Terms() {
@@ -144,7 +144,7 @@ function Terms() {
           </section>
         </div>
       </div>
-      <FooterModern />
+      <Footer />
     </>
   );
 }

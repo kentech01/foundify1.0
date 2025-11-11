@@ -45,12 +45,12 @@ export function Header({
     setIsSignInModalOpen(false);
   };
   return (
-    <header className="bg-white border-b border-gray-200 bg-white/95">
+    <header className="bg-white border-b border-gray-200 bg-white/95 ">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-16 ">
           {/* Logo */}
           <div className="flex items-center">
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 mt">
               <img
                 src={favicon}
                 alt="Foundify"

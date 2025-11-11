@@ -271,6 +271,14 @@ export function AIHiringAssistant() {
   const handleRegenerate = () => {
     setQuestionsGenerated(false);
     setCategories([]);
+    setCandidateName("");
+    setRole("");
+    setSeniority("");
+    setIndustry("");
+    setInterviewGoal("");
+    setOpenCategories([]);
+    setTouched({});
+    setErrors({});
   };
 
   const handleExportPDF = async () => {
@@ -582,14 +590,14 @@ ${i + 1}. ${q.question}
                     >
                       <CollapsibleTrigger className="w-full">
                         <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
+                          <div className="flex  justify-between">
+                            <div className="flex items-center gap-3 mb-6">
                               <div
                                 className={`w-10 h-10 rounded-lg ${category.color} flex items-center justify-center`}
                               >
                                 <IconComponent className="w-5 h-5" />
                               </div>
-                              <div className="text-left">
+                              <div className="text-left ">
                                 <CardTitle className="text-lg">
                                   {category.title}
                                 </CardTitle>
@@ -615,7 +623,7 @@ ${i + 1}. ${q.question}
                               className="space-y-3 pb-6 border-b last:border-b-0 last:pb-0"
                             >
                               <div className="flex items-start gap-3">
-                                <div className="w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center flex-shrink-0 mt-1">
+                                <div className="w-7 h-7 mr-3 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center flex-shrink-0 mt-1">
                                   {index + 1}
                                 </div>
                                 <div className="flex-1 space-y-3">

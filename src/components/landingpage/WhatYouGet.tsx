@@ -1,3 +1,4 @@
+import React from "react";
 import { Card } from "../ui/card";
 import {
   Presentation,
@@ -58,12 +59,6 @@ export function WhatYouGet() {
       <div className="mx-auto max-w-7xl">
         {/* Section header */}
         <div className="text-center mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full bg-premium-purple-50 px-4 py-2 border border-premium-purple/20">
-            <Sparkles className="h-4 w-4 text-premium-purple" />
-            <span className="text-sm font-medium text-premium-purple-900">
-              Complete Toolkit
-            </span>
-          </div>
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900">
             Everything You Need to{" "}
             <span className="bg-gradient-to-r from-premium-purple to-deep-blue bg-clip-text text-transparent">
