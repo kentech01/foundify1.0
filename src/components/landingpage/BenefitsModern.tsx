@@ -1,38 +1,41 @@
 import { Clock, Award, Rocket, Zap } from 'lucide-react';
-import {React} from "react"
 
 const benefits = [
   {
     id: 1,
-    title: 'Launch Faster',
-    description: 'Stop wasting time on administrative tasks. Focus on building your product and talking to customers.',
+    title: "Launch Faster",
+    description:
+      "Stop wasting time on administrative tasks. Focus on building your product and talking to customers.",
     icon: Rocket,
-    stat: '10x',
-    statLabel: 'Faster setup'
+    stat: "10x",
+    statLabel: "Faster setup",
   },
   {
     id: 2,
-    title: 'Look Professional',
-    description: 'Impress investors, partners, and customers with polished materials—no design skills required.',
+    title: "Look Professional",
+    description:
+      "Impress investors, partners, and customers with polished materials—no design skills required.",
     icon: Award,
-    stat: '100%',
-    statLabel: 'Professional'
+    stat: "100%",
+    statLabel: "Professional",
   },
   {
     id: 3,
-    title: 'Save Money',
-    description: 'Replace expensive consultants, lawyers, and designers with affordable, ready-to-use tools.',
+    title: "Save Money",
+    description:
+      "Replace expensive consultants, lawyers, and designers with affordable, ready-to-use tools.",
     icon: Clock,
-    stat: '$5k+',
-    statLabel: 'Saved on avg'
+    stat: "$5k+",
+    statLabel: "Saved on avg",
   },
   {
     id: 4,
-    title: 'Stay Organized',
-    description: 'Everything in one place. No more scattered docs, templates, and tools across multiple platforms.',
+    title: "Stay Organized",
+    description:
+      "Everything in one place. No more scattered docs, templates, and tools across multiple platforms.",
     icon: Zap,
-    stat: '7',
-    statLabel: 'Tools unified'
+    stat: "7",
+    statLabel: "Tools unified",
   },
 ];
 
@@ -48,7 +51,7 @@ export function BenefitsModern() {
       <div className="mx-auto max-w-7xl">
         <div className="text-center mb-20 space-y-4">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900">
-            Why Founders{' '}
+            Why Founders{" "}
             <span className="bg-gradient-to-r from-premium-purple to-deep-blue bg-clip-text text-transparent">
               Love Us
             </span>
@@ -62,7 +65,7 @@ export function BenefitsModern() {
           {benefits.map((benefit, index) => {
             const Icon = benefit.icon;
             return (
-              <div 
+              <div
                 key={benefit.id}
                 className="relative group"
                 style={{ animationDelay: `${index * 100}ms` }}

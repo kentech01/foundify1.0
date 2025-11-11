@@ -126,7 +126,7 @@ export function WhatYouGet() {
             <h3 className="text-2xl font-bold text-gray-900">
               Premium Features
               <span className="ml-3 text-sm font-normal text-gray-500">
-                Unlock everything for 10/month
+                Unlock everything for 10$ / month
               </span>
             </h3>
           </div>
