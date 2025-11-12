@@ -13,7 +13,11 @@ This application now uses **React Router** for proper client-side routing instea
 - `/dashboard` - Dashboard layout (redirects to `/dashboard/pitches`)
 - `/dashboard/pitches` - Pitch dashboard with pitch management
 - `/dashboard/invoices` - Invoice generator page
-- `/dashboard/essentials` - Founder essentials tools page
+- `/dashboard/contracts` - Contract templates page
+- `/dashboard/feedbackCoach` - 360° Feedback Generator page
+- `/dashboard/investor-email-draft` - Investor Email Draft page
+- `/dashboard/ai-hiring-assistant` - AI Hiring Assistant page
+- `/dashboard/landing-page-generator` - Landing Page Generator page
 - `/upgrade` - Premium upgrade page with payment flow
 
 ## Architecture
@@ -96,7 +100,11 @@ The dashboard uses nested routing for its sidebar navigation:
   <Route index element={<Navigate to="/dashboard/pitches" replace />} />
   <Route path="pitches" element={<PitchDashboard />} />
   <Route path="invoices" element={<InvoicesPage />} />
-  <Route path="essentials" element={<FounderEssentialsPage />} />
+  <Route path="contracts" element={<ContractsListPage />} />
+  <Route path="feedbackCoach" element={<FeedbackCoach />} />
+  <Route path="investor-email-draft" element={<InvestorEmailDraft />} />
+  <Route path="ai-hiring-assistant" element={<AIHiringAssistant />} />
+  <Route path="landing-page-generator" element={<LandingPageGenerator />} />
 </Routes>
 ```
 

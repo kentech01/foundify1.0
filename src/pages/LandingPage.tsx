@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "../components/Header";
-import { HeroModern } from "../components/HeroModern";
-import { WhatYouGet } from "../components/WhatYouGet";
-import { BenefitsModern } from "../components/BenefitsModern";
-import { PricingModern } from "../components/PricingModern";
-import { SocialProofModern } from "../components/SocialProofModern";
-import { CTASection } from "../components/CTASection";
-import { FooterModern } from "../components/FooterModern";
+import { HeroModern } from "../components/landingpage/HeroModern";
+import { WhatYouGet } from "../components/landingpage/WhatYouGet";
+import { BenefitsModern } from "../components/landingpage/BenefitsModern";
+import { CTASection } from "../components/landingpage/CTASection";
+import { Footer } from "../components/Footer";
 import SignInModal from "../components/signIn/SignInModal";
+import React from "react";
+import { PricingModern } from "../components/landingpage/PricingModern";
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -31,13 +31,15 @@ export function LandingPage() {
         onDashboardClick={() => navigate("/dashboard")}
         handleOpenSignInModal={() => setIsSignInModalOpen(true)}
       />
-      <HeroModern onStart={handleStartPitch} />
+      <HeroModern
+        onStart={handleStartPitch}
+        onOpenSignIn={() => setIsSignInModalOpen(true)}
+      />
       <WhatYouGet />
       <BenefitsModern />
       <PricingModern />
-      {/* <SocialProofModern /> */}
       <CTASection onStart={handleStartPitch} />
-      <FooterModern />
+      <Footer />
       {/* Sign In Modal - only for Header sign in button */}
       <SignInModal
         isOpen={isSignInModalOpen}

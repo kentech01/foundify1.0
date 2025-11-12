@@ -54,14 +54,9 @@ interface LineItem {
   rate: string; // Change from number to string
 }
 
-export function InvoicesPage({
-  showInvoices,
-  setShowInvoices,
-}: {
-  showInvoices: boolean;
-  setShowInvoices: (showInvoices: boolean) => void;
-}) {
+export function InvoicesPage() {
   const navigate = useNavigate();
+  const [invoicesCounter, setInvoicesCounter] = useState(0)
 
   const [companyName, setCompanyName] = useState("");
   const [clientName, setClientName] = useState("");
@@ -118,9 +113,10 @@ export function InvoicesPage({
   const loadInvoices = async () => {
     setIsLoading(true);
     try {
-      const response = await getInvoices(50, 0);
-      if (response.success) {
-        setInvoices(response.data);
+      const {data, counter} = await getInvoices(50, 0);
+      setInvoicesCounter(counter);
+      if (data.success) {
+        setInvoices(data.data);
       } else {
         toast.error("Failed to load invoices");
       }
@@ -327,7 +323,6 @@ export function InvoicesPage({
     const rate = conversionRates[i.currency] || 1;
     return sum + i.total * rate;
   }, 0);
-  console.log("Total revenue:", totalRevenue);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
@@ -348,10 +343,11 @@ export function InvoicesPage({
   };
 
   const handleDownload = async (invoice: ApiInvoice) => {
-    const response = await getInvoice(invoice.id);
-    if (response.success) {
-      console.log(response.data, "response.data");
-    } else {
+    try {
+      await downloadInvoicePdf(invoice.firebaseUid, invoice.id);
+      toast.success("Invoice downloaded successfully");
+    } catch (error) {
+      console.error("Error downloading invoice:", error);
       toast.error("Failed to download invoice");
     }
   };
@@ -372,13 +368,6 @@ export function InvoicesPage({
       {/* Header: Back + Title on left, Action button on right */}
       <div className="flex items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/dashboard/essentials")}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
           <div>
             <h2 className="text-3xl font-bold text-gray-900">
               Invoice Generator
@@ -398,8 +387,8 @@ export function InvoicesPage({
           }}
         >
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg">
-              <Plus className="mr-2 h-4 w-4" />
+            <Button className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg" disabled={invoicesCounter > 20}>
+              <Plus className="mr-1 h-4 w-4" />
               Create Invoice
             </Button>
           </DialogTrigger>
@@ -609,7 +598,7 @@ export function InvoicesPage({
             <DialogFooter>
               <Button
                 onClick={handleCreateInvoice}
-                className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl"
+                className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  hover:to-deep-blue-dark text-white rounded-xl"
                 disabled={!companyName || !clientName || isGenerating}
               >
                 {isGenerating ? "Creating..." : "Create Invoice"}
@@ -873,7 +862,7 @@ export function InvoicesPage({
           </CardContent>
         </Card> */}
 
-        <Card className="border-2 border-gray-100 rounded-2xl">
+        {/* <Card className="border-2 border-gray-100 rounded-2xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -887,7 +876,7 @@ export function InvoicesPage({
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       {/* Search Bar */}
@@ -915,19 +904,8 @@ export function InvoicesPage({
                 {searchTerm ? "No invoices found" : "No invoices yet"}
               </h3>
               <p className="text-gray-600 mb-4">
-                {searchTerm
-                  ? "Try adjusting your search terms"
-                  : "Create your first invoice to get started"}
+                {searchTerm && "Try adjusting your search terms"}
               </p>
-              {!searchTerm && (
-                <Button
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Invoice
-                </Button>
-              )}
             </CardContent>
           </Card>
         ) : (
@@ -957,9 +935,9 @@ export function InvoicesPage({
                   </div>
 
                   {/* Amount & Status */}
-                  <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-6 mb-4">
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Amount</p>
+                      <p className="text-sm text-gray-600 ">Amount</p>
                       <p className="text-2xl font-bold text-gray-900">
                         {getCurrencySymbol(invoice.currency)}
                         {invoice.total.toLocaleString()}
@@ -971,31 +949,34 @@ export function InvoicesPage({
                   <div className="flex gap-3">
                     <Button
                       onClick={() => handleView(invoice)}
-                      variant="outline"
+                      variant="secondary"
+                      size="lg"
                       className="border-2 border-gray-200 rounded-xl hover:bg-gray-50"
                     >
-                      <Eye className="mr-2 h-4 w-4" />
+                      <Eye className="mr-1 h-4 w-4" />
                       View
                     </Button>
                     <Button
                       onClick={() => openEditModal(invoice)}
                       variant="outline"
+                      size="lg"
                       className="border-2 border-gray-200 rounded-xl hover:bg-gray-50"
                     >
-                      <Edit className="mr-2 h-4 w-4" />
+                      <Edit className="mr-1 h-4 w-4" />
                       Edit
                     </Button>
                     {invoice.status === "pending" && (
                       <Button className="bg-green-600 hover:bg-green-700 text-white rounded-xl">
-                        <Send className="mr-2 h-4 w-4" />
+                        <Send className="mr-1 h-4 w-4" />
                         Send
                       </Button>
                     )}
                     <Button
+                      size="lg"
                       onClick={() => handleDownload(invoice)}
                       className="bg-deep-blue hover:bg-deep-blue-dark text-white rounded-xl"
                     >
-                      <Download className="mr-2 h-4 w-4" />
+                      <Download className="mr-1 h-4 w-4" />
                       Download
                     </Button>
                   </div>

@@ -3,11 +3,16 @@ import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "../components/DashboardLayout";
 import { PitchDashboard } from "./PitchDashboard";
 import { InvoicesPage } from "./invoices/InvoicesPage";
-import { FounderEssentialsPage } from "./FounderEssentialsPage";
+// import { FounderEssentialsPage } from "./FounderEssentialsPage";
 import { useApp } from "../context/AppContext";
 import { UserAuth } from "../context/AuthContext";
 import SignInModal from "../components/signIn/SignInModal";
 import { ContractsListPage } from "./ContractsListPage";
+import React from "react";
+import { FeedbackCoach } from "./FeedbackCoach";
+import { InvestorEmailDraft } from "./InvestorEmailDraft";
+import { AIHiringAssistant } from "./AIHiringAssistant";
+import { LandingPageGenerator } from "./LandingPageGenerator";
 
 export function DashboardMain() {
   const navigate = useNavigate();
@@ -78,10 +83,7 @@ export function DashboardMain() {
   }
 
   return (
-    <DashboardLayout
-      onCreatePitch={() => navigate("/builder")}
-      isPremium={isPremium}
-    >
+    <DashboardLayout isPremium={isPremium}>
       <Routes>
         <Route index element={<Navigate to="/dashboard/pitches" replace />} />
         <Route
@@ -89,14 +91,13 @@ export function DashboardMain() {
           element={
             <PitchDashboard
               initialPitch={pitches[0]}
+              onCreatePitch={() => navigate("/builder")}
               isPremium={isPremium}
               onUpgrade={() => navigate("/upgrade")}
             />
           }
         />
-        <Route path="invoices" element={<InvoicesPage />} />
-        <Route path="contracts" element={<ContractsListPage />} />
-        <Route
+        {/* <Route
           path="essentials"
           element={
             <FounderEssentialsPage
@@ -104,6 +105,15 @@ export function DashboardMain() {
               onUpgrade={() => navigate("/upgrade")}
             />
           }
+        /> */}
+        <Route path="invoices" element={<InvoicesPage />} />
+        <Route path="contracts" element={<ContractsListPage />} />
+        <Route path="feedbackCoach" element={<FeedbackCoach />} />
+        <Route path="investor-email-draft" element={<InvestorEmailDraft />} />
+        <Route path="ai-hiring-assistant" element={<AIHiringAssistant />} />
+        <Route
+          path="landing-page-generator"
+          element={<LandingPageGenerator />}
         />
       </Routes>
     </DashboardLayout>

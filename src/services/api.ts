@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback } from "react";
 import useAxios from "../hooks/useAxios";
+import { log } from "util";
+import { data } from "react-router-dom";
 export const API_BASE_URL =
-  "https://foundify-api-production.up.railway.app/api/v1/";
+  "http://localhost:5001/api/v1/";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -214,6 +216,10 @@ interface InvoiceListResponse {
   };
   error?: string;
   message?: string;
+}
+interface ResponseInvoiceListResponse {
+  data: InvoiceListResponse,
+  counter: number
 }
 
 interface InvoiceHtmlResponse {
@@ -564,7 +570,7 @@ export const useApiService = () => {
     async (
       limit: number = 20,
       offset: number = 0
-    ): Promise<InvoiceListResponse> => {
+    ): Promise<ResponseInvoiceListResponse> => {
       try {
         const response = await axiosInstance.get("/invoices", {
           params: {
@@ -572,7 +578,22 @@ export const useApiService = () => {
             offset,
           },
         });
-        return response.data;
+        let counter = 0;
+        let dataString = "";
+        response.data.data.forEach(element => {
+          const dataTime = element.createdAt.slice(0,7)
+          console.log(dataTime, "responsi");
+          if(dataTime != dataString){
+            counter = 0
+            dataString = dataTime
+            counter++
+          }else{
+            counter++
+          }          
+        });
+        console.log(counter);
+        
+        return {data: response.data, counter: counter};
       } catch (error: any) {
         throw new Error(
           error.response?.data?.message || "Failed to get invoices"
