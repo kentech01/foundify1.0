@@ -18,7 +18,7 @@ export function PricingModern() {
         <div className="text-center mb-16 space-y-6">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900">
             Simple,{" "}
-            <span className="bg-gradient-to-r from-premium-purple to-deep-blue bg-clip-text text-transparent">
+            <span className="bg-blue-800  bg-clip-text text-transparent">
               Honest Pricing
             </span>
           </h2>
@@ -42,7 +42,7 @@ export function PricingModern() {
                   billingCycle === "monthly" ? "annually" : "monthly"
                 )
               }
-              className="relative inline-flex h-8 w-14 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-premium-purple focus:ring-offset-2"
+              className="relative inline-flex h-8 w-14 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-800 focus:ring-offset-2"
             >
               <span
                 className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-lg transition-transform ${
@@ -59,10 +59,14 @@ export function PricingModern() {
             >
               Annually
             </span>
-              <span className={`ml-2 inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold animate-in slide-in-from-right ${billingCycle === "annually"? "visible" : "invisible"}`}>
-                <Sparkles className="h-3 w-3" />
-                Save 33%
-              </span>
+            <span
+              className={`ml-2 inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold animate-in slide-in-from-right ${
+                billingCycle === "annually" ? "visible" : "invisible"
+              }`}
+            >
+              <Sparkles className="h-3 w-3" />
+              Save 33%
+            </span>
           </div>
         </div>
 
@@ -78,7 +82,7 @@ export function PricingModern() {
                 </div>
               </div>
               <div className="mb-2">
-                <span className="text-5xl font-bold text-gray-900">$0</span>
+                <span className="text-5xl font-bold text-blue-800">$0</span>
                 <span className="text-gray-600 ml-2">/ month</span>
               </div>
               <p className="text-gray-600">Perfect for experimenting</p>
@@ -118,9 +122,9 @@ export function PricingModern() {
           </Card>
 
           {/* Premium Plan */}
-          <Card className="relative border-2 border-premium-purple shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-3xl overflow-hidden transform lg:scale-105">
+          <Card className="relative border-2 border-blue-400 shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-3xl overflow-hidden transform lg:scale-105">
             {/* Popular badge */}
-            <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-premium-purple to-deep-blue text-white text-center py-3 px-4">
+            <div className="absolute top-0 left-0 right-0 bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white text-center py-3 px-4">
               <div className="flex items-center justify-center gap-2">
                 <Sparkles className="h-4 w-4" />
                 <span className="text-sm font-semibold">MOST POPULAR</span>
@@ -132,14 +136,18 @@ export function PricingModern() {
                 <h3 className="text-2xl font-bold text-gray-900">Premium</h3>
               </div>
               <div className="mb-2 flex items-baseline gap-2">
-                <span className="text-5xl font-bold bg-gradient-to-r from-premium-purple to-deep-blue bg-clip-text text-transparent">
+                <span className="text-5xl font-bold bg-blue-800  bg-clip-text text-transparent">
                   ${billingCycle === "monthly" ? priceMonthly : priceAnnually}
                 </span>
                 <span className="text-gray-600">/ month</span>
               </div>
-                <p className={`text-sm text-gray-600 ${billingCycle === "annually" ? "visible" : "invisible"}`}>
-                  Billed as ${priceAnnually * 12}/year
-                </p>
+              <p
+                className={`text-sm text-gray-600 ${
+                  billingCycle === "annually" ? "visible" : "invisible"
+                }`}
+              >
+                Billed as ${priceAnnually * 12}/year
+              </p>
               <p className="text-gray-600 mt-2">Everything you need to scale</p>
             </CardHeader>
 
@@ -207,7 +215,7 @@ export function PricingModern() {
                 </li>
               </ul>
 
-              <Button className="w-full py-6 rounded-xl bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+              <Button className="w-full py-6 rounded-xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:from-premium-purple-dark hover:to-deep-blue-dark text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                 Upgrade to Premium
               </Button>
             </CardContent>

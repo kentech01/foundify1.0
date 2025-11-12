@@ -31,7 +31,10 @@ export function LandingPage() {
         onDashboardClick={() => navigate("/dashboard")}
         handleOpenSignInModal={() => setIsSignInModalOpen(true)}
       />
-      <HeroModern onStart={handleStartPitch} />
+      <HeroModern
+        onStart={handleStartPitch}
+        onOpenSignIn={() => setIsSignInModalOpen(true)}
+      />
       <WhatYouGet />
       <BenefitsModern />
       <PricingModern />

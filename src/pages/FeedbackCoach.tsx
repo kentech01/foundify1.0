@@ -119,6 +119,18 @@ export function FeedbackCoach() {
       window.URL.revokeObjectURL(url);
 
       toast.success("Feedback report generated successfully!");
+
+      // Reset form after successful generation
+      setFormData({
+        employeeName: "",
+        employeeRole: "",
+        feedbackCycle: "",
+        strengths: "",
+        improvements: "",
+        collaboration: "",
+        goals: "",
+        additionalNotes: "",
+      });
     } catch (error: any) {
       console.error("Error generating feedback PDF:", error);
       toast.error(error.message || "Failed to generate feedback report");
@@ -327,7 +339,7 @@ Examples:
               <Button
                 onClick={generatePDF}
                 disabled={!allFieldsHaveAtLeastOneWord || isGenerating}
-                className="bg-purple-600 hover:bg-purple-700"
+                className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:bg-purple-700"
               >
                 {isGenerating ? (
                   <>
@@ -346,14 +358,14 @@ Examples:
         )}
 
         {/* How it works */}
-        <Card className="bg-purple-50 border-purple-200">
+        <Card className="bg-blue-50 border-blue-200">
           <CardContent className="p-6">
             <h3 className="font-medium mb-4 text-center">
               How to Use Feedback Coach
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center text-sm">
               <div>
-                <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center mx-auto mb-2">
+                <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2">
                   1
                 </div>
                 <p className="font-medium">Fill the Form</p>
@@ -362,7 +374,7 @@ Examples:
                 </p>
               </div>
               <div>
-                <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center mx-auto mb-2">
+                <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2">
                   2
                 </div>
                 <p className="font-medium">Have the Conversation</p>
@@ -371,7 +383,7 @@ Examples:
                 </p>
               </div>
               <div>
-                <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center mx-auto mb-2">
+                <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2">
                   3
                 </div>
                 <p className="font-medium">Share the Report</p>

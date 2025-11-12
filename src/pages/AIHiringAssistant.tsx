@@ -548,7 +548,7 @@ ${i + 1}. ${q.question}
             <Button
               onClick={handleGenerateQuestions}
               disabled={!canGenerate || isGenerating}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
+              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:bg-purple-700 text-white"
             >
               {isGenerating ? (
                 <>
@@ -623,7 +623,7 @@ ${i + 1}. ${q.question}
                               className="space-y-3 pb-6 border-b last:border-b-0 last:pb-0"
                             >
                               <div className="flex items-start gap-3">
-                                <div className="w-7 h-7 mr-3 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center flex-shrink-0 mt-1">
+                                <div className="w-7 h-7 mr-3 rounded-full bg-blue-100 text-purple-600 flex items-center justify-center flex-shrink-0 mt-1">
                                   {index + 1}
                                 </div>
                                 <div className="flex-1 space-y-3">
@@ -677,7 +677,7 @@ ${i + 1}. ${q.question}
             </div>
 
             {/* Export Actions */}
-            <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
+            <Card className="bg-blue-50  border-blue-200">
               <CardContent className="p-6">
                 <h3 className="font-semibold mb-4 text-center">
                   Export Interview Guide
@@ -690,7 +690,7 @@ ${i + 1}. ${q.question}
                   <Button
                     onClick={handleRegenerate}
                     variant="outline"
-                    className="border-purple-300 text-purple-600 hover:bg-purple-50"
+                    className="border-blue-300 text-blue-600 hover:bg-gray-50"
                   >
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Start Over
@@ -766,7 +766,7 @@ ${i + 1}. ${q.question}
             <Button
               onClick={handleSaveCustomQuestion}
               disabled={!customQuestionInput.trim()}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
+              className="bg-blue-600 hover:bg-blue-800 text-white"
             >
               Add Question
             </Button>

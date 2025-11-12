@@ -200,45 +200,45 @@ export function PitchDashboard({
     }
   };
 
-  const handleViewLanding = async (pitch: PitchHistoryItem) => {
-    try {
-      const response = await apiService.getLandingPageHtml(pitch.id);
+  // const handleViewLanding = async (pitch: PitchHistoryItem) => {
+  //   try {
+  //     const response = await apiService.getLandingPageHtml(pitch.id);
 
-      if (response) {
-        // Create a blob with the HTML content
-        const blob = new Blob([response], {
-          type: "text/html",
-        });
+  //     if (response) {
+  //       // Create a blob with the HTML content
+  //       const blob = new Blob([response], {
+  //         type: "text/html",
+  //       });
 
-        // Create a download link
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `${pitch.startupName}_landing_page.html`;
+  //       // Create a download link
+  //       const url = URL.createObjectURL(blob);
+  //       const link = document.createElement("a");
+  //       link.href = url;
+  //       link.download = `${pitch.startupName}_landing_page.html`;
 
-        // Trigger the download
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+  //       // Trigger the download
+  //       document.body.appendChild(link);
+  //       link.click();
+  //       document.body.removeChild(link);
 
-        // Clean up the URL object
-        URL.revokeObjectURL(url);
+  //       // Clean up the URL object
+  //       URL.revokeObjectURL(url);
 
-        toast.success("Landing page downloaded successfully!");
-      } else {
-        toast.error("Failed to download landing page", {
-          description: "No HTML content available.",
-        });
-      }
-    } catch (error: any) {
-      toast.error("Failed to open landing page", {
-        description: error.message || "Please try again later.",
-      });
-    }
-  };
+  //       toast.success("Landing page downloaded successfully!");
+  //     } else {
+  //       toast.error("Failed to download landing page", {
+  //         description: "No HTML content available.",
+  //       });
+  //     }
+  //   } catch (error: any) {
+  //     toast.error("Failed to open landing page", {
+  //       description: error.message || "Please try again later.",
+  //     });
+  //   }
+  // };
 
   const handleViewLandingPage = (pitch: PitchHistoryItem) => {
-    navigate(`/${pitch.startupName}`);
+    window.open(`/${pitch.startupName}`, "_blank");
   };
 
   const formatDate = (dateString: string) => {
@@ -249,23 +249,9 @@ export function PitchDashboard({
     });
   };
 
-  // Fix: Add null checks for all pitches usage
-  // const totalViews =
-  //   pitches?.reduce((sum, pitch) => sum + (pitch.views || 0), 0) || 0;
-
-  // const publishedCount =
-  //   pitches?.filter((pitch) => pitch.status === "published").length || 0;
-
   return (
     <div className="p-8">
       <div className="flex justify-between gap-3 mb-8">
-        {/* <Button
-          variant="ghost"
-          onClick={() => navigate("/dashboard/pitches")}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button> */}
         <div>
           <h2 className="text-3xl font-bold text-gray-900">Pitch Dashboard</h2>
         </div>
@@ -273,67 +259,12 @@ export function PitchDashboard({
         <Button
           onClick={onCreatePitch}
           disabled={(pitches?.length || 0) > 0}
-          className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus className="mr-2 h-4 w-4" />
           New Pitch
         </Button>
       </div>
-
-      {/* Stats */}
-      {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
-        <Card className="border-2 border-gray-100 rounded-2xl">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs md:text-sm text-gray-600 mb-1">
-                  Total Pitches
-                </p>
-                <p className="text-2xl md:text-4xl font-bold text-gray-900">
-                  {pitches?.length || 0}
-                </p>
-              </div>
-              <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-premium-purple-50 flex items-center justify-center flex-shrink-0">
-                <FileText className="h-6 w-6 md:h-7 md:w-7 text-premium-purple" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 border-gray-100 rounded-2xl">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs md:text-sm text-gray-600 mb-1">
-                  Total Views
-                </p>
-                <p className="text-2xl md:text-4xl font-bold text-gray-900">
-                  {totalViews}
-                </p>
-              </div>
-              <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-deep-blue-50 flex items-center justify-center flex-shrink-0">
-                <TrendingUp className="h-6 w-6 md:h-7 md:w-7 text-deep-blue" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 border-gray-100 rounded-2xl">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                 <p className="text-xs md:text-sm text-gray-600 mb-1">Published</p> 
-                <p className="text-2xl md:text-4xl font-bold text-gray-900">
-                  {publishedCount}
-                </p>
-              </div>
-              <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
-                <Globe className="h-6 w-6 md:h-7 md:w-7 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div> */}
 
       {/* Pitches List */}
       <div>
@@ -429,7 +360,7 @@ export function PitchDashboard({
                         onClick={() =>
                           !pitch.hasLandingPage
                             ? handleGenerateLanding(pitch.id)
-                            : handleViewLanding(pitch)
+                            : handleViewLandingPage(pitch)
                         }
                         className={`rounded-xl w-full sm:w-auto ${
                           pitch.hasLandingPage

@@ -200,7 +200,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                     isActive
-                      ? "bg-gradient-to-r from-premium-purple to-deep-blue text-white shadow-lg"
+                      ? "bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white shadow-lg"
                       : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
@@ -219,7 +219,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
 
                 {/* Sub-menu items */}
                 {item.hasSubMenu && isEssentialsOpen && (
-                  <div className="mt-1 space-y-1">
+                  <div className="mt-3 space-y-1">
                     {essentialsSubItems.map((subItem) => {
                       const SubIcon = subItem.icon;
                       const isSubItemActive = currentPath.startsWith(
@@ -235,7 +235,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
                           }}
                           className={`w-full flex items-center gap-3 px-4 py-3  rounded-xl transition-all duration-200 ${
                             isSubItemActive
-                              ? "bg-purple-50 text-premium-purple font-medium"
+                              ? "bg-blue-50 text-blue-800 font-medium"
                               : "text-gray-600 hover:bg-gray-50"
                           }`}
                         >
@@ -280,36 +280,39 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
                       variant="ghost"
                       className="flex items-center gap-2 hover:bg-gray-50 rounded-xl px-3 py-2"
                     >
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-9 w-9">
                         <AvatarImage
                           src={user.photoURL || ""}
                           alt={user.displayName || "User"}
                         />
-                        <AvatarFallback className="bg-deep-blue text-white">
-                          <User className="h-4 w-4" />
+                        <AvatarFallback className="bg-[#8B4513] text-white font-semibold">
+                          {user.displayName?.[0]?.toUpperCase() || "U"}
                         </AvatarFallback>
                       </Avatar>
-                      <ChevronDown className="h-4 w-4 text-gray-500" />
+                      <span className="text-xl text-gray-900 font-medium">
+                        {user.displayName || "User"}
+                      </span>
+                      <ChevronDown className="h-4 w-4 text-gray-900" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="end"
-                    className="w-56 rounded-xl border border-gray-200 shadow-lg"
+                    className="w-56 rounded-xl border border-gray-200 shadow-lg bg-white"
                   >
-                    <div className="px-3 py-2">
-                      <p className="text-sm font-medium text-gray-900">
+                    <div className="px-3 py-3">
+                      <p className="text-xl font-bold text-[#1f1147]">
                         {user.displayName || "User"}
                       </p>
-                      <p className="text-xs text-gray-500">{user.email}</p>
+                      <p className="text-sm text-gray-900">{user.email}</p>
                     </div>
-                    <DropdownMenuSeparator />
+                    <DropdownMenuSeparator className="bg-gray-200" />
 
                     <DropdownMenuItem
                       onClick={handleSignOut}
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg mx-1"
+                      className="flex items-center gap-2 px-3 py-3 text-md text-[#1f1147] hover:bg-gray-50 rounded-lg mx-1 cursor-pointer"
                     >
                       <LogOut className="h-4 w-4" />
-                      <span>Sign out</span>
+                      <span>Log out</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
