@@ -56,6 +56,7 @@ interface LineItem {
 
 export function InvoicesPage() {
   const navigate = useNavigate();
+  const [invoicesCounter, setInvoicesCounter] = useState(0)
 
   const [companyName, setCompanyName] = useState("");
   const [clientName, setClientName] = useState("");
@@ -112,9 +113,10 @@ export function InvoicesPage() {
   const loadInvoices = async () => {
     setIsLoading(true);
     try {
-      const response = await getInvoices(50, 0);
-      if (response.success) {
-        setInvoices(response.data);
+      const {data, counter} = await getInvoices(50, 0);
+      setInvoicesCounter(counter);
+      if (data.success) {
+        setInvoices(data.data);
       } else {
         toast.error("Failed to load invoices");
       }
@@ -385,7 +387,7 @@ export function InvoicesPage() {
           }}
         >
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg">
+            <Button disabled={invoicesCounter > 20}  className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg">
               <Plus className="mr-1 h-4 w-4" />
               Create Invoice
             </Button>
