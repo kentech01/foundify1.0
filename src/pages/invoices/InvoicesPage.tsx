@@ -431,6 +431,7 @@ export function InvoicesPage() {
                     <Input
                       id="client"
                       value={clientName}
+                      
                       onChange={(e) => setClientName(e.target.value)}
                       placeholder="Client Company"
                       required

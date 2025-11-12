@@ -93,9 +93,6 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
     >
       <DialogContent className="sm:max-w-[400px] p-0">
         <div className="flex flex-col items-center text-center px-8 pt-8 pb-4">
-          <div className="w-10 h-10 rounded-lg bg-deep-blue flex items-center justify-center mb-4">
-            <span className="text-white">F</span>
-          </div>
           <h2 className="text-2xl mb-2 text-gray-900">
             {isLogin ? "Welcome back" : "Welcome to Foundify"}
           </h2>
@@ -242,7 +239,8 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
                 By continuing, you agree to our{" "}
                 <button
                   type="button"
-                  className="underline hover:text-deep-blue text-deep-blue"
+                  onClick={() => navigate("/terms")}
+                  className="underline cursor-pointer hover:text-deep-blue text-deep-blue"
                 >
                   Terms of Service
                 </button>{" "}
@@ -336,7 +334,8 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
                 By continuing, you agree to our{" "}
                 <button
                   type="button"
-                  className="underline hover:text-deep-blue text-deep-blue"
+                  onClick={() => navigate("/terms")}
+                  className="underline cursor-pointer hover:text-deep-blue text-deep-blue"
                 >
                   Terms of Service
                 </button>{" "}

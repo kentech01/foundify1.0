@@ -11,7 +11,6 @@ import {
   BarChart3,
 } from "lucide-react";
 import { UserAuth } from "../../context/AuthContext";
-
 interface HeroModernProps {
   onStart?: (e: React.MouseEvent) => void;
 }
@@ -30,7 +29,6 @@ export function HeroModern({ onStart }: HeroModernProps) {
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-deep-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
         <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-premium-purple-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
       </div>
-
       <div className="mx-auto max-w-7xl">
         <div className="text-center space-y-8">
           {/* Main headline */}
@@ -42,13 +40,11 @@ export function HeroModern({ onStart }: HeroModernProps) {
                 Like a Pro
               </span>
             </h1>
-
             <p className="text-xl sm:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               From pitch decks to invoices, contracts to team feedback—all the
               essential tools you need to launch and scale your startup
             </p>
           </div>
-
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
             <Button
@@ -67,7 +63,6 @@ export function HeroModern({ onStart }: HeroModernProps) {
               View Demo
             </Button>
           </div>
-
           {/* Trust indicators */}
           <div className="pt-8 flex flex-wrap justify-center items-center gap-8 text-sm text-gray-600">
             <div className="flex items-center gap-2">

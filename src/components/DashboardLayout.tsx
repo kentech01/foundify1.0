@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
+import { Clock } from "lucide-react";
+import dayjs from "dayjs";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import {
   DropdownMenu,
@@ -48,6 +50,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [isEssentialsOpen, setIsEssentialsOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const diff = dayjs("2025-11-11").diff(dayjs(), "day");
 
   const navItems = [
     {
@@ -252,6 +255,12 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
             );
           })}
         </nav>
+        <div className="p-4 flex justify-center items-center">
+          <div className="w-full rounded-2xl bg-[linear-gradient(135deg,#251ca1_30%,#a5f3fc_100%)] py-1 flex items-center justify-center gap-2">
+          <Clock size={18} color="white" />
+            <h1 className="text-center text-[15px] text-white">{diff + 30} Days Left</h1>
+          </div>
+        </div>
       </aside>
 
       {/* Main Content */}
