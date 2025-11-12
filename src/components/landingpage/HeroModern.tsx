@@ -2,29 +2,11 @@ import React from "react";
 import { Button } from "../ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { UserAuth } from "../../context/AuthContext";
-
 interface HeroModernProps {
   onStart?: (e: React.MouseEvent) => void;
-  onOpenSignIn?: () => void;
 }
-
-export function HeroModern({ onStart, onOpenSignIn }: HeroModernProps) {
-  const { user, loading } = UserAuth();
-
+export function HeroModern({ onStart }: HeroModernProps) {
   const handleStartClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    // If still loading auth state, do nothing
-    if (loading) return;
-
-    // If user is not logged in, open sign-in modal
-    if (!user && onOpenSignIn) {
-      onOpenSignIn();
-      return;
-    }
-
-    // If user is logged in, proceed with normal flow
     if (onStart) {
       onStart(e);
     }
@@ -37,7 +19,6 @@ export function HeroModern({ onStart, onOpenSignIn }: HeroModernProps) {
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-deep-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
         <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-premium-purple-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
       </div>
-
       <div className="mx-auto max-w-7xl">
         <div className="text-center space-y-8">
           {/* Main headline */}
@@ -45,22 +26,20 @@ export function HeroModern({ onStart, onOpenSignIn }: HeroModernProps) {
             <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight text-gray-900 max-w-5xl mx-auto leading-tight">
               Build Your Startup
               <br />
-              <span className="bg-blue-800 bg-clip-text text-transparent">
+              <span className="bg-blue-900 bg-clip-text text-transparent">
                 Like a Pro
               </span>
             </h1>
-
             <p className="text-xl sm:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               From pitch decks to invoices, contracts to team feedback—all the
               essential tools you need to launch and scale your startup
             </p>
           </div>
-
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
             <Button
               size="lg"
-              className="bg-blue-800 hover:bg-blue-600  text-white px-8 py-7 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+              className="bg-blue-900 hover:bg-blue-700  text-white px-8 py-7 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
               onClick={handleStartClick}
             >
               Start Free
@@ -74,7 +53,6 @@ export function HeroModern({ onStart, onOpenSignIn }: HeroModernProps) {
               View Demo
             </Button>
           </div>
-
           {/* Trust indicators */}
           <div className="pt-8 flex flex-wrap justify-center items-center gap-8 text-sm text-gray-600">
             <div className="flex items-center gap-2">
@@ -122,7 +100,6 @@ export function HeroModern({ onStart, onOpenSignIn }: HeroModernProps) {
           </div>
         </div>
       </div>
-
       <style>{`
         @keyframes blob {
           0% {
@@ -151,3 +128,8 @@ export function HeroModern({ onStart, onOpenSignIn }: HeroModernProps) {
     </section>
   );
 }
+
+
+
+
+

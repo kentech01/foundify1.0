@@ -86,7 +86,6 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[400px] p-0 overflow-scroll">
         <div className="flex flex-col items-center text-center px-8 pt-8 pb-4">
-          
           <h2 className="text-2xl mb-2 text-gray-900">
             {isLogin ? "Welcome back" : "Welcome to Foundify"}
           </h2>
