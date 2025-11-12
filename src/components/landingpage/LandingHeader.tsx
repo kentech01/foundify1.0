@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { Button } from "./ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Button } from "../ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "../ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
 import {
   User,
@@ -16,7 +16,7 @@ import {
   LayoutDashboard,
   LogIn,
 } from "lucide-react";
-import { UserAuth } from "../context/AuthContext";
+import { UserAuth } from "../../context/AuthContext";
 // import favicon from "../assets/FOUNDIFY-LOGO.svg";
 
 interface HeaderProps {
@@ -24,13 +24,15 @@ interface HeaderProps {
   handleOpenSignInModal?: () => void;
 }
 
-export function Header({
+export function LandingHeader({
   onDashboardClick,
   handleOpenSignInModal,
 }: HeaderProps = {}) {
   const { user, logOut } = UserAuth();
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const navigate = useNavigate();
-  const favicon = new URL("../assets/FOUNDIFY-LOGO.svg", import.meta.url).href;
+  const favicon = new URL("../../assets/FOUNDIFY-LOGO.svg", import.meta.url)
+    .href;
 
   const handleSignOut = async () => {
     try {
@@ -40,8 +42,11 @@ export function Header({
     }
   };
 
+  const handleSignInSuccess = () => {
+    setIsSignInModalOpen(false);
+  };
   return (
-    <header className="bg-white border-b border-gray-200 bg-white/95 ">
+    <header className="bg-white bg-white/95 ">
       <div className="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 ">
           {/* Logo */}
@@ -50,7 +55,7 @@ export function Header({
               <img
                 src={favicon}
                 alt="Foundify"
-                className="h-9 w-auto cursor-pointer select-none"
+                className="h-7 w-auto cursor-pointer select-none"
                 onClick={() => navigate("/")}
               />
             </div>
@@ -74,7 +79,7 @@ export function Header({
                         {user.displayName?.[0]?.toUpperCase() || "U"}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="hidden text-xl sm:block text-gray-900 font-medium">
+                    <span className="hidden text-sm sm:block text-gray-900 font-medium">
                       {user.displayName || "User"}
                     </span>
                     <ChevronDown className="h-4 w-4 text-gray-900" />

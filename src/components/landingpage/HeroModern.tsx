@@ -1,30 +1,23 @@
 import React from "react";
 import { Button } from "../ui/button";
-import { ArrowRight, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  Sparkles,
+  Rocket,
+  Users,
+  TrendingUp,
+  Zap,
+  Target,
+  BarChart3,
+} from "lucide-react";
 import { UserAuth } from "../../context/AuthContext";
 
 interface HeroModernProps {
   onStart?: (e: React.MouseEvent) => void;
-  onOpenSignIn?: () => void;
 }
 
-export function HeroModern({ onStart, onOpenSignIn }: HeroModernProps) {
-  const { user, loading } = UserAuth();
-
+export function HeroModern({ onStart }: HeroModernProps) {
   const handleStartClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    // If still loading auth state, do nothing
-    if (loading) return;
-
-    // If user is not logged in, open sign-in modal
-    if (!user && onOpenSignIn) {
-      onOpenSignIn();
-      return;
-    }
-
-    // If user is logged in, proceed with normal flow
     if (onStart) {
       onStart(e);
     }
@@ -45,7 +38,7 @@ export function HeroModern({ onStart, onOpenSignIn }: HeroModernProps) {
             <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight text-gray-900 max-w-5xl mx-auto leading-tight">
               Build Your Startup
               <br />
-              <span className="bg-blue-800 bg-clip-text text-transparent">
+              <span className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] bg-clip-text text-transparent">
                 Like a Pro
               </span>
             </h1>
@@ -60,7 +53,7 @@ export function HeroModern({ onStart, onOpenSignIn }: HeroModernProps) {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
             <Button
               size="lg"
-              className="bg-blue-800 hover:bg-blue-600  text-white px-8 py-7 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+              className="bg-[#252952] hover:bg-[#161930] font-bold text-white px-8 py-7 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
               onClick={handleStartClick}
             >
               Start Free
@@ -69,7 +62,7 @@ export function HeroModern({ onStart, onOpenSignIn }: HeroModernProps) {
             <Button
               variant="outline"
               size="lg"
-              className="border-2 border-blue-300 text-gray-700 hover:bg-gray-50 px-8 py-7 rounded-2xl transition-all duration-300"
+              className=" border-3 border-[#161930] font-bold text-gray-700 hover:bg-[#161930] hover:text-white px-8 py-7 rounded-2xl transition-all duration-300"
             >
               View Demo
             </Button>
@@ -123,6 +116,43 @@ export function HeroModern({ onStart, onOpenSignIn }: HeroModernProps) {
         </div>
       </div>
 
+      {/* Decorative floating icons */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Top-left: Rocket */}
+        <div className="absolute top-16 left-6 sm:left-40 lg:left-60 animate-float">
+          <Rocket className="w-10 h-10 md:w-12 md:h-12 text-blue-200 opacity-70" />
+        </div>
+
+        {/* Mid-left: Users/Team */}
+        <div className="absolute top-1/2 left-2 sm:left-30 lg:left-76 -translate-y-1/2">
+          <div className="animate-float-delay-1">
+            <Users className="w-11 h-11 md:w-14 md:h-14 text-gray-300 opacity-70 rotate-[-20deg]" />
+          </div>
+        </div>
+
+        {/* Bottom-left: Trending Up */}
+        <div className="absolute bottom-40 left-10 sm:left-50 lg:left-60 animate-float-delay-2">
+          <TrendingUp className="w-10 h-10 text-blue-200 opacity-70" />
+        </div>
+
+        {/* Top-right: Target */}
+        <div className="absolute top-40 right-6 sm:right-30 lg:right-64 animate-float-delay-1-5">
+          <Target className="w-12 h-12 md:w-15 md:h-15 text-gray-300 opacity-70" />
+        </div>
+
+        {/* Mid-right: Zap/Lightning */}
+        <div className="absolute top-1/2 right-2 sm:right-20 lg:right-76 -translate-y-1/2">
+          <div className="animate-float-delay-0-5">
+            <Zap className="w-8 h-8 md:w-10 md:h-10 text-blue-200 opacity-70" />
+          </div>
+        </div>
+
+        {/* Bottom-right: Bar Chart */}
+        <div className="absolute bottom-28 right-10 sm:right-40 lg:right-54 animate-float-delay-3">
+          <BarChart3 className="w-8 h-8 md:w-14 md:h-14 text-gray-300 opacity-70 rotate-[-20deg]" />
+        </div>
+      </div>
+
       <style>{`
         @keyframes blob {
           0% {
@@ -146,6 +176,37 @@ export function HeroModern({ onStart, onOpenSignIn }: HeroModernProps) {
         }
         .animation-delay-4000 {
           animation-delay: 4s;
+        }
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-20px);
+          }
+        }
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+        .animate-float-delay-0-5 {
+          animation: float 3s ease-in-out infinite;
+          animation-delay: 0.5s;
+        }
+        .animate-float-delay-1 {
+          animation: float 3s ease-in-out infinite;
+          animation-delay: 1s;
+        }
+        .animate-float-delay-1-5 {
+          animation: float 3s ease-in-out infinite;
+          animation-delay: 1.5s;
+        }
+        .animate-float-delay-2 {
+          animation: float 3s ease-in-out infinite;
+          animation-delay: 2s;
+        }
+        .animate-float-delay-3 {
+          animation: float 3s ease-in-out infinite;
+          animation-delay: 3s;
         }
       `}</style>
     </section>

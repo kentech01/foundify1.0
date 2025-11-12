@@ -61,7 +61,7 @@ export function WhatYouGet() {
         <div className="text-center mb-16 space-y-4">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900">
             Everything You Need to{" "}
-            <span className="bg-blue-800 bg-clip-text text-transparent">
+            <span className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] bg-clip-text text-transparent">
               Succeed
             </span>
           </h2>

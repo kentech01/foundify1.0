@@ -4,7 +4,7 @@ import useAxios from "../hooks/useAxios";
 import { log } from "util";
 import { data } from "react-router-dom";
 export const API_BASE_URL =
-  "http://localhost:5001/api/v1/";
+  "https://foundify-api-production.up.railway.app/api/v1/";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -218,8 +218,8 @@ interface InvoiceListResponse {
   message?: string;
 }
 interface ResponseInvoiceListResponse {
-  data: InvoiceListResponse,
-  counter: number
+  data: InvoiceListResponse;
+  counter: number;
 }
 
 interface InvoiceHtmlResponse {
@@ -580,20 +580,20 @@ export const useApiService = () => {
         });
         let counter = 0;
         let dataString = "";
-        response.data.data.forEach(element => {
-          const dataTime = element.createdAt.slice(0,7)
+        response.data.data.forEach((element) => {
+          const dataTime = element.createdAt.slice(0, 7);
           console.log(dataTime, "responsi");
-          if(dataTime != dataString){
-            counter = 0
-            dataString = dataTime
-            counter++
-          }else{
-            counter++
-          }          
+          if (dataTime != dataString) {
+            counter = 0;
+            dataString = dataTime;
+            counter++;
+          } else {
+            counter++;
+          }
         });
         console.log(counter);
-        
-        return {data: response.data, counter: counter};
+
+        return { data: response.data, counter: counter };
       } catch (error: any) {
         throw new Error(
           error.response?.data?.message || "Failed to get invoices"

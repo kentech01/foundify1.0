@@ -83,7 +83,14 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose();
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-[400px] p-0">
         <div className="flex flex-col items-center text-center px-8 pt-8 pb-4">
           <div className="w-10 h-10 rounded-lg bg-deep-blue flex items-center justify-center mb-4">
@@ -233,11 +240,17 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
 
               <p className="text-xs text-center text-gray-500 pt-4">
                 By continuing, you agree to our{" "}
-                <button type="button" className="underline hover:text-deep-blue text-deep-blue">
+                <button
+                  type="button"
+                  className="underline hover:text-deep-blue text-deep-blue"
+                >
                   Terms of Service
                 </button>{" "}
                 and{" "}
-                <button type="button" className="underline hover:text-deep-blue text-deep-blue">
+                <button
+                  type="button"
+                  className="underline hover:text-deep-blue text-deep-blue"
+                >
                   Privacy Policy
                 </button>
               </p>
@@ -321,11 +334,17 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
 
               <p className="text-xs text-center text-gray-500 pt-4">
                 By continuing, you agree to our{" "}
-                <button type="button" className="underline hover:text-deep-blue text-deep-blue">
+                <button
+                  type="button"
+                  className="underline hover:text-deep-blue text-deep-blue"
+                >
                   Terms of Service
                 </button>{" "}
                 and{" "}
-                <button type="button" className="underline hover:text-deep-blue text-deep-blue">
+                <button
+                  type="button"
+                  className="underline hover:text-deep-blue text-deep-blue"
+                >
                   Privacy Policy
                 </button>
               </p>
