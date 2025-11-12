@@ -33,9 +33,7 @@ type Errors = Partial<{
 }>;
 
 export function InvestorEmailDraft() {
-  const navigate = useNavigate();
   const { getEmailTemplates, generateInvestorEmail } = useApiService();
-
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [templatesLoading, setTemplatesLoading] = useState(false);
   const [templatesError, setTemplatesError] = useState<string | null>(null);
@@ -68,14 +66,11 @@ export function InvestorEmailDraft() {
     : "";
 
   useEffect(() => {
-    console.log("Component mounted, attempting to load templates");
     const loadTemplates = async () => {
       try {
         setTemplatesLoading(true);
         setTemplatesError(null);
-        console.log("Calling getEmailTemplates...");
         const res = await getEmailTemplates();
-        console.log("Templates received:", res);
         setTemplates(res.templates || []);
       } catch (e: any) {
         console.error("Failed to load templates:", e);

@@ -10,7 +10,7 @@ export function CTASection({ onStart }: CTASectionProps) {
   return (
     <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-white">
       <div className="mx-auto max-w-7xl">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-premium-purple via-deep-blue to-premium-purple p-1">
+        <div className="relative overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] p-1">
           {/* Animated border effect */}
           <div className="absolute inset-0 bg-gradient-to-r from-premium-purple via-deep-blue to-premium-purple opacity-75 blur-xl"></div>
 
@@ -20,7 +20,7 @@ export function CTASection({ onStart }: CTASectionProps) {
               <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 max-w-4xl mx-auto leading-tight">
                 Take Your Startup from
                 <br />
-                <span className="bg-gradient-to-r from-premium-purple via-deep-blue to-premium-purple bg-clip-text text-transparent">
+                <span className="bg-blue-800 bg-clip-text text-transparent">
                   Idea to Impact
                 </span>
               </h2>
@@ -35,7 +35,7 @@ export function CTASection({ onStart }: CTASectionProps) {
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
                 <Button
                   size="lg"
-                  className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:from-premium-purple-dark hover:to-deep-blue-dark text-white px-10 py-7 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105"
+                  className="bg-blue-800  hover:bg-blue-600  text-white px-10 py-7 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105"
                   onClick={onStart}
                 >
                   Start Free Today

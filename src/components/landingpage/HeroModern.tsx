@@ -1,12 +1,34 @@
 import React from "react";
 import { Button } from "../ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { UserAuth } from "../../context/AuthContext";
 
 interface HeroModernProps {
   onStart?: (e: React.MouseEvent) => void;
+  onOpenSignIn?: () => void;
 }
 
-export function HeroModern({ onStart }: HeroModernProps) {
+export function HeroModern({ onStart, onOpenSignIn }: HeroModernProps) {
+  const { user, loading } = UserAuth();
+
+  const handleStartClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // If still loading auth state, do nothing
+    if (loading) return;
+
+    // If user is not logged in, open sign-in modal
+    if (!user && onOpenSignIn) {
+      onOpenSignIn();
+      return;
+    }
+
+    // If user is logged in, proceed with normal flow
+    if (onStart) {
+      onStart(e);
+    }
+  };
   return (
     <section className="relative overflow-hidden bg-white pt-20 pb-32 px-4 sm:px-6 lg:px-8">
       {/* Gradient background effects */}
@@ -23,7 +45,7 @@ export function HeroModern({ onStart }: HeroModernProps) {
             <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight text-gray-900 max-w-5xl mx-auto leading-tight">
               Build Your Startup
               <br />
-              <span className="bg-gradient-to-r from-premium-purple via-deep-blue to-premium-purple bg-clip-text text-transparent">
+              <span className="bg-blue-800 bg-clip-text text-transparent">
                 Like a Pro
               </span>
             </h1>
@@ -38,8 +60,8 @@ export function HeroModern({ onStart }: HeroModernProps) {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
             <Button
               size="lg"
-              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:from-premium-purple-dark hover:to-deep-blue-dark text-white px-8 py-7 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
-              onClick={onStart}
+              className="bg-blue-800 hover:bg-blue-600  text-white px-8 py-7 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+              onClick={handleStartClick}
             >
               Start Free
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -47,7 +69,7 @@ export function HeroModern({ onStart }: HeroModernProps) {
             <Button
               variant="outline"
               size="lg"
-              className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-7 rounded-2xl transition-all duration-300"
+              className="border-2 border-blue-300 text-gray-700 hover:bg-gray-50 px-8 py-7 rounded-2xl transition-all duration-300"
             >
               View Demo
             </Button>

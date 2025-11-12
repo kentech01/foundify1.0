@@ -31,6 +31,8 @@ import {
   ChevronRight,
   Loader2,
   ArrowLeft,
+  AlertTriangle,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ContractTemplates } from "../components/ContractTemplates";
@@ -59,6 +61,7 @@ export function ContractsListPage() {
   const [editContractData, setEditContractData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [viewingId, setViewingId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [contractToDelete, setContractToDelete] = useState<Contract | null>(
     null
@@ -116,6 +119,29 @@ export function ContractsListPage() {
   const handleDeleteCancel = () => {
     setDeleteDialogOpen(false);
     setContractToDelete(null);
+  };
+
+  const handleView = async (contract: Contract) => {
+    try {
+      setViewingId(contract.id);
+
+      // Use the new endpoint that exports directly from the saved contract
+      const pdfBlob = await exportContractPdfById(contract.id);
+
+      // Open the PDF in a new tab for viewing
+      const url = window.URL.createObjectURL(pdfBlob);
+      window.open(url, "_blank");
+
+      // Clean up the object URL after a delay
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 100);
+    } catch (error: any) {
+      console.error("Error viewing contract:", error);
+      toast.error(error.message || "Failed to view contract");
+    } finally {
+      setViewingId(null);
+    }
   };
 
   const handleDownload = async (contract: Contract) => {
@@ -274,6 +300,25 @@ export function ContractsListPage() {
                   {/* Right side - Action buttons */}
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <Button
+                      onClick={() => handleView(contract)}
+                      variant="secondary"
+                      size="lg"
+                      disabled={viewingId === contract.id}
+                      className="border-2 border-gray-200 rounded-xl hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      {viewingId === contract.id ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                          Viewing...
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="mr-1 h-4 w-4" />
+                          View
+                        </>
+                      )}
+                    </Button>
+                    <Button
                       variant="outline"
                       size="lg"
                       onClick={() => handleEdit(contract)}
@@ -380,19 +425,38 @@ export function ContractsListPage() {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Contract</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{contractToDelete?.template_name}
-              "? This action cannot be undone.
+        <AlertDialogContent className="rounded-2xl border-2 border-red-100 shadow-xl max-w-md">
+          <AlertDialogHeader className="text-left">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+              <AlertDialogTitle className="text-2xl font-bold text-gray-900">
+                Delete Contract
+              </AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-base text-gray-600 mt-2">
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-gray-900">
+                "{contractToDelete?.template_name}"
+              </span>
+              ? This action cannot be undone and all contract data will be
+              permanently removed.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleDeleteCancel}>
+          <AlertDialogFooter className="flex-row gap-3 sm:justify-end mt-6">
+            <AlertDialogCancel
+              onClick={handleDeleteCancel}
+              className="rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-medium px-6 py-2.5"
+            >
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium px-6 py-2.5 shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

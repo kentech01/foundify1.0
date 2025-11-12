@@ -61,7 +61,7 @@ export function WhatYouGet() {
         <div className="text-center mb-16 space-y-4">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900">
             Everything You Need to{" "}
-            <span className="bg-gradient-to-r from-premium-purple to-deep-blue bg-clip-text text-transparent">
+            <span className="bg-blue-800 bg-clip-text text-transparent">
               Succeed
             </span>
           </h2>
@@ -137,11 +137,11 @@ export function WhatYouGet() {
               return (
                 <Card
                   key={feature.id}
-                  className="group relative overflow-hidden border-2 border-gray-100 bg-white hover:border-premium-purple/30 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                  className="group relative overflow-hidden border-2 border-gray-100 bg-white hover:border-blue-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-premium-purple/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="relative p-6 space-y-4">
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-premium-purple to-deep-blue flex items-center justify-center shadow-lg">
+                    <div className="w-14 h-14 rounded-xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] flex items-center justify-center shadow-lg">
                       <Icon className="h-7 w-7 text-white" />
                     </div>
                     <div>

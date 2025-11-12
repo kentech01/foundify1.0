@@ -172,7 +172,7 @@ export function LandingPageGenerator() {
     return (
       <div className="p-8 flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-purple-600 mx-auto mb-4" />
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
           <p className="text-gray-600">Loading</p>
         </div>
       </div>
@@ -213,20 +213,55 @@ export function LandingPageGenerator() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* File Upload Area */}
-              <div className="w-full border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-500 transition-colors">
-                <label htmlFor="logo-upload" className="cursor-pointer block">
-                  <Upload className="mx-auto h-12 w-12 text-gray-400 mb-3" />
-                  <p className="text-sm text-gray-600 mb-2">
-                    Click to upload or drag and drop
+              <div
+                className={`w-full border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                  firstPitchHasPremiumLanding
+                    ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-60"
+                    : "border-gray-300 hover:border-purple-500"
+                }`}
+              >
+                <label
+                  htmlFor="logo-upload"
+                  className={`block ${
+                    firstPitchHasPremiumLanding
+                      ? "cursor-not-allowed"
+                      : "cursor-pointer"
+                  }`}
+                >
+                  <Upload
+                    className={`mx-auto h-12 w-12 mb-3 ${
+                      firstPitchHasPremiumLanding
+                        ? "text-gray-300"
+                        : "text-gray-400"
+                    }`}
+                  />
+                  <p
+                    className={`text-sm mb-2 ${
+                      firstPitchHasPremiumLanding
+                        ? "text-gray-400"
+                        : "text-gray-600"
+                    }`}
+                  >
+                    {firstPitchHasPremiumLanding
+                      ? "Upload disabled - Landing page already exists"
+                      : "Click to upload or drag and drop"}
                   </p>
-                  <p className="text-xs text-gray-500">SVG files only</p>
+                  <p
+                    className={`text-xs ${
+                      firstPitchHasPremiumLanding
+                        ? "text-gray-400"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    SVG files only
+                  </p>
                   <Input
                     id="logo-upload"
                     type="file"
                     accept=".svg,image/svg+xml"
                     onChange={handleLogoUpload}
                     className="hidden"
-                    disabled={isGenerating}
+                    disabled={isGenerating || firstPitchHasPremiumLanding}
                   />
                 </label>
               </div>
@@ -243,7 +278,7 @@ export function LandingPageGenerator() {
                   <button
                     onClick={clearLogo}
                     className="text-gray-500 hover:text-red-500"
-                    disabled={isGenerating}
+                    disabled={isGenerating || firstPitchHasPremiumLanding}
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -268,7 +303,7 @@ export function LandingPageGenerator() {
                   </Button>
                 ) : (
                   <Button
-                    className="flex-1 bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
+                    className="px-6 bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
                     onClick={generateLandingPage}
                     disabled={isGenerating}
                   >

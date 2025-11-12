@@ -1,4 +1,5 @@
-import { Clock, Award, Rocket, Zap } from 'lucide-react';
+import { Clock, Award, Rocket, Zap } from "lucide-react";
+import React from "react";
 
 const benefits = [
   {
@@ -52,7 +53,7 @@ export function BenefitsModern() {
         <div className="text-center mb-20 space-y-4">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900">
             Why Founders{" "}
-            <span className="bg-gradient-to-r from-premium-purple to-deep-blue bg-clip-text text-transparent">
+            <span className="bg-blue-800  bg-clip-text text-transparent">
               Love Us
             </span>
           </h2>
@@ -71,17 +72,17 @@ export function BenefitsModern() {
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {/* Card */}
-                <div className="relative h-full p-8 rounded-3xl bg-white border-2 border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 group-hover:border-premium-purple/20">
+                <div className="relative h-full p-8 rounded-3xl bg-white border-2 border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 group-hover:border-blue-100">
                   {/* Icon */}
                   <div className="mb-6">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-premium-purple via-deep-blue to-premium-purple flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-16 h-16 rounded-2xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                       <Icon className="h-8 w-8 text-white" />
                     </div>
                   </div>
 
                   {/* Stat */}
                   <div className="mb-4">
-                    <div className="text-4xl font-bold bg-gradient-to-r from-premium-purple to-deep-blue bg-clip-text text-transparent">
+                    <div className="text-4xl font-bold bg-blue-800  bg-clip-text text-transparent">
                       {benefit.stat}
                     </div>
                     <div className="text-sm text-gray-500">
