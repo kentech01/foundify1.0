@@ -4,13 +4,22 @@ import { Check, Sparkles, Zap } from "lucide-react";
 import { useState } from "react";
 import React from "react";
 
-export function PricingModern() {
+interface HeroModernProps {
+  onStart?: (e: React.MouseEvent) => void;
+}
+
+export function PricingModern({ onStart }: HeroModernProps) {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annually">(
     "annually"
   );
 
   const priceMonthly = 15;
   const priceAnnually = 10;
+  const handleStartClick = (e: React.MouseEvent) => {
+    if (onStart) {
+      onStart(e);
+    }
+  };
 
   return (
     <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
@@ -18,7 +27,7 @@ export function PricingModern() {
         <div className="text-center mb-16 space-y-6">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900">
             Simple,{" "}
-            <span className="bg-blue-800  bg-clip-text text-transparent">
+            <span className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  bg-clip-text text-transparent">
               Honest Pricing
             </span>
           </h2>
@@ -82,7 +91,9 @@ export function PricingModern() {
                 </div>
               </div>
               <div className="mb-2">
-                <span className="text-5xl font-bold text-blue-800">$0</span>
+                <span className="text-5xl font-bold bg-gradient-to-r from-[#1f1147] via-[#3b82f6] to-[#a5f3fc] bg-clip-text text-transparent">
+                  $0
+                </span>
                 <span className="text-gray-600 ml-2">/ month</span>
               </div>
               <p className="text-gray-600">Perfect for experimenting</p>
@@ -113,8 +124,9 @@ export function PricingModern() {
               </ul>
 
               <Button
+                onClick={handleStartClick}
                 variant="outline"
-                className="w-full py-6 rounded-xl border-2 border-gray-300 hover:bg-gray-50 transition-all duration-300"
+                className="w-full font-bold py-6 rounded-xl border-3 border-gray-300 hover:bg-gray-50 transition-all duration-300"
               >
                 Get Started Free
               </Button>
@@ -122,7 +134,7 @@ export function PricingModern() {
           </Card>
 
           {/* Premium Plan */}
-          <Card className="relative border-2 border-blue-400 shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-3xl overflow-hidden transform lg:scale-105">
+          <Card className="relative border-3 border-blue-500 shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-3xl overflow-hidden transform lg:scale-105">
             {/* Popular badge */}
             <div className="absolute top-0 left-0 right-0 bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white text-center py-3 px-4">
               <div className="flex items-center justify-center gap-2">
@@ -136,7 +148,7 @@ export function PricingModern() {
                 <h3 className="text-2xl font-bold text-gray-900">Premium</h3>
               </div>
               <div className="mb-2 flex items-baseline gap-2">
-                <span className="text-5xl font-bold bg-blue-800  bg-clip-text text-transparent">
+                <span className="text-5xl font-bold bg-gradient-to-r from-[#1f1147] via-[#3b82f6] to-[#a5f3fc]  bg-clip-text text-transparent">
                   ${billingCycle === "monthly" ? priceMonthly : priceAnnually}
                 </span>
                 <span className="text-gray-600">/ month</span>
@@ -154,70 +166,70 @@ export function PricingModern() {
             <CardContent className="p-8 pt-6">
               <ul className="space-y-4 mb-8">
                 <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-premium-purple mt-0.5 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-blue-900 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700 font-medium">
                     Everything in Free, plus:
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-premium-purple mt-0.5 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-blue-900 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700">
                     Professional hosted landing page
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-premium-purple mt-0.5 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-blue-900 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700">
                     Built-in analytics (page views, clicks)
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-premium-purple mt-0.5 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-blue-900 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700">
                     Multiple premium templates
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-premium-purple mt-0.5 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-blue-900 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700">
                     AI-assisted pitch building
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-premium-purple mt-0.5 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-blue-900 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700">Invoice Generator</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-premium-purple mt-0.5 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-blue-900 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700">
                     Contract Templates (NDAs, agreements)
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-premium-purple mt-0.5 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-blue-900 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700">360° Team Feedback</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-premium-purple mt-0.5 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-blue-900 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700">
                     Investor Email Generator
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-premium-purple mt-0.5 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-blue-900 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700">
                     Remove "Made with Foundify" badge
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-premium-purple mt-0.5 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-blue-900 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700">Priority support</span>
                 </li>
               </ul>
 
-              <Button className="w-full py-6 rounded-xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:from-premium-purple-dark hover:to-deep-blue-dark text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+              {/* <Button className="w-full py-6 rounded-xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:from-premium-purple-dark hover:to-deep-blue-dark text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                 Upgrade to Premium
-              </Button>
+              </Button> */}
             </CardContent>
           </Card>
         </div>

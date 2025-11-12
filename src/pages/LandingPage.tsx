@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Header } from "../components/Header";
 import { HeroModern } from "../components/landingpage/HeroModern";
 import { WhatYouGet } from "../components/landingpage/WhatYouGet";
 import { BenefitsModern } from "../components/landingpage/BenefitsModern";
@@ -9,6 +8,7 @@ import { Footer } from "../components/Footer";
 import SignInModal from "../components/signIn/SignInModal";
 import React from "react";
 import { PricingModern } from "../components/landingpage/PricingModern";
+import { LandingHeader } from "../components/landingpage/LandingHeader";
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -27,16 +27,14 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header
+      <LandingHeader
         onDashboardClick={() => navigate("/dashboard")}
         handleOpenSignInModal={() => setIsSignInModalOpen(true)}
       />
-      <HeroModern
-        onStart={handleStartPitch}
-      />
+      <HeroModern onStart={handleStartPitch} />
       <WhatYouGet />
       <BenefitsModern />
-      <PricingModern />
+      <PricingModern onStart={handleStartPitch} />
       <CTASection onStart={handleStartPitch} />
       <Footer />
       {/* Sign In Modal - only for Header sign in button */}

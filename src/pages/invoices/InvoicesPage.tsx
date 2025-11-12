@@ -56,7 +56,7 @@ interface LineItem {
 
 export function InvoicesPage() {
   const navigate = useNavigate();
-  const [invoicesCounter, setInvoicesCounter] = useState(0)
+  const [invoicesCounter, setInvoicesCounter] = useState(0);
 
   const [companyName, setCompanyName] = useState("");
   const [clientName, setClientName] = useState("");
@@ -113,7 +113,7 @@ export function InvoicesPage() {
   const loadInvoices = async () => {
     setIsLoading(true);
     try {
-      const {data, counter} = await getInvoices(50, 0);
+      const { data, counter } = await getInvoices(50, 0);
       setInvoicesCounter(counter);
       if (data.success) {
         setInvoices(data.data);
@@ -387,7 +387,10 @@ export function InvoicesPage() {
           }}
         >
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg" disabled={invoicesCounter > 20}>
+            <Button
+              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white rounded-xl shadow-lg"
+              disabled={invoicesCounter > 20}
+            >
               <Plus className="mr-1 h-4 w-4" />
               Create Invoice
             </Button>
@@ -819,7 +822,7 @@ export function InvoicesPage() {
           <DialogFooter>
             <Button
               onClick={handleUpdateInvoice}
-              className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl"
+              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] px-6  text-white rounded-xl"
               disabled={!companyName || !clientName || isGenerating}
             >
               {isGenerating ? "Updating..." : "Update Invoice"}

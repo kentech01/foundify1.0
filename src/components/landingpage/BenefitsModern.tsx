@@ -53,7 +53,7 @@ export function BenefitsModern() {
         <div className="text-center mb-20 space-y-4">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900">
             Why Founders{" "}
-            <span className="bg-blue-800  bg-clip-text text-transparent">
+            <span className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  bg-clip-text text-transparent">
               Love Us
             </span>
           </h2>
@@ -82,7 +82,7 @@ export function BenefitsModern() {
 
                   {/* Stat */}
                   <div className="mb-4">
-                    <div className="text-4xl font-bold bg-blue-800  bg-clip-text text-transparent">
+                    <div className="text-4xl font-bold bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#161930_100%)]  bg-clip-text text-transparent">
                       {benefit.stat}
                     </div>
                     <div className="text-sm text-gray-500">

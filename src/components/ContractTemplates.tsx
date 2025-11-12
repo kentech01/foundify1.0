@@ -626,7 +626,7 @@ export function ContractTemplates({
                 onClick={handleGenerateContract}
                 size="lg"
                 disabled={isGenerating}
-                className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg"
+                className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  text-white rounded-xl shadow-lg"
               >
                 {isGenerating ? (
                   <>

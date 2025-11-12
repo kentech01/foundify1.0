@@ -302,7 +302,7 @@ export function PitchBuilder() {
         <CardHeader className="pb-4">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-premium-purple to-deep-blue flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] flex items-center justify-center">
                 <Sparkles className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -318,7 +318,7 @@ export function PitchBuilder() {
           {/* Progress bar */}
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
-              className="bg-gradient-to-r from-premium-purple to-deep-blue h-2 rounded-full transition-all duration-300"
+              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] h-2 rounded-full transition-all duration-300"
               style={{
                 width: `${((currentStep + 1) / questions.length) * 100}%`,
               }}
@@ -374,7 +374,7 @@ export function PitchBuilder() {
             <Button
               onClick={handleNext}
               disabled={!isCurrentStepValid}
-              className="px-8 py-6 rounded-xl bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white shadow-lg"
+              className="px-8 py-6 rounded-xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  text-white shadow-lg"
             >
               {currentStep === questions.length - 1 ? "Generate Pitch" : "Next"}
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -395,7 +395,7 @@ export function PitchBuilder() {
       <Dialog open={isLimitModalOpen} onOpenChange={setIsLimitModalOpen}>
         <DialogContent className="sm:max-w-md w-full h-auto border-0 shadow-2xl p-8 space-y-6 text-center">
           <DialogHeader className="space-y-3">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-premium-purple to-deep-blue shadow-lg">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-blue-900 shadow-lg">
               <Sparkles className="h-7 w-7 text-white" />
             </div>
             <DialogTitle className="text-2xl text-center font-semibold text-gray-900">
@@ -407,7 +407,7 @@ export function PitchBuilder() {
           </DialogHeader>
           <DialogFooter className="sm:justify-center">
             <Button
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-premium-purple to-deep-blue text-white shadow-lg"
+              className="px-6 py-3 rounded-xl bg-blue-900 text-white shadow-lg"
               onClick={() => setIsLimitModalOpen(false)}
             >
               OK

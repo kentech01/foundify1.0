@@ -94,11 +94,11 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
       label: "AI Hiring Assistant",
       icon: Users,
     },
-    {
-      path: "/dashboard/landing-page-generator",
-      label: "Landing Page Generator",
-      icon: Globe,
-    },
+    // {
+    //   path: "/dashboard/landing-page-generator",
+    //   label: "Landing Page Generator",
+    //   icon: Globe,
+    // },
   ];
 
   const currentPath = location.pathname;
@@ -111,7 +111,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
       "/dashboard/feedbackCoach",
       "/dashboard/investor-email-draft",
       "/dashboard/ai-hiring-assistant",
-      "/dashboard/landing-page-generator",
+      // "/dashboard/landing-page-generator",
     ];
 
     if (essentialsPages.some((page) => currentPath.startsWith(page))) {
@@ -145,18 +145,18 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transform transition-transform duration-300 ease-in-out ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-74 bg-white border-r border-gray-200 flex flex-col transform transition-transform duration-300 ease-in-out ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         {/* Logo */}
-        <div className="p-7 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="flex-1">
+            <div className="flex-1 pt-1">
               <img
                 src={favicon}
                 alt="Foundify"
-                className="h-8 w-auto cursor-pointer select-none"
+                className="h-7 w-auto cursor-pointer select-none"
                 onClick={() => navigate("/")}
               />
               {/* <h1 className="text-2xl font-bold text-deep-blue">Foundify</h1> */}
@@ -183,7 +183,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
               "/dashboard/feedbackCoach",
               "/dashboard/investor-email-draft",
               "/dashboard/ai-hiring-assistant",
-              "/dashboard/landing-page-generator",
+              // "/dashboard/landing-page-generator",
             ];
 
             const isActive = item.hasSubMenu
@@ -266,7 +266,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <header className="bg-white border-b border-gray-200 px-4 lg:px-8 py-6">
+        <header className="bg-white border-b border-gray-200 px-4 lg:px-8 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 flex-1">
               {/* Hamburger Menu Button for Mobile/Tablet */}
@@ -289,7 +289,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
                       variant="ghost"
                       className="flex items-center gap-2 hover:bg-gray-50 rounded-xl px-3 py-2"
                     >
-                      <Avatar className="h-9 w-9">
+                      <Avatar className="h-7 w-7">
                         <AvatarImage
                           src={user.photoURL || ""}
                           alt={user.displayName || "User"}
@@ -298,7 +298,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
                           {user.displayName?.[0]?.toUpperCase() || "U"}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-xl text-gray-900 font-medium">
+                      <span className="text-lg text-gray-900 font-medium">
                         {user.displayName || "User"}
                       </span>
                       <ChevronDown className="h-4 w-4 text-gray-900" />
@@ -309,7 +309,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
                     className="w-56 rounded-xl border border-gray-200 shadow-lg bg-white"
                   >
                     <div className="px-3 py-3">
-                      <p className="text-xl font-bold text-[#1f1147]">
+                      <p className="text-lg font-bold text-[#1f1147]">
                         {user.displayName || "User"}
                       </p>
                       <p className="text-sm text-gray-900">{user.email}</p>
@@ -318,7 +318,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
 
                     <DropdownMenuItem
                       onClick={handleSignOut}
-                      className="flex items-center gap-2 px-3 py-3 text-md text-[#1f1147] hover:bg-gray-50 rounded-lg mx-1 cursor-pointer"
+                      className="flex items-center gap-2 px-3 py-3 text-sm text-[#1f1147] hover:bg-gray-50 rounded-lg mx-1 cursor-pointer"
                     >
                       <LogOut className="h-4 w-4" />
                       <span>Log out</span>

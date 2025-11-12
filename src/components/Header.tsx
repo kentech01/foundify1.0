@@ -29,7 +29,6 @@ export function Header({
   handleOpenSignInModal,
 }: HeaderProps = {}) {
   const { user, logOut } = UserAuth();
-  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const navigate = useNavigate();
   const favicon = new URL("../assets/FOUNDIFY-LOGO.svg", import.meta.url).href;
 
@@ -41,9 +40,6 @@ export function Header({
     }
   };
 
-  const handleSignInSuccess = () => {
-    setIsSignInModalOpen(false);
-  };
   return (
     <header className="bg-white border-b border-gray-200 bg-white/95 ">
       <div className="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
@@ -69,12 +65,12 @@ export function Header({
                     variant="ghost"
                     className="flex items-center gap-2 hover:bg-gray-50 rounded-xl px-3 py-2"
                   >
-                    <Avatar className="h-9 w-9">
+                    <Avatar className="h-7 w-7">
                       <AvatarImage
                         src={user.photoURL || ""}
                         alt={user.displayName || "User"}
                       />
-                      <AvatarFallback className="bg-[#8B4513] text-lg text-white font-semibold">
+                      <AvatarFallback className="bg-[#8B4513] text-sm text-white font-semibold">
                         {user.displayName?.[0]?.toUpperCase() || "U"}
                       </AvatarFallback>
                     </Avatar>

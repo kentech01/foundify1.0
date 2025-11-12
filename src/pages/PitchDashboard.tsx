@@ -290,7 +290,7 @@ export function PitchDashboard({
             </p>
             <Button
               onClick={() => navigate("/builder")}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-[#252952] hover:bg-[#161930]"
             >
               <Sparkles className="h-4 w-4 mr-2" />
               Create Your First Pitch

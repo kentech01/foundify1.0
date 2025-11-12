@@ -248,7 +248,7 @@ export function ContractsListPage() {
 
       {/* Empty State */}
       {!isLoading && contracts.length === 0 && (
-        <Card className="border-2 border-dashed border-gray-200 rounded-2xl">
+        <Card className="border-2 border-solid border-gray-200 rounded-2xl">
           <CardContent className="p-12 text-center">
             <FileCheck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -331,7 +331,7 @@ export function ContractsListPage() {
                       size="lg"
                       onClick={() => handleDownload(contract)}
                       disabled={downloadingId === contract.id}
-                      className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl disabled:opacity-50"
+                      className="bg-[#252952] hover:bg-[#161930] text-white rounded-xl disabled:opacity-50"
                     >
                       {downloadingId === contract.id ? (
                         <>
