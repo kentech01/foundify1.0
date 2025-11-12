@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
+import { XIcon } from "lucide-react@0.487.0";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
@@ -182,6 +183,13 @@ export function PitchBuilder() {
       handleCreatePitch();
     }
   };
+  const handleKeyDown= (event)=>{
+    if(event.key == "Enter"){
+      console.log("qitu jem");
+      handleNext()
+      
+    }
+  }
 
   const handleComplete = async (data: PitchData) => {
     // Validate all fields before submitting
@@ -292,7 +300,7 @@ export function PitchBuilder() {
     <div className="min-h-screen bg-gradient-to-br from-premium-purple-50 via-white to-deep-blue-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl shadow-2xl border-2 border-gray-100">
         <CardHeader className="pb-4">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-premium-purple to-deep-blue flex items-center justify-center">
                 <Sparkles className="h-5 w-5 text-white" />
@@ -304,6 +312,7 @@ export function PitchBuilder() {
                 </CardDescription>
               </div>
             </div>
+            <button type="button" onClick={()=>navigate(-1)} className="cursor-pointer"><XIcon/></button>
           </div>
 
           {/* Progress bar */}
@@ -329,6 +338,7 @@ export function PitchBuilder() {
                 value={formData[currentQuestion.id as keyof PitchData]}
                 onChange={(e) => handleChange(e.target.value)}
                 className="text-lg py-6 border-2 border-gray-200 focus:border-premium-purple rounded-xl"
+                onKeyDown={handleKeyDown}
                 autoFocus
                 aria-invalid={Boolean(errors[currentQuestion.id])}
               />
@@ -338,6 +348,7 @@ export function PitchBuilder() {
                 value={formData[currentQuestion.id as keyof PitchData]}
                 onChange={(e) => handleChange(e.target.value)}
                 className="text-base min-h-[150px] border-2 border-gray-200 focus:border-premium-purple rounded-xl resize-none"
+                onKeyDown={handleKeyDown}
                 autoFocus
                 aria-invalid={Boolean(errors[currentQuestion.id])}
               />

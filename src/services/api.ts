@@ -4,7 +4,7 @@ import useAxios from "../hooks/useAxios";
 import { log } from "util";
 import { data } from "react-router-dom";
 export const API_BASE_URL =
-  "http://localhost:5001/api/v1/";
+"https://foundify-api-production.up.railway.app/api/v1/";
 
 interface ApiResponse<T> {
   success: boolean;

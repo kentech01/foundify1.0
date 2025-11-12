@@ -33,7 +33,6 @@ export function LandingPage() {
       />
       <HeroModern
         onStart={handleStartPitch}
-        onOpenSignIn={() => setIsSignInModalOpen(true)}
       />
       <WhatYouGet />
       <BenefitsModern />
