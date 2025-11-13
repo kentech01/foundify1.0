@@ -310,7 +310,7 @@ export function ContractTemplates({
                     className={
                       template.isPremium
                         ? "bg-premium-purple-700 hover:bg-premium-purple-800 text-white"
-                        : "bg-blue-600 hover:bg-blue-700 text-white"
+                        : "bg-[#252952] hover:bg-[#161930] text-white"
                     }
                   >
                     {template.isPremium ? (
@@ -375,7 +375,7 @@ export function ContractTemplates({
         {/* CTA Section */}
         <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-xl p-6">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 rounded-full bg-[#252952] flex items-center justify-center flex-shrink-0">
               <Check className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -387,7 +387,7 @@ export function ContractTemplates({
           </div>
           <Button
             onClick={handleContinueToCustomize}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-[#252952] hover:bg-[#161930] text-white"
             size="lg"
           >
             Continue to Customize
@@ -484,7 +484,7 @@ export function ContractTemplates({
               onClick={handleGenerateContract}
               size="lg"
               disabled={!allFieldsFilled}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-[#252952] hover:bg-[#161930] text-white"
             >
               <Edit className="w-4 h-4 mr-2" />
               Create Contract
