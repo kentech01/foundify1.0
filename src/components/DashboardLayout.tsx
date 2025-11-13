@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Clock } from "lucide-react";
 import dayjs from "dayjs";
@@ -14,22 +13,16 @@ import {
 } from "./ui/dropdown-menu";
 import {
   LayoutDashboard,
-  FileText,
   Wrench,
-  Settings,
   LogOut,
   ChevronDown,
   ChevronRight,
-  User,
-  Plus,
-  Home,
   LogIn,
   DollarSign,
   FileCheck,
   MessageSquare,
   Mail,
   Users,
-  Globe,
   Menu,
   X,
 } from "lucide-react";
@@ -172,7 +165,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 p-4 space-y-2 flex flex-col">
           {navItems.map((item) => {
             const Icon = item.icon;
 
@@ -254,13 +247,15 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
               </div>
             );
           })}
-        </nav>
-        <div className="p-4 flex justify-center items-center">
-          <div className="w-full rounded-2xl bg-[linear-gradient(135deg,#251ca1_30%,#a5f3fc_100%)] py-1 flex items-center justify-center gap-2">
-          <Clock size={18} color="white" />
-            <h1 className="text-center text-[15px] text-white">{diff + 30} Days Left</h1>
+          <div className="mt-auto pt-4 flex justify-center items-center">
+            <div className="w-full rounded-2xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] py-1 flex items-center justify-center gap-2">
+              <Clock size={18} color="white" />
+              <h1 className="text-center text-[15px] text-white">
+                {diff + 30} Days Left
+              </h1>
+            </div>
           </div>
-        </div>
+        </nav>
       </aside>
 
       {/* Main Content */}

@@ -431,7 +431,6 @@ export function InvoicesPage() {
                     <Input
                       id="client"
                       value={clientName}
-                      
                       onChange={(e) => setClientName(e.target.value)}
                       placeholder="Client Company"
                       required
@@ -832,7 +831,7 @@ export function InvoicesPage() {
       </Dialog>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card className="border-2 border-gray-100 rounded-2xl">
           <CardContent className="p-6">
             <div>
@@ -842,9 +841,9 @@ export function InvoicesPage() {
               </p>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
-        {/* <Card className="border-2 border-gray-100 rounded-2xl">
+      {/* <Card className="border-2 border-gray-100 rounded-2xl">
           <CardContent className="p-6">
             <div>
               <p className="text-sm text-gray-600 mb-1">Paid</p>
@@ -855,7 +854,7 @@ export function InvoicesPage() {
           </CardContent>
         </Card> */}
 
-        {/* <Card className="border-2 border-gray-100 rounded-2xl">
+      {/* <Card className="border-2 border-gray-100 rounded-2xl">
           <CardContent className="p-6">
             <div>
               <p className="text-sm text-gray-600 mb-1">Pending</p>
@@ -866,7 +865,7 @@ export function InvoicesPage() {
           </CardContent>
         </Card> */}
 
-        {/* <Card className="border-2 border-gray-100 rounded-2xl">
+      {/* <Card className="border-2 border-gray-100 rounded-2xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -880,8 +879,8 @@ export function InvoicesPage() {
               </div>
             </div>
           </CardContent>
-        </Card> */}
-      </div>
+        </Card> 
+      </div>*/}
 
       {/* Search Bar */}
       <div className="mb-6">
@@ -978,7 +977,7 @@ export function InvoicesPage() {
                     <Button
                       size="lg"
                       onClick={() => handleDownload(invoice)}
-                      className="bg-deep-blue hover:bg-deep-blue-dark text-white rounded-xl"
+                      className="bg-[#252952] hover:bg-[#161930] text-white rounded-xl"
                     >
                       <Download className="mr-1 h-4 w-4" />
                       Download
