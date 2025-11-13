@@ -87,11 +87,11 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
       label: "AI Hiring Assistant",
       icon: Users,
     },
-    // {
-    //   path: "/dashboard/landing-page-generator",
-    //   label: "Landing Page Generator",
-    //   icon: Globe,
-    // },
+    {
+      path: "/dashboard/landing-page-generator",
+      label: "Landing Page Generator",
+      icon: Globe,
+    },
   ];
 
   const currentPath = location.pathname;
