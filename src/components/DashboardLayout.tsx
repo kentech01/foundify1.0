@@ -94,11 +94,11 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
       label: "AI Hiring Assistant",
       icon: Users,
     },
-    // {
-    //   path: "/dashboard/landing-page-generator",
-    //   label: "Landing Page Generator",
-    //   icon: Globe,
-    // },
+    {
+      path: "/dashboard/landing-page-generator",
+      label: "Landing Page Generator",
+      icon: Globe,
+    },
   ];
 
   const currentPath = location.pathname;
@@ -257,8 +257,10 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
         </nav>
         <div className="p-4 flex justify-center items-center">
           <div className="w-full rounded-2xl bg-[linear-gradient(135deg,#251ca1_30%,#a5f3fc_100%)] py-1 flex items-center justify-center gap-2">
-          <Clock size={18} color="white" />
-            <h1 className="text-center text-[15px] text-white">{diff + 30} Days Left</h1>
+            <Clock size={18} color="white" />
+            <h1 className="text-center text-[15px] text-white">
+              {diff + 30} Days Left
+            </h1>
           </div>
         </div>
       </aside>

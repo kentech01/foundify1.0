@@ -237,8 +237,41 @@ export function PitchDashboard({
   //   }
   // };
 
-  const handleViewLandingPage = (pitch: PitchHistoryItem) => {
-    window.open(`/${pitch.startupName}`, "_blank");
+  const handleViewLanding = async (pitch: PitchHistoryItem) => {
+    try {
+      const response = await apiService.getLandingPageHtml(pitch.id);
+
+      if (response) {
+        // Create a blob with the HTML content
+        const blob = new Blob([response], {
+          type: "text/html",
+        });
+
+        // Create a download link
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${pitch.startupName}_landing_page.html`;
+
+        // Trigger the download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Clean up the URL object
+        URL.revokeObjectURL(url);
+
+        toast.success("Landing page downloaded successfully!");
+      } else {
+        toast.error("Failed to download landing page", {
+          description: "No HTML content available.",
+        });
+      }
+    } catch (error: any) {
+      toast.error("Failed to open landing page", {
+        description: error.message || "Please try again later.",
+      });
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -360,7 +393,7 @@ export function PitchDashboard({
                         onClick={() =>
                           !pitch.hasLandingPage
                             ? handleGenerateLanding(pitch.id)
-                            : handleViewLandingPage(pitch)
+                            : handleViewLanding(pitch)
                         }
                         className={`rounded-xl w-full sm:w-auto ${
                           pitch.hasLandingPage
