@@ -91,8 +91,8 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
         }
       }}
     >
-      <DialogContent className="sm:max-w-[400px] p-0">
-        <div className="flex flex-col items-center text-center px-8 pt-8 pb-4">
+      <DialogContent className="sm:max-w-lg h-auto p-0">
+        <div className="flex flex-col items-center text-center px-8 py-8">
           <h2 className="text-2xl mb-2 text-gray-900">
             {isLogin ? "Welcome back" : "Welcome to Foundify"}
           </h2>

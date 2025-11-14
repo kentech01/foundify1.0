@@ -60,12 +60,15 @@ export function LoadingModal({
 
   return (
     <Dialog open={isOpen}>
-      <DialogContent className="sm:max-w-md border-0 shadow-2xl" hideClose>
-        <div className="flex flex-col items-center text-center space-y-6 py-6">
+      <DialogContent
+        className="sm:max-w-lg border-0 shadow-2xl h-auto"
+        hideClose
+      >
+        <div className=" flex flex-col items-center text-center space-y-12 py-6">
           {/* Animated Icon */}
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-premium-purple to-deep-blue rounded-full blur-xl opacity-50 animate-pulse"></div>
-            <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-premium-purple to-deep-blue flex items-center justify-center shadow-xl">
+            <div className="absolute inset-0 bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] rounded-full blur-xl opacity-50 animate-pulse"></div>
+            <div className="relative w-20 h-20 rounded-full bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] flex items-center justify-center shadow-xl">
               <Icon className="h-10 w-10 text-white" />
             </div>
           </div>
@@ -82,7 +85,7 @@ export function LoadingModal({
           <div className="w-full space-y-2">
             <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-premium-purple to-deep-blue h-2 rounded-full transition-all duration-500 ease-out"
+                className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] h-2 rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -98,7 +101,7 @@ export function LoadingModal({
                   index < currentStepIndex
                     ? "bg-green-50 border border-green-200"
                     : index === currentStepIndex
-                    ? "bg-purple-50 border border-premium-purple"
+                    ? "bg-blue-50 border border-[#252952]"
                     : "bg-gray-50 border border-gray-200"
                 }`}
               >
@@ -115,7 +118,7 @@ export function LoadingModal({
                     />
                   </svg>
                 ) : index === currentStepIndex ? (
-                  <Loader2 className="h-5 w-5 text-premium-purple animate-spin flex-shrink-0" />
+                  <Loader2 className="h-5 w-5 text-blue-900 animate-spin flex-shrink-0" />
                 ) : (
                   <div className="h-5 w-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
                 )}
