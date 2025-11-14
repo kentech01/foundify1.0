@@ -365,7 +365,7 @@ Examples:
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center text-sm">
               <div>
-                <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2">
+                <div className="w-8 h-8 bg-[#252952] text-white rounded-full flex items-center justify-center mx-auto mb-2">
                   1
                 </div>
                 <p className="font-medium">Fill the Form</p>
@@ -374,7 +374,7 @@ Examples:
                 </p>
               </div>
               <div>
-                <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2">
+                <div className="w-8 h-8 bg-[#252952] text-white rounded-full flex items-center justify-center mx-auto mb-2">
                   2
                 </div>
                 <p className="font-medium">Have the Conversation</p>
@@ -383,7 +383,7 @@ Examples:
                 </p>
               </div>
               <div>
-                <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2">
+                <div className="w-8 h-8 bg-[#252952] text-white rounded-full flex items-center justify-center mx-auto mb-2">
                   3
                 </div>
                 <p className="font-medium">Share the Report</p>
