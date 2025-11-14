@@ -396,7 +396,7 @@ export function PitchBuilder() {
                       type="color"
                       value={formData.primaryColor}
                       onChange={(e) => handleChange(e.target.value, "primary")}
-                      className="h-14 w-20 rounded-xl border-2 border-gray-200 cursor-pointer"
+                      className="h-14 w-20 cursor-pointer"
                     />
                     <Input
                       type="text"
@@ -422,7 +422,7 @@ export function PitchBuilder() {
                       type="color"
                       value={formData.secondaryColor}
                       onChange={(e) => handleChange(e.target.value, "secondary")}
-                      className="h-14 w-20 rounded-xl border-2 border-gray-200 cursor-pointer"
+                      className="h-14 w-20 cursor-pointer"
                     />
                     <Input
                       type="text"

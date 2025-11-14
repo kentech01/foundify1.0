@@ -250,8 +250,8 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
           <div className="mt-auto pt-4 flex justify-center items-center">
             <div className="w-full rounded-2xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] py-1 flex items-center justify-center gap-2">
               <Clock size={18} color="white" />
-              <h1 className="text-center text-[15px] text-white">
-                {diff + 30} Days Left
+              <h1 className="text-center text-[12px] text-white">
+                {diff + 30} Days Remaining — Free
               </h1>
             </div>
           </div>
