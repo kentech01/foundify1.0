@@ -42,6 +42,8 @@ export function PitchBuilder() {
     targetAudience: "",
     solution: "",
     uniqueValue: "",
+    primaryColor: "#3b82f6",
+    secondaryColor: "#1f1147",
     email: "",
   });
 
@@ -100,6 +102,18 @@ export function PitchBuilder() {
           return "Unique selling point cannot exceed 500 characters";
         break;
 
+      case "primaryColor":
+        if (!value.trim()) return "Primary color is required";
+        if (!/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(value))
+          return "Please provide a valid hex color";
+        break;
+
+      case "secondaryColor":
+        if (!value.trim()) return "Secondary color is required";
+        if (!/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(value))
+          return "Please provide a valid hex color";
+        break;
+
       case "email": {
         if (!value.trim()) return "Email is required";
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -145,6 +159,12 @@ export function PitchBuilder() {
       type: "textarea",
     },
     {
+      id: "colors",
+      label: "Choose your brand colors",
+      placeholder: "",
+      type: "color-picker",
+    },
+    {
       id: "email",
       label: "Your email address",
       placeholder: "Enter your email",
@@ -154,27 +174,57 @@ export function PitchBuilder() {
 
   const currentQuestion = questions[currentStep];
 
-  const currentValue = String(
-    formData[currentQuestion.id as keyof PitchData] ?? ""
-  );
-  const currentError = validateField(currentQuestion.id, currentValue);
+  // Special handling for color picker step
+  const currentValue = currentQuestion.id === "colors" 
+    ? "" 
+    : String(formData[currentQuestion.id as keyof PitchData] ?? "");
+  
+  const currentError = currentQuestion.id === "colors"
+    ? (validateField("primaryColor", formData.primaryColor) || validateField("secondaryColor", formData.secondaryColor))
+    : validateField(currentQuestion.id, currentValue);
+  
   const isCurrentStepValid = !currentError;
 
-  const handleChange = (value: string) => {
+  const handleChange = (value: string, colorType?: "primary" | "secondary") => {
     const fieldName = currentQuestion.id;
-    setFormData({
-      ...formData,
-      [fieldName]: value,
-    });
-    const err = validateField(fieldName, value);
-    setErrors((prev) => ({ ...prev, [fieldName]: err }));
+    
+    // Handle color picker separately
+    if (fieldName === "colors" && colorType) {
+      const colorFieldName = colorType === "primary" ? "primaryColor" : "secondaryColor";
+      setFormData({
+        ...formData,
+        [colorFieldName]: value,
+      });
+      const err = validateField(colorFieldName, value);
+      setErrors((prev) => ({ ...prev, [colorFieldName]: err }));
+    } else {
+      setFormData({
+        ...formData,
+        [fieldName]: value,
+      });
+      const err = validateField(fieldName, value);
+      setErrors((prev) => ({ ...prev, [fieldName]: err }));
+    }
   };
   const handleNext = () => {
     const fieldName = currentQuestion.id;
-    const value = String(formData[fieldName as keyof PitchData] ?? "");
-    const err = validateField(fieldName, value);
-    setErrors((prev) => ({ ...prev, [fieldName]: err }));
-    if (err) return;
+    
+    // Special validation for color picker step
+    if (fieldName === "colors") {
+      const primaryErr = validateField("primaryColor", formData.primaryColor);
+      const secondaryErr = validateField("secondaryColor", formData.secondaryColor);
+      setErrors((prev) => ({ 
+        ...prev, 
+        primaryColor: primaryErr,
+        secondaryColor: secondaryErr 
+      }));
+      if (primaryErr || secondaryErr) return;
+    } else {
+      const value = String(formData[fieldName as keyof PitchData] ?? "");
+      const err = validateField(fieldName, value);
+      setErrors((prev) => ({ ...prev, [fieldName]: err }));
+      if (err) return;
+    }
 
     if (currentStep < questions.length - 1) {
       setCurrentStep(currentStep + 1);
@@ -220,6 +270,8 @@ export function PitchBuilder() {
         targetAudience: data.targetAudience,
         mainProduct: data.solution,
         uniqueSellingPoint: data.uniqueValue,
+        primaryColor: data.primaryColor,
+        secondaryColor: data.secondaryColor,
         email: data.email,
       };
 
@@ -332,7 +384,75 @@ export function PitchBuilder() {
               {currentQuestion.label}
             </Label>
 
-            {currentQuestion.type === "input" ? (
+            {currentQuestion.type === "color-picker" ? (
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <Label htmlFor="primaryColor" className="text-base font-medium text-gray-700">
+                    Primary Color
+                  </Label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      id="primaryColor"
+                      type="color"
+                      value={formData.primaryColor}
+                      onChange={(e) => handleChange(e.target.value, "primary")}
+                      className="h-14 w-20 rounded-xl border-2 border-gray-200 cursor-pointer"
+                    />
+                    <Input
+                      type="text"
+                      value={formData.primaryColor}
+                      onChange={(e) => handleChange(e.target.value, "primary")}
+                      placeholder="#3b82f6"
+                      className="text-lg py-6 border-2 border-gray-200 focus:border-premium-purple rounded-xl flex-1"
+                      maxLength={7}
+                    />
+                  </div>
+                  {errors.primaryColor && (
+                    <p className="text-sm text-red-600">{errors.primaryColor}</p>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="secondaryColor" className="text-base font-medium text-gray-700">
+                    Secondary Color
+                  </Label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      id="secondaryColor"
+                      type="color"
+                      value={formData.secondaryColor}
+                      onChange={(e) => handleChange(e.target.value, "secondary")}
+                      className="h-14 w-20 rounded-xl border-2 border-gray-200 cursor-pointer"
+                    />
+                    <Input
+                      type="text"
+                      value={formData.secondaryColor}
+                      onChange={(e) => handleChange(e.target.value, "secondary")}
+                      placeholder="#1f1147"
+                      className="text-lg py-6 border-2 border-gray-200 focus:border-premium-purple rounded-xl flex-1"
+                      maxLength={7}
+                    />
+                  </div>
+                  {errors.secondaryColor && (
+                    <p className="text-sm text-red-600">{errors.secondaryColor}</p>
+                  )}
+                </div>
+
+                <div className="mt-4 p-4 bg-gray-50 rounded-xl">
+                  <p className="text-sm text-gray-600 mb-3">Preview:</p>
+                  <div className="flex gap-3">
+                    <div 
+                      className="flex-1 h-16 rounded-lg shadow-sm border-2 border-gray-200"
+                      style={{ backgroundColor: formData.primaryColor }}
+                    />
+                    <div 
+                      className="flex-1 h-16 rounded-lg shadow-sm border-2 border-gray-200"
+                      style={{ backgroundColor: formData.secondaryColor }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : currentQuestion.type === "input" ? (
               <Input
                 placeholder={currentQuestion.placeholder}
                 value={formData[currentQuestion.id as keyof PitchData]}
@@ -354,7 +474,7 @@ export function PitchBuilder() {
               />
             )}
 
-            {errors[currentQuestion.id] && (
+            {errors[currentQuestion.id] && currentQuestion.type !== "color-picker" && (
               <p className="text-sm text-red-600">
                 {errors[currentQuestion.id]}
               </p>
