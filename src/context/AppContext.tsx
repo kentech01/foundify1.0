@@ -16,6 +16,8 @@ export interface PitchData {
   targetAudience: string;
   solution: string;
   uniqueValue: string;
+  primaryColor: string;
+  secondaryColor: string;
   email: string;
 }
 
