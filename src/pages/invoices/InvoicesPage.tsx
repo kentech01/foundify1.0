@@ -27,6 +27,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../../components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../../components/ui/alert-dialog";
 
 import {
   FileText,
@@ -41,6 +51,7 @@ import {
   Download,
   Search,
   ArrowLeft,
+  AlertTriangle,
 } from "lucide-react";
 import { useApiService, type Invoice as ApiInvoice } from "../../services/api";
 import { toast } from "sonner";
@@ -77,6 +88,11 @@ export function InvoicesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingInvoice, setEditingInvoice] = useState<ApiInvoice | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState<ApiInvoice | null>(
+    null
+  );
 
   const {
     createInvoice,
@@ -120,9 +136,15 @@ export function InvoicesPage() {
       } else {
         toast.error("Failed to load invoices");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading invoices:", error);
-      toast.error("Failed to load invoices");
+      // Display the actual backend error message
+      const errorMessage =
+        error.message ||
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Failed to load invoices";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -244,9 +266,22 @@ export function InvoicesPage() {
       } else {
         toast.error(response.message || "Failed to save invoice");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving invoice:", error);
-      toast.error("Failed to save invoice. Please try again.");
+      console.error("Error details:", {
+        message: error.message,
+        response: error.response,
+        responseData: error.response?.data,
+        status: error.response?.status,
+      });
+      // Display the actual backend error message
+      // Check error.message first as the API service already extracts the backend message
+      const errorMessage =
+        error.message ||
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Failed to save invoice. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setIsGenerating(false);
     }
@@ -260,30 +295,52 @@ export function InvoicesPage() {
     generateInvoice();
   };
 
-  const handleDelete = async (id: string) => {
-    setDeletingId(id);
+  const handleDeleteClick = (invoice: ApiInvoice) => {
+    setInvoiceToDelete(invoice);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!invoiceToDelete) return;
+
     try {
-      const response = await deleteInvoice(id);
+      const response = await deleteInvoice(invoiceToDelete.id);
       if (response.success) {
         toast.success("Invoice deleted successfully");
-        setInvoices(invoices.filter((invoice) => invoice.id !== id));
+        setInvoices(
+          invoices.filter((invoice) => invoice.id !== invoiceToDelete.id)
+        );
       } else {
         toast.error(response.message || "Failed to delete invoice");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting invoice:", error);
-      toast.error("Failed to delete invoice");
+      // Display the actual backend error message
+      const errorMessage =
+        error.message ||
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Failed to delete invoice";
+      toast.error(errorMessage);
     } finally {
-      setDeletingId(null);
+      setDeleteDialogOpen(false);
+      setInvoiceToDelete(null);
     }
   };
 
-  const handleView = (invoice: ApiInvoice) => {
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setInvoiceToDelete(null);
+  };
+
+  const handleView = async (invoice: ApiInvoice) => {
     try {
-      downloadInvoicePdf(invoice.firebaseUid, invoice.id);
-    } catch (error) {
+      await downloadInvoicePdf(invoice.firebaseUid, invoice.id);
+    } catch (error: any) {
       console.error("Error previewing invoice:", error);
-      toast.error("Failed to preview invoice");
+      // Display the actual backend error message
+      const errorMessage = error.message || "Failed to preview invoice";
+      toast.error(errorMessage);
     }
   };
 
@@ -343,12 +400,17 @@ export function InvoicesPage() {
   };
 
   const handleDownload = async (invoice: ApiInvoice) => {
+    setDownloadingId(invoice.id);
     try {
       await downloadInvoicePdf(invoice.firebaseUid, invoice.id);
       toast.success("Invoice downloaded successfully");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error downloading invoice:", error);
-      toast.error("Failed to download invoice");
+      // Display the actual backend error message
+      const errorMessage = error.message || "Failed to download invoice";
+      toast.error(errorMessage);
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -978,9 +1040,27 @@ export function InvoicesPage() {
                       size="lg"
                       onClick={() => handleDownload(invoice)}
                       className="bg-[#252952] hover:bg-[#161930] text-white rounded-xl"
+                      disabled={downloadingId === invoice.id}
                     >
-                      <Download className="mr-1 h-4 w-4" />
-                      Download
+                      {downloadingId === invoice.id ? (
+                        <>
+                          <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                          Downloading...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="mr-1 h-4 w-4" />
+                          Download
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="lg"
+                      onClick={() => handleDeleteClick(invoice)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -989,6 +1069,47 @@ export function InvoicesPage() {
           ))
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="rounded-2xl border-2 border-red-100 shadow-xl max-w-md">
+          <AlertDialogHeader className="text-left">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+              <AlertDialogTitle className="text-2xl font-bold text-gray-900">
+                Delete Invoice
+              </AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-base text-gray-600 mt-2">
+              Are you sure you want to delete invoice{" "}
+              <span className="font-semibold text-gray-900">
+                "
+                {invoiceToDelete?.invoiceNumber ||
+                  `INV-${invoiceToDelete?.id.slice(-6)}`}
+                "
+              </span>
+              ? This action cannot be undone and all invoice data will be
+              permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-3 sm:justify-end mt-6">
+            <AlertDialogCancel
+              onClick={handleDeleteCancel}
+              className="rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-medium px-6 py-2.5"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium px-6 py-2.5 shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
