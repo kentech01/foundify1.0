@@ -12,6 +12,7 @@ server/node_mdules
 dist
 dist-ssr
 *.local
+build/
 
 # Editor directories and files
 .vscode/*
