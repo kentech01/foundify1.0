@@ -44,6 +44,8 @@ interface ContractTemplate {
     placeholder: string;
     type: string;
     tooltip?: string;
+    required?: boolean;
+    defaultValue?: string | (() => string);
   }[];
 }
 
@@ -112,10 +114,17 @@ export function ContractTemplates({
     setSelectedTemplate(template);
     setEditablePreview(template.previewContent);
     setStep("preview");
-    // Initialize form data with empty values
+    // Initialize form data with default values
     const initialData: Record<string, string> = {};
     template.fields.forEach((field) => {
-      initialData[field.id] = "";
+      if (field.defaultValue !== undefined) {
+        initialData[field.id] =
+          typeof field.defaultValue === "function"
+            ? field.defaultValue()
+            : field.defaultValue;
+      } else {
+        initialData[field.id] = "";
+      }
     });
     setFormData(initialData);
   };
@@ -135,18 +144,362 @@ export function ContractTemplates({
     }
   };
 
-  const fillContractPlaceholders = () => {
+  // Remove placeholders for falsy fields, wrap truthy placeholders in bold tags
+  // This keeps placeholders intact so backend can fill them from the data object
+  const removeFalsyPlaceholders = (baseText?: string) => {
     if (!selectedTemplate) return "";
 
-    let contractText = editablePreview; // Change from selectedTemplate.previewContent
+    let contractText = baseText || editablePreview;
+
+    // Helper function to remove common phrases around placeholders
+    const removePlaceholderWithContext = (
+      text: string,
+      placeholder: string,
+      fieldId: string
+    ): string => {
+      const placeholderPattern = `\\[${fieldId.toUpperCase()}\\]`;
+
+      // Common patterns to remove with context
+      const removalPatterns = [
+        // "for the purpose of [PURPOSE]"
+        new RegExp(
+          `\\s*for\\s+the\\s+purpose\\s+of\\s+${placeholderPattern}\\s*`,
+          "gi"
+        ),
+        // "as of [DATE]"
+        new RegExp(`\\s*as\\s+of\\s+${placeholderPattern}\\s*`, "gi"),
+        // "[DURATION] years"
+        new RegExp(`\\s*${placeholderPattern}\\s+years?\\s*`, "gi"),
+        // "[DURATION] months?"
+        new RegExp(`\\s*${placeholderPattern}\\s+months?\\s*`, "gi"),
+        // "per [PAYMENT_UNIT]"
+        new RegExp(`\\s*per\\s+${placeholderPattern}\\s*`, "gi"),
+        // "payable [PAYMENT_TERMS]"
+        new RegExp(`\\s*payable\\s+${placeholderPattern}\\s*`, "gi"),
+        // "at [INTEREST_RATE]%"
+        new RegExp(`\\s*at\\s+${placeholderPattern}\\s*%?\\s*`, "gi"),
+        // "with [CLIFF_MONTHS] month"
+        new RegExp(`\\s*with\\s+${placeholderPattern}\\s+month\\s*`, "gi"),
+        // "over a period of [VESTING_YEARS] years"
+        new RegExp(
+          `\\s*over\\s+a\\s+period\\s+of\\s+${placeholderPattern}\\s+years?\\s*`,
+          "gi"
+        ),
+        // "until [END_DATE]"
+        new RegExp(`\\s*until\\s+${placeholderPattern}\\s*`, "gi"),
+        // "from [START_DATE]"
+        new RegExp(`\\s*from\\s+${placeholderPattern}\\s*`, "gi"),
+        // "on [DATE]"
+        new RegExp(`\\s*on\\s+${placeholderPattern}\\s*`, "gi"),
+        // "in the position of [JOB_TITLE]"
+        new RegExp(
+          `\\s*in\\s+the\\s+position\\s+of\\s+${placeholderPattern}\\s*`,
+          "gi"
+        ),
+        // "in the State of [JURISDICTION]"
+        new RegExp(
+          `\\s*in\\s+the\\s+State\\s+of\\s+${placeholderPattern}\\s*`,
+          "gi"
+        ),
+        // "under the name [COMPANY_NAME]"
+        new RegExp(
+          `\\s*under\\s+the\\s+name\\s+${placeholderPattern}\\s*`,
+          "gi"
+        ),
+        // "engaged in the business of [BUSINESS_DESCRIPTION]"
+        new RegExp(
+          `\\s*engaged\\s+in\\s+the\\s+business\\s+of\\s+${placeholderPattern}\\s*`,
+          "gi"
+        ),
+        // "as a [TYPE_OF_ENTITY]"
+        new RegExp(`\\s*as\\s+a\\s+${placeholderPattern}\\s*`, "gi"),
+        // "with [NOTICE_PERIOD] written notice"
+        new RegExp(
+          `\\s*with\\s+${placeholderPattern}\\s+written\\s+notice\\s*`,
+          "gi"
+        ),
+        // "For [NON_COMPETE_DURATION] months"
+        new RegExp(`\\s*[Ff]or\\s+${placeholderPattern}\\s+months?\\s*`, "gi"),
+        // "including [KEY_RESPONSIBILITIES]"
+        new RegExp(`\\s*including\\s+${placeholderPattern}\\s*`, "gi"),
+        // "as described below: [SERVICE_DESCRIPTION]"
+        new RegExp(
+          `\\s*as\\s+described\\s+below:\\s*${placeholderPattern}\\s*`,
+          "gi"
+        ),
+        // "primarily from [WORK_LOCATION]"
+        new RegExp(`\\s*primarily\\s+from\\s+${placeholderPattern}\\s*`, "gi"),
+        // "entitled to [BENEFITS]"
+        new RegExp(`\\s*entitled\\s+to\\s+${placeholderPattern}\\s*`, "gi"),
+        // "shall receive a salary of [SALARY_AMOUNT]"
+        new RegExp(
+          `\\s*shall\\s+receive\\s+a\\s+salary\\s+of\\s+${placeholderPattern}\\s*`,
+          "gi"
+        ),
+        // "shall be reimbursed for [EXPENSES]"
+        new RegExp(
+          `\\s*shall\\s+be\\s+reimbursed\\s+for\\s+${placeholderPattern}\\s*`,
+          "gi"
+        ),
+        // "at least [DECISION_THRESHOLD]%"
+        new RegExp(`\\s*at\\s+least\\s+${placeholderPattern}\\s*%?\\s*`, "gi"),
+        // "shall vest over a period of [VESTING_YEARS] years"
+        new RegExp(
+          `\\s*shall\\s+vest\\s+over\\s+a\\s+period\\s+of\\s+${placeholderPattern}\\s+years?\\s*`,
+          "gi"
+        ),
+        // Just the placeholder itself as fallback
+        new RegExp(`\\s*${placeholderPattern}\\s*`, "g"),
+      ];
+
+      let result = text;
+      for (const pattern of removalPatterns) {
+        result = result.replace(pattern, " ");
+      }
+      return result;
+    };
+
+    // Process all fields: remove falsy placeholders, wrap truthy placeholders in bold
+    selectedTemplate.fields.forEach((field) => {
+      const fieldId = field.id;
+      let value = formData[fieldId];
+
+      // If empty and field has a default value, use it
+      if (!value?.trim() && field.defaultValue !== undefined) {
+        value =
+          typeof field.defaultValue === "function"
+            ? field.defaultValue()
+            : field.defaultValue;
+      }
+
+      // Check if value is falsy (empty, null, undefined, or just whitespace)
+      const isFalsy = !value || !value.toString().trim();
+
+      // For falsy values, remove the placeholder and its context
+      if (isFalsy) {
+        const placeholder = `[${fieldId.toUpperCase()}]`;
+        contractText = removePlaceholderWithContext(
+          contractText,
+          placeholder,
+          fieldId
+        );
+        return;
+      }
+
+      // For truthy values, wrap placeholder in <strong> tags
+      // Backend will replace [PLACEHOLDER] with value, leaving <strong>value</strong>
+      const placeholderPattern = `\\[${fieldId.toUpperCase()}\\]`;
+      const boldPlaceholder = `<strong>[${fieldId.toUpperCase()}]</strong>`;
+      contractText = contractText.replace(
+        new RegExp(placeholderPattern, "g"),
+        boldPlaceholder
+      );
+    });
+
+    // Clean up spacing while preserving paragraph breaks
+    contractText = contractText
+      // First, normalize line breaks (convert \r\n to \n)
+      .replace(/\r\n/g, "\n")
+      // Preserve paragraph breaks (double newlines) by converting to a temporary marker
+      .replace(/\n\n+/g, "{{PARAGRAPH_BREAK}}")
+      // Remove single newlines that aren't paragraph breaks (convert to space)
+      .replace(/\n/g, " ")
+      // Clean up multiple spaces within paragraphs
+      .replace(/[ \t]+/g, " ")
+      // Clean up spacing around punctuation
+      .replace(/\s+\./g, ".")
+      .replace(/\s+,/g, ",")
+      .replace(/\s+:/g, ":")
+      .replace(/\s+;/g, ";")
+      // Restore paragraph breaks with proper spacing (double line break)
+      .replace(/{{PARAGRAPH_BREAK}}/g, "\n\n")
+      // Clean up any remaining multiple spaces
+      .replace(/[ \t]{2,}/g, " ")
+      // Remove trailing spaces from lines
+      .replace(/[ \t]+$/gm, "")
+      // Ensure proper spacing between paragraphs (add blank line if needed)
+      .replace(/\n\n/g, "\n\n")
+      .trim();
+
+    return contractText;
+  };
+
+  const fillContractPlaceholders = (baseText?: string) => {
+    if (!selectedTemplate) return "";
+
+    let contractText = baseText || editablePreview; // Use provided text or fallback to editablePreview
+
+    // Helper function to remove common phrases around placeholders
+    const removePlaceholderWithContext = (
+      text: string,
+      placeholder: string,
+      fieldId: string
+    ): string => {
+      const placeholderPattern = `\\[${fieldId.toUpperCase()}\\]`;
+
+      // Common patterns to remove with context
+      const removalPatterns = [
+        // "for the purpose of [PURPOSE]"
+        new RegExp(
+          `\\s*for\\s+the\\s+purpose\\s+of\\s+${placeholderPattern}\\s*`,
+          "gi"
+        ),
+        // "as of [DATE]"
+        new RegExp(`\\s*as\\s+of\\s+${placeholderPattern}\\s*`, "gi"),
+        // "[DURATION] years"
+        new RegExp(`\\s*${placeholderPattern}\\s+years?\\s*`, "gi"),
+        // "[DURATION] months?"
+        new RegExp(`\\s*${placeholderPattern}\\s+months?\\s*`, "gi"),
+        // "per [PAYMENT_UNIT]"
+        new RegExp(`\\s*per\\s+${placeholderPattern}\\s*`, "gi"),
+        // "payable [PAYMENT_TERMS]"
+        new RegExp(`\\s*payable\\s+${placeholderPattern}\\s*`, "gi"),
+        // "at [INTEREST_RATE]%"
+        new RegExp(`\\s*at\\s+${placeholderPattern}\\s*%?\\s*`, "gi"),
+        // "with [CLIFF_MONTHS] month"
+        new RegExp(`\\s*with\\s+${placeholderPattern}\\s+month\\s*`, "gi"),
+        // "over a period of [VESTING_YEARS] years"
+        new RegExp(
+          `\\s*over\\s+a\\s+period\\s+of\\s+${placeholderPattern}\\s+years?\\s*`,
+          "gi"
+        ),
+        // "until [END_DATE]"
+        new RegExp(`\\s*until\\s+${placeholderPattern}\\s*`, "gi"),
+        // "from [START_DATE]"
+        new RegExp(`\\s*from\\s+${placeholderPattern}\\s*`, "gi"),
+        // "on [DATE]"
+        new RegExp(`\\s*on\\s+${placeholderPattern}\\s*`, "gi"),
+        // "in the position of [JOB_TITLE]"
+        new RegExp(
+          `\\s*in\\s+the\\s+position\\s+of\\s+${placeholderPattern}\\s*`,
+          "gi"
+        ),
+        // "in the State of [JURISDICTION]"
+        new RegExp(
+          `\\s*in\\s+the\\s+State\\s+of\\s+${placeholderPattern}\\s*`,
+          "gi"
+        ),
+        // "under the name [COMPANY_NAME]"
+        new RegExp(
+          `\\s*under\\s+the\\s+name\\s+${placeholderPattern}\\s*`,
+          "gi"
+        ),
+        // "engaged in the business of [BUSINESS_DESCRIPTION]"
+        new RegExp(
+          `\\s*engaged\\s+in\\s+the\\s+business\\s+of\\s+${placeholderPattern}\\s*`,
+          "gi"
+        ),
+        // "as a [TYPE_OF_ENTITY]"
+        new RegExp(`\\s*as\\s+a\\s+${placeholderPattern}\\s*`, "gi"),
+        // "with [NOTICE_PERIOD] written notice"
+        new RegExp(
+          `\\s*with\\s+${placeholderPattern}\\s+written\\s+notice\\s*`,
+          "gi"
+        ),
+        // "For [NON_COMPETE_DURATION] months"
+        new RegExp(`\\s*[Ff]or\\s+${placeholderPattern}\\s+months?\\s*`, "gi"),
+        // "including [KEY_RESPONSIBILITIES]"
+        new RegExp(`\\s*including\\s+${placeholderPattern}\\s*`, "gi"),
+        // "as described below: [SERVICE_DESCRIPTION]"
+        new RegExp(
+          `\\s*as\\s+described\\s+below:\\s*${placeholderPattern}\\s*`,
+          "gi"
+        ),
+        // "primarily from [WORK_LOCATION]"
+        new RegExp(`\\s*primarily\\s+from\\s+${placeholderPattern}\\s*`, "gi"),
+        // "entitled to [BENEFITS]"
+        new RegExp(`\\s*entitled\\s+to\\s+${placeholderPattern}\\s*`, "gi"),
+        // "shall receive a salary of [SALARY_AMOUNT]"
+        new RegExp(
+          `\\s*shall\\s+receive\\s+a\\s+salary\\s+of\\s+${placeholderPattern}\\s*`,
+          "gi"
+        ),
+        // "shall be reimbursed for [EXPENSES]"
+        new RegExp(
+          `\\s*shall\\s+be\\s+reimbursed\\s+for\\s+${placeholderPattern}\\s*`,
+          "gi"
+        ),
+        // "at least [DECISION_THRESHOLD]%"
+        new RegExp(`\\s*at\\s+least\\s+${placeholderPattern}\\s*%?\\s*`, "gi"),
+        // "shall vest over a period of [VESTING_YEARS] years"
+        new RegExp(
+          `\\s*shall\\s+vest\\s+over\\s+a\\s+period\\s+of\\s+${placeholderPattern}\\s+years?\\s*`,
+          "gi"
+        ),
+        // Just the placeholder itself as fallback
+        new RegExp(`\\s*${placeholderPattern}\\s*`, "g"),
+      ];
+
+      let result = text;
+      for (const pattern of removalPatterns) {
+        result = result.replace(pattern, " ");
+      }
+      return result;
+    };
 
     // Replace all placeholders with actual values
-    Object.keys(formData).forEach((fieldId) => {
-      const value =
-        formData[fieldId] || `[${fieldId.replace(/_/g, " ").toUpperCase()}]`;
-      const placeholder = `[${fieldId.toUpperCase()}]`;
-      contractText = contractText.replace(new RegExp(placeholder, "g"), value);
+    // Process ALL fields to ensure no placeholders remain for backend to process
+    selectedTemplate.fields.forEach((field) => {
+      const fieldId = field.id;
+      let value = formData[fieldId];
+
+      // If empty and field has a default value, use it
+      if (!value?.trim() && field.defaultValue !== undefined) {
+        value =
+          typeof field.defaultValue === "function"
+            ? field.defaultValue()
+            : field.defaultValue;
+      }
+
+      // Check if value is falsy (empty, null, undefined, or just whitespace)
+      const isFalsy = !value || !value.toString().trim();
+
+      // For ALL falsy values, remove the placeholder and its context (don't render in PDF)
+      if (isFalsy) {
+        const placeholder = `[${fieldId.toUpperCase()}]`;
+        contractText = removePlaceholderWithContext(
+          contractText,
+          placeholder,
+          fieldId
+        );
+        return;
+      }
+
+      // For truthy values, wrap in <strong> tags for bold formatting in PDF
+      value = `<strong>${value}</strong>`;
+
+      // Replace placeholder with value - escape brackets in placeholder pattern
+      const placeholderPattern = `\\[${fieldId.toUpperCase()}\\]`;
+      contractText = contractText.replace(
+        new RegExp(placeholderPattern, "g"),
+        value
+      );
     });
+
+    // Clean up spacing while preserving paragraph breaks
+    contractText = contractText
+      // First, normalize line breaks (convert \r\n to \n)
+      .replace(/\r\n/g, "\n")
+      // Preserve paragraph breaks (double newlines) by converting to a temporary marker
+      .replace(/\n\n+/g, "{{PARAGRAPH_BREAK}}")
+      // Remove single newlines that aren't paragraph breaks (convert to space)
+      .replace(/\n/g, " ")
+      // Clean up multiple spaces within paragraphs
+      .replace(/[ \t]+/g, " ")
+      // Clean up spacing around punctuation
+      .replace(/\s+\./g, ".")
+      .replace(/\s+,/g, ",")
+      .replace(/\s+:/g, ":")
+      .replace(/\s+;/g, ";")
+      // Restore paragraph breaks with proper spacing (double line break)
+      .replace(/{{PARAGRAPH_BREAK}}/g, "\n\n")
+      // Clean up any remaining multiple spaces
+      .replace(/[ \t]{2,}/g, " ")
+      // Remove trailing spaces from lines
+      .replace(/[ \t]+$/gm, "")
+      // Ensure proper spacing between paragraphs (add blank line if needed)
+      .replace(/\n\n/g, "\n\n")
+      .trim();
 
     return contractText;
   };
@@ -176,13 +529,17 @@ export function ContractTemplates({
 
       // If in edit mode, we're updating an existing contract
       if (editMode) {
+        // Remove placeholders for falsy fields, but keep placeholders for truthy fields
+        // so backend can fill them from the data object
+        const processedContract = removeFalsyPlaceholders(editableContract);
+
         // Prepare the edit payload
         const editPayload = {
           templateId: editMode.templateId,
           originalData: editMode.formData, // Use the original data from editMode
           updates: {
             data: mapDataForApi(formData), // Use the updated form data
-            customContent: editableContract, // Use the edited contract text
+            customContent: processedContract, // Keep placeholders for backend to fill
           },
           contractId: editMode.contractId, // Include the contract ID
           saveToDb: true, // Make sure to save to database
@@ -194,10 +551,20 @@ export function ContractTemplates({
         toast.success("Contract updated successfully!");
       } else {
         // Creating a new contract
+        // Remove placeholders for falsy fields, but keep placeholders for truthy fields
+        // so backend can fill them from the data object
+        const baseText =
+          step === "edit" && editableContract.trim()
+            ? editableContract
+            : editablePreview;
+
+        // Remove placeholders for falsy fields only, keep others for backend to fill
+        const processedContract = removeFalsyPlaceholders(baseText);
+
         const contractPayload = {
           templateId: selectedTemplate!.id,
           data: mapDataForApi(formData),
-          customContent: editablePreview,
+          customContent: processedContract, // Keep placeholders for backend to fill
         };
 
         const contractResponse = await generateContract(contractPayload);
@@ -399,9 +766,10 @@ export function ContractTemplates({
 
   // Render customization form
   if (step === "customize" && selectedTemplate) {
-    const allFieldsFilled = selectedTemplate.fields.every((field) =>
-      formData[field.id]?.trim()
-    );
+    // Only check required fields (explicitly marked as required: true)
+    const allRequiredFieldsFilled = selectedTemplate.fields
+      .filter((field) => field.required === true)
+      .every((field) => formData[field.id]?.trim());
 
     return (
       <TooltipProvider>
@@ -483,15 +851,24 @@ export function ContractTemplates({
             <Button
               onClick={handleGenerateContract}
               size="lg"
-              disabled={!allFieldsFilled}
+              disabled={!allRequiredFieldsFilled || isGenerating}
               className="bg-[#252952] hover:bg-[#161930] text-white"
             >
-              <Edit className="w-4 h-4 mr-2" />
-              Create Contract
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Edit className="w-4 h-4 mr-2" />
+                  Create Contract
+                </>
+              )}
             </Button>
           </div>
 
-          {!allFieldsFilled && (
+          {!allRequiredFieldsFilled && (
             <p className="text-sm text-center text-gray-500">
               Please fill in all required fields to continue
             </p>
@@ -532,6 +909,9 @@ export function ContractTemplates({
                     <div className="flex items-center gap-2 mb-2">
                       <Label className="" htmlFor={field.id}>
                         {field.label}
+                        {field.required !== false && (
+                          <span className="text-red-500 ml-1">*</span>
+                        )}
                       </Label>
                       {field.tooltip && (
                         <Tooltip>

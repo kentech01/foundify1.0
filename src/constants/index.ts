@@ -36,7 +36,7 @@ WHEREAS, the Disclosing Party possesses certain confidential, proprietary, and t
 NOW, THEREFORE, the parties agree as follows:
 
 Purpose
-The Disclosing Party intends to share Confidential Information with the Receiving Party for the purpose of [PURPOSE], including potential business evaluation, partnership discussions, or project collaboration.
+The Disclosing Party intends to share Confidential Information with the Receiving Party for the purpose of [PURPOSE].
 
 Definition of Confidential Information
 "Confidential Information" means all technical and non-technical information disclosed by the Disclosing Party, including but not limited to data, financial information, customer details, software, inventions, know-how, trade secrets, and documentation—whether disclosed orally, visually, or in written form.
@@ -65,7 +65,7 @@ No License
 Nothing in this Agreement grants the Receiving Party any ownership or license rights to the Confidential Information.
 
 Governing Law
-This Agreement shall be governed by and construed in accordance with the laws of [JURISDICTION].
+This Agreement shall be governed by and construed in accordance with the laws of the State of [JURISDICTION].
 
 IN WITNESS WHEREOF, the parties have executed this Agreement as of the date written above.
 
@@ -74,11 +74,12 @@ Disclosing Party______________
 Receiving Party______________`,
     fields: [
       {
-        id: "date",
-        label: "Agreement Date",
-        placeholder: "January 1, 2025",
-        type: "date",
-        tooltip: "The date when this agreement becomes effective",
+        id: "contract_name",
+        label: "Contract Name",
+        placeholder: "NDA with Partner Company",
+        type: "text",
+        tooltip: "Name for this contract",
+        required: true,
       },
       {
         id: "disclosing_party",
@@ -86,6 +87,7 @@ Receiving Party______________`,
         placeholder: "Your Company Inc.",
         type: "text",
         tooltip: "The party sharing confidential information",
+        required: true,
       },
       {
         id: "receiving_party",
@@ -93,27 +95,44 @@ Receiving Party______________`,
         placeholder: "Partner Company LLC",
         type: "text",
         tooltip: "The party receiving confidential information",
+        required: true,
+      },
+      {
+        id: "date",
+        label: "Agreement Date",
+        placeholder: "January 1, 2025",
+        type: "date",
+        tooltip:
+          "The date when this agreement becomes effective (auto-filled with today's date)",
+        required: false,
+        defaultValue: () => new Date().toISOString().split("T")[0],
       },
       {
         id: "purpose",
         label: "Purpose",
-        placeholder: "Potential partnership discussions",
+        placeholder:
+          "business evaluation, partnership discussions, or project collaboration",
         type: "textarea",
-        tooltip: "Describe why the information is being shared",
+        tooltip:
+          "Describe why the information is being shared (optional - placeholder will be inserted if empty)",
+        required: false,
       },
       {
         id: "duration",
         label: "Duration (years)",
         placeholder: "2",
         type: "text",
-        tooltip: "How long the agreement remains in effect",
+        tooltip: "How long the agreement remains in effect (default: 2)",
+        required: false,
+        defaultValue: "2",
       },
       {
         id: "jurisdiction",
-        label: "Jurisdiction",
-        placeholder: "State of California",
+        label: "State",
+        placeholder: "California",
         type: "text",
-        tooltip: "The governing law for this agreement",
+        tooltip: "The state governing this agreement",
+        required: true,
       },
     ],
   },
@@ -131,7 +150,7 @@ This Founder Agreement ("Agreement") is entered into on [DATE] by and between th
 WHEREAS, the Founders desire to formalize their relationship, define their roles, ownership, and rights, and prevent future misunderstandings.
 
 Company Formation
-The Founders agree to form a company under the name [COMPANY_NAME], engaged in the business of [BUSINESS_DESCRIPTION]. The company will be incorporated in [JURISDICTION] as a [TYPE_OF_ENTITY].
+The Founders agree to form a company under the name [COMPANY_NAME], engaged in the business of [BUSINESS_DESCRIPTION]. The company will be incorporated in the State of [JURISDICTION] as a [TYPE_OF_ENTITY].
 
 Equity Ownership
 Each Founder's ownership in the company shall be as follows:
@@ -162,7 +181,7 @@ Expenses and Reimbursements
 Any expenses incurred on behalf of the company shall be reimbursed with proper documentation and approval by the other Founders.
 
 Dispute Resolution
-Any disputes arising under this Agreement shall be first resolved by mediation, and if unresolved, by binding arbitration under the laws of [JURISDICTION].
+Any disputes arising under this Agreement shall be first resolved by mediation, and if unresolved, by binding arbitration under the laws of the State of [JURISDICTION].
 
 IN WITNESS WHEREOF, the Founders have executed this Agreement as of the date written above.
 
@@ -173,11 +192,12 @@ Founder 2______________
 Founder 3______________`,
     fields: [
       {
-        id: "date",
-        label: "Agreement Date",
-        placeholder: "January 1, 2025",
-        type: "date",
-        tooltip: "Effective date of the agreement",
+        id: "contract_name",
+        label: "Contract Name",
+        placeholder: "Founder Agreement - TechCo",
+        type: "text",
+        tooltip: "Name for this contract",
+        required: true,
       },
       {
         id: "startup_name",
@@ -185,95 +205,35 @@ Founder 3______________`,
         placeholder: "TechCo Inc.",
         type: "text",
         tooltip: "Your company's name",
-      },
-      {
-        id: "company_name",
-        label: "Company Legal Name",
-        placeholder: "TechCo Inc.",
-        type: "text",
-        tooltip: "Full legal entity name",
-      },
-      {
-        id: "business_description",
-        label: "Business Description",
-        placeholder: "AI-powered productivity tools",
-        type: "textarea",
-        tooltip: "Brief description of your business",
-      },
-      {
-        id: "jurisdiction",
-        label: "Jurisdiction",
-        placeholder: "Delaware",
-        type: "text",
-        tooltip: "State or country of incorporation",
-      },
-      {
-        id: "type_of_entity",
-        label: "Type of Entity",
-        placeholder: "Delaware C-Corporation",
-        type: "text",
-        tooltip: "Legal structure (e.g., LLC, C-Corp)",
+        required: true,
       },
       {
         id: "founder_1_name",
         label: "Founder 1 Name",
         placeholder: "John Doe",
         type: "text",
-      },
-      {
-        id: "percentage_1",
-        label: "Founder 1 Equity %",
-        placeholder: "50",
-        type: "text",
-      },
-      {
-        id: "role_1",
-        label: "Founder 1 Role & Duties",
-        placeholder: "CEO - Product strategy, fundraising",
-        type: "textarea",
+        required: true,
       },
       {
         id: "founder_2_name",
         label: "Founder 2 Name",
         placeholder: "Jane Smith",
         type: "text",
+        required: true,
+      },
+      {
+        id: "percentage_1",
+        label: "Founder 1 Equity %",
+        placeholder: "50",
+        type: "text",
+        required: true,
       },
       {
         id: "percentage_2",
         label: "Founder 2 Equity %",
         placeholder: "50",
         type: "text",
-      },
-      {
-        id: "role_2",
-        label: "Founder 2 Role & Duties",
-        placeholder: "CTO - Engineering, technical architecture",
-        type: "textarea",
-      },
-      {
-        id: "founder_3_name",
-        label: "Founder 3 Name (Optional)",
-        placeholder: "Leave blank if N/A",
-        type: "text",
-      },
-      {
-        id: "percentage_3",
-        label: "Founder 3 Equity %",
-        placeholder: "0",
-        type: "text",
-      },
-      {
-        id: "role_3",
-        label: "Founder 3 Role & Duties",
-        placeholder: "N/A",
-        type: "textarea",
-      },
-      {
-        id: "decision_threshold",
-        label: "Decision Threshold %",
-        placeholder: "51",
-        type: "text",
-        tooltip: "Percentage needed for major decisions",
+        required: true,
       },
       {
         id: "vesting_years",
@@ -281,6 +241,7 @@ Founder 3______________`,
         placeholder: "4",
         type: "text",
         tooltip: "Standard is 4 years",
+        required: true,
       },
       {
         id: "cliff_months",
@@ -288,6 +249,91 @@ Founder 3______________`,
         placeholder: "12",
         type: "text",
         tooltip: "Period before first vesting occurs",
+        required: true,
+      },
+      {
+        id: "date",
+        label: "Agreement Date",
+        placeholder: "January 1, 2025",
+        type: "date",
+        tooltip: "Effective date of the agreement",
+        required: false,
+        defaultValue: () => new Date().toISOString().split("T")[0],
+      },
+      {
+        id: "company_name",
+        label: "Company Legal Name",
+        placeholder: "TechCo Inc.",
+        type: "text",
+        tooltip: "Full legal entity name",
+        required: false,
+      },
+      {
+        id: "business_description",
+        label: "Business Description",
+        placeholder: "AI-powered productivity tools",
+        type: "textarea",
+        tooltip: "Brief description of your business",
+        required: false,
+      },
+      {
+        id: "jurisdiction",
+        label: "State",
+        placeholder: "Delaware",
+        type: "text",
+        tooltip: "State of incorporation",
+        required: true,
+      },
+      {
+        id: "type_of_entity",
+        label: "Type of Entity",
+        placeholder: "Delaware C-Corporation",
+        type: "text",
+        tooltip: "Legal structure (e.g., LLC, C-Corp)",
+        required: false,
+      },
+      {
+        id: "role_1",
+        label: "Founder 1 Role & Duties",
+        placeholder: "CEO - Product strategy, fundraising",
+        type: "textarea",
+        required: false,
+      },
+      {
+        id: "role_2",
+        label: "Founder 2 Role & Duties",
+        placeholder: "CTO - Engineering, technical architecture",
+        type: "textarea",
+        required: false,
+      },
+      {
+        id: "founder_3_name",
+        label: "Founder 3 Name (Optional)",
+        placeholder: "Leave blank if N/A",
+        type: "text",
+        required: false,
+      },
+      {
+        id: "percentage_3",
+        label: "Founder 3 Equity %",
+        placeholder: "0",
+        type: "text",
+        required: false,
+      },
+      {
+        id: "role_3",
+        label: "Founder 3 Role & Duties",
+        placeholder: "N/A",
+        type: "textarea",
+        required: false,
+      },
+      {
+        id: "decision_threshold",
+        label: "Decision Threshold %",
+        placeholder: "51",
+        type: "text",
+        tooltip: "Percentage needed for major decisions",
+        required: false,
       },
     ],
   },
@@ -327,7 +373,7 @@ Non-Compete and Non-Solicitation
 For [NON_COMPETE_DURATION] months after termination, the Employee shall not engage with competitors or solicit clients, employees, or contractors of the Employer.
 
 Governing Law
-This Agreement is governed by the laws of [JURISDICTION].
+This Agreement is governed by the laws of the State of [JURISDICTION].
 
 IN WITNESS WHEREOF, the parties have executed this Agreement as of the date written above.
 
@@ -336,28 +382,63 @@ Employer_________________
 Employee______________`,
     fields: [
       {
-        id: "date",
-        label: "Agreement Date",
-        placeholder: "January 1, 2025",
-        type: "date",
-      },
-      {
-        id: "company_name",
-        label: "Company Name",
-        placeholder: "Your Company Inc.",
+        id: "contract_name",
+        label: "Contract Name",
+        placeholder: "Employment Agreement - John Doe",
         type: "text",
+        tooltip: "Name for this contract",
+        required: true,
       },
       {
         id: "employee_name",
         label: "Employee Name",
         placeholder: "John Doe",
         type: "text",
+        required: true,
       },
       {
         id: "job_title",
         label: "Job Title",
         placeholder: "Senior Developer",
         type: "text",
+        required: true,
+      },
+      {
+        id: "start_date",
+        label: "Start Date",
+        placeholder: "February 1, 2025",
+        type: "date",
+        required: true,
+      },
+      {
+        id: "salary_amount",
+        label: "Salary Amount",
+        placeholder: "$80,000",
+        type: "text",
+        required: true,
+      },
+      {
+        id: "jurisdiction",
+        label: "State",
+        placeholder: "California",
+        type: "text",
+        tooltip: "The state governing this agreement",
+        required: true,
+      },
+      {
+        id: "date",
+        label: "Agreement Date",
+        placeholder: "January 1, 2025",
+        type: "date",
+        required: false,
+        defaultValue: () => new Date().toISOString().split("T")[0],
+      },
+      {
+        id: "company_name",
+        label: "Company Name",
+        placeholder: "Your Company Inc.",
+        type: "text",
+        required: false,
       },
       {
         id: "key_responsibilities",
@@ -365,18 +446,7 @@ Employee______________`,
         placeholder:
           "Develop and maintain software applications, collaborate with team",
         type: "textarea",
-      },
-      {
-        id: "start_date",
-        label: "Start Date",
-        placeholder: "February 1, 2025",
-        type: "date",
-      },
-      {
-        id: "salary_amount",
-        label: "Salary Amount",
-        placeholder: "$80,000",
-        type: "text",
+        required: false,
       },
       {
         id: "pay_period",
@@ -384,48 +454,49 @@ Employee______________`,
         placeholder: "year",
         type: "text",
         tooltip: "year, month, etc.",
+        required: false,
       },
       {
         id: "payment_frequency",
         label: "Payment Frequency",
         placeholder: "bi-weekly",
         type: "text",
+        required: false,
       },
       {
         id: "benefits",
         label: "Benefits",
         placeholder: "Health insurance, 15 days PTO, stock options",
         type: "textarea",
+        required: false,
       },
       {
         id: "hours_per_week",
         label: "Hours Per Week",
         placeholder: "40",
         type: "text",
+        required: false,
       },
       {
         id: "work_location",
         label: "Work Location",
         placeholder: "Remote / 123 Main St",
         type: "text",
+        required: false,
       },
       {
         id: "notice_period",
         label: "Notice Period",
         placeholder: "2 weeks",
         type: "text",
+        required: false,
       },
       {
         id: "non_compete_duration",
         label: "Non-Compete Duration (months)",
         placeholder: "6",
         type: "text",
-      },
-      {
-        id: "jurisdiction",
-        label: "Jurisdiction",
-        placeholder: "State of California",
-        type: "text",
+        required: false,
       },
     ],
   },
@@ -473,7 +544,7 @@ Liability and Indemnity
 The Consultant shall not be liable for indirect damages. The Consultant agrees to indemnify the Client for damages resulting from intentional misconduct or gross negligence.
 
 Governing Law
-This Agreement shall be governed by the laws of [JURISDICTION].
+This Agreement shall be governed by the laws of the State of [JURISDICTION].
 
 IN WITNESS WHEREOF, the parties have executed this Agreement as of the date written above.
 
@@ -482,17 +553,12 @@ Client _________
 Consultant __________`,
     fields: [
       {
-        id: "date",
-        label: "Agreement Date",
-        placeholder: "January 1, 2025",
-        type: "date",
-      },
-      {
-        id: "client_name",
-        label: "Client Name",
-        placeholder: "Your Company Inc.",
+        id: "contract_name",
+        label: "Contract Name",
+        placeholder: "Consultant Agreement - Jane Doe",
         type: "text",
-        tooltip: "The company hiring the consultant",
+        tooltip: "Name for this contract",
+        required: true,
       },
       {
         id: "consultant_name",
@@ -500,6 +566,7 @@ Consultant __________`,
         placeholder: "Jane Doe",
         type: "text",
         tooltip: "The independent contractor",
+        required: true,
       },
       {
         id: "service_description",
@@ -507,24 +574,14 @@ Consultant __________`,
         placeholder: "Website design and development services",
         type: "textarea",
         tooltip: "Detail the scope of work",
-      },
-      {
-        id: "start_date",
-        label: "Start Date",
-        placeholder: "February 1, 2025",
-        type: "date",
-      },
-      {
-        id: "end_date",
-        label: "End Date",
-        placeholder: "May 31, 2025",
-        type: "date",
+        required: true,
       },
       {
         id: "amount",
         label: "Payment Amount",
         placeholder: "$5,000",
         type: "text",
+        required: true,
       },
       {
         id: "payment_unit",
@@ -532,6 +589,45 @@ Consultant __________`,
         placeholder: "project",
         type: "text",
         tooltip: "e.g., hour, project, month",
+        required: true,
+      },
+      {
+        id: "jurisdiction",
+        label: "State",
+        placeholder: "California",
+        type: "text",
+        tooltip: "The state governing this agreement",
+        required: true,
+      },
+      {
+        id: "date",
+        label: "Agreement Date",
+        placeholder: "January 1, 2025",
+        type: "date",
+        required: false,
+        defaultValue: () => new Date().toISOString().split("T")[0],
+      },
+      {
+        id: "client_name",
+        label: "Client Name",
+        placeholder: "Your Company Inc.",
+        type: "text",
+        tooltip: "The company hiring the consultant",
+        required: false,
+      },
+      {
+        id: "start_date",
+        label: "Start Date",
+        placeholder: "February 1, 2025",
+        type: "date",
+        required: false,
+      },
+      {
+        id: "end_date",
+        label: "End Date",
+        placeholder: "May 31, 2025",
+        type: "date",
+        required: false,
       },
       {
         id: "payment_terms",
@@ -539,24 +635,21 @@ Consultant __________`,
         placeholder: "Net 30 days",
         type: "text",
         tooltip: "When and how payment is due",
+        required: false,
       },
       {
         id: "interest_rate",
         label: "Late Payment Interest Rate %",
         placeholder: "1.5",
         type: "text",
+        required: false,
       },
       {
         id: "notice_period",
         label: "Notice Period",
         placeholder: "14 days",
         type: "text",
-      },
-      {
-        id: "jurisdiction",
-        label: "Jurisdiction",
-        placeholder: "State of California",
-        type: "text",
+        required: false,
       },
     ],
   },
