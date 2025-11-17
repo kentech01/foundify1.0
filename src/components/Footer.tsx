@@ -1,133 +1,38 @@
 import React from "react";
 import { Separator } from "./ui/separator";
+import { Github, Twitter, Linkedin } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export function Footer() {
+  const navigate = useNavigate();
+  const favicon = new URL("../assets/FOUNDIFY-LOGO.svg", import.meta.url).href;
   return (
-    <footer className="bg-deep-blue-900 text-white py-12 px-4 sm:px-6 lg:px-8">
+    <footer className="bg-gray-900 text-white py-16 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          {/* Brand */}
+        <div className="flex flex-col md:flex-row items-start justify-between gap-8 mb-12">
+          {/* Left: Brand and description */}
           <div className="space-y-4">
-            <h3 className="text-2xl font-bold text-white">Foundify</h3>
-            <p className="text-deep-blue-100 text-sm">
-              Launch faster, look professional, stay organized
+            <p className="text-gray-400 max-w-md leading-relaxed">
+              The complete toolkit for founders. From pitch decks to essential
+              business tools—everything you need in one place.
             </p>
-          </div>
-
-          {/* Product */}
-          <div>
-            <h4 className="font-semibold text-white mb-4">Product</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <a
-                  href="#"
-                  className="text-deep-blue-100 hover:text-white transition-colors"
-                >
-                  Dashboard
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-deep-blue-100 hover:text-white transition-colors"
-                >
-                  Features
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-deep-blue-100 hover:text-white transition-colors"
-                >
-                  Pricing
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-deep-blue-100 hover:text-white transition-colors"
-                >
-                  Roadmap
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Company */}
-          <div>
-            <h4 className="font-semibold text-white mb-4">Company</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <a
-                  href="#"
-                  className="text-deep-blue-100 hover:text-white transition-colors"
-                >
-                  About
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-deep-blue-100 hover:text-white transition-colors"
-                >
-                  Blog
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-deep-blue-100 hover:text-white transition-colors"
-                >
-                  Careers
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-deep-blue-100 hover:text-white transition-colors"
-                >
-                  Contact
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div>
-            <h4 className="font-semibold text-white mb-4">Legal</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <a
-                  href="#"
-                  className="text-deep-blue-100 hover:text-white transition-colors"
-                >
-                  Terms of Service
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-deep-blue-100 hover:text-white transition-colors"
-                >
-                  Privacy Policy
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-deep-blue-100 hover:text-white transition-colors"
-                >
-                  Cookie Policy
-                </a>
-              </li>
-            </ul>
           </div>
         </div>
 
-        <Separator className="bg-deep-blue-100/20 mb-8" />
+        <Separator className="bg-gray-800 mb-8" />
 
-        <div className="text-center text-sm text-deep-blue-100">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
           <p>© 2025 Foundify. All rights reserved.</p>
+          <p className="text-gray-500">
+            Built with ❤️{" "}
+            <a
+              href="https://www.thrio.co/"
+              target="_blank"
+              className=" hover:text-white"
+            >
+              by thrio.co
+            </a>
+          </p>
         </div>
       </div>
     </footer>

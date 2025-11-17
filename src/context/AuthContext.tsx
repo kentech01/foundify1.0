@@ -45,6 +45,8 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  console.log(user, "kkkkkkk");
+
   const googleSignIn = async () => {
     setLoading(true);
     const provider = new GoogleAuthProvider();

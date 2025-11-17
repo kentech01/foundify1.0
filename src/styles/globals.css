@@ -1,36 +1,67 @@
+@import "tailwindcss";
+
 @custom-variant dark (&:is(.dark *));
 
+/* Light Theme */
 :root {
   --font-size: 14px;
+  
+  /* Base colors */
   --background: #ffffff;
   --foreground: oklch(0.145 0 0);
+  
+  /* Card colors */
   --card: #ffffff;
   --card-foreground: oklch(0.145 0 0);
+  
+  /* Popover colors */
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
+  
+  /* Primary colors */
   --primary: #030213;
   --primary-foreground: oklch(1 0 0);
+  
+  /* Secondary colors */
   --secondary: oklch(0.95 0.0058 264.53);
   --secondary-foreground: #030213;
+  
+  /* Muted colors */
   --muted: #ececf0;
   --muted-foreground: #717182;
+  
+  /* Accent colors */
   --accent: #e9ebef;
   --accent-foreground: #030213;
+  
+  /* Destructive colors */
   --destructive: #d4183d;
   --destructive-foreground: #ffffff;
+  
+  /* Border and input */
   --border: rgba(0, 0, 0, 0.1);
   --input: transparent;
   --input-background: #f3f3f5;
   --switch-background: #cbced4;
+  
+  /* Typography */
   --font-weight-medium: 500;
   --font-weight-normal: 400;
+  
+  /* Ring color */
   --ring: oklch(0.708 0 0);
+  
+  /* Chart colors */
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
+  
+  /* Border radius */
   --radius: 0.625rem;
+  
+  /* Sidebar colors */
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: #030213;
@@ -40,7 +71,7 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   
-  /* Deep blue accent colors */
+  /* Deep Blue - Primary brand color */
   --deep-blue: #1e40af;
   --deep-blue-dark: #1d4ed8;
   --deep-blue-light: #3b82f6;
@@ -48,7 +79,7 @@
   --deep-blue-100: #dbeafe;
   --deep-blue-900: #1e3a8a;
   
-  /* Purple accent colors for premium features */
+  /* Premium Purple - Premium/Pro features */
   --premium-purple: #7c3aed;
   --premium-purple-dark: #6d28d9;
   --premium-purple-light: #8b5cf6;
@@ -57,6 +88,7 @@
   --premium-purple-900: #581c87;
 }
 
+/* Dark Theme */
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -77,13 +109,6 @@
   --border: oklch(0.269 0 0);
   --input: oklch(0.269 0 0);
   --ring: oklch(0.439 0 0);
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -94,7 +119,9 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
+/* Register custom colors with Tailwind */
 @theme inline {
+  /* Base theme colors */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -116,15 +143,21 @@
   --color-input-background: var(--input-background);
   --color-switch-background: var(--switch-background);
   --color-ring: var(--ring);
+  
+  /* Chart colors */
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  
+  /* Border radius */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  
+  /* Sidebar colors */
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -134,7 +167,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   
-  /* Deep blue colors */
+  /* Deep Blue colors - Available as bg-deep-blue, text-deep-blue, etc. */
   --color-deep-blue: var(--deep-blue);
   --color-deep-blue-dark: var(--deep-blue-dark);
   --color-deep-blue-light: var(--deep-blue-light);
@@ -142,7 +175,7 @@
   --color-deep-blue-100: var(--deep-blue-100);
   --color-deep-blue-900: var(--deep-blue-900);
   
-  /* Premium purple colors */
+  /* Premium Purple colors - Available as bg-premium-purple, text-premium-purple, etc. */
   --color-premium-purple: var(--premium-purple);
   --color-premium-purple-dark: var(--premium-purple-dark);
   --color-premium-purple-light: var(--premium-purple-light);
@@ -151,6 +184,7 @@
   --color-premium-purple-900: var(--premium-purple-900);
 }
 
+/* Base styles */
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -160,142 +194,51 @@
     @apply bg-background text-foreground;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   }
+  
+  html {
+    font-size: var(--font-size);
+  }
 }
 
-/**
- * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
- */
+/* Typography defaults - Only applied when no text-* class is present */
 @layer base {
   :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
     h1 {
-      font-size: var(--text-2xl);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
+      @apply text-2xl font-medium;
     }
 
     h2 {
-      font-size: var(--text-xl);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
+      @apply text-xl font-medium;
     }
 
     h3 {
-      font-size: var(--text-lg);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
+      @apply text-lg font-medium;
     }
 
     h4 {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
+      @apply text-base font-medium;
     }
 
     p {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-normal);
-      line-height: 1.5;
+      @apply text-base font-normal;
     }
 
     label {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
+      @apply text-base font-medium;
     }
 
     button {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
+      @apply text-base font-medium;
     }
 
     input {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-normal);
-      line-height: 1.5;
+      @apply text-base font-normal;
     }
   }
 }
 
-html {
-  font-size: var(--font-size);
-}
-
-/* Custom deep blue utilities */
-@layer utilities {
-  .bg-deep-blue {
-    background-color: var(--color-deep-blue);
-  }
-  
-  .bg-deep-blue-dark {
-    background-color: var(--color-deep-blue-dark);
-  }
-  
-  .bg-deep-blue-light {
-    background-color: var(--color-deep-blue-light);
-  }
-  
-  .bg-deep-blue-50 {
-    background-color: var(--color-deep-blue-50);
-  }
-  
-  .bg-deep-blue-100 {
-    background-color: var(--color-deep-blue-100);
-  }
-  
-  .text-deep-blue {
-    color: var(--color-deep-blue);
-  }
-  
-  .text-deep-blue-dark {
-    color: var(--color-deep-blue-dark);
-  }
-  
-  .text-deep-blue-900 {
-    color: var(--color-deep-blue-900);
-  }
-  
-  .border-deep-blue {
-    border-color: var(--color-deep-blue);
-  }
-  
-  .hover\:bg-deep-blue-dark:hover {
-    background-color: var(--color-deep-blue-dark);
-  }
-  
-  .focus\:ring-deep-blue:focus {
-    --tw-ring-color: var(--color-deep-blue);
-  }
-  
-  .bg-premium-purple {
-    background-color: var(--color-premium-purple);
-  }
-  
-  .bg-premium-purple-dark {
-    background-color: var(--color-premium-purple-dark);
-  }
-  
-  .bg-premium-purple-50 {
-    background-color: var(--color-premium-purple-50);
-  }
-  
-  .bg-premium-purple-100 {
-    background-color: var(--color-premium-purple-100);
-  }
-  
-  .text-premium-purple {
-    color: var(--color-premium-purple);
-  }
-  
-  .text-premium-purple-900 {
-    color: var(--color-premium-purple-900);
-  }
-  
-  .border-premium-purple {
-    border-color: var(--color-premium-purple);
-  }
-  
-  .hover\:bg-premium-purple-dark:hover {
-    background-color: var(--color-premium-purple-dark);
+@layer base {
+  [data-sonner-toast] {
+    @apply rounded-xl border-2 shadow-lg;
   }
 }

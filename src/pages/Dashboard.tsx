@@ -124,14 +124,14 @@ export function Dashboard({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-premium-purple to-deep-blue flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  flex items-center justify-center">
                 <span className="text-white font-bold text-xl">F</span>
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-2xl font-bold text-gray-900">Foundify</h1>
                   {isPremium && (
-                    <Badge className="bg-gradient-to-r from-premium-purple to-deep-blue text-white hover:from-premium-purple-dark hover:to-deep-blue-dark">
+                    <Badge className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  text-white hover:from-premium-purple-dark hover:to-deep-blue-dark">
                       ✨ Premium
                     </Badge>
                   )}
@@ -141,7 +141,7 @@ export function Dashboard({
             </div>
             <Button
               onClick={onCreateNew}
-              className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg"
+              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  text-white rounded-xl shadow-lg"
             >
               <Plus className="mr-2 h-4 w-4" />
               New Pitch

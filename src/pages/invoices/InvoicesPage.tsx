@@ -27,6 +27,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../../components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../../components/ui/alert-dialog";
 
 import {
   FileText,
@@ -41,6 +51,7 @@ import {
   Download,
   Search,
   ArrowLeft,
+  AlertTriangle,
 } from "lucide-react";
 import { useApiService, type Invoice as ApiInvoice } from "../../services/api";
 import { toast } from "sonner";
@@ -54,14 +65,9 @@ interface LineItem {
   rate: string; // Change from number to string
 }
 
-export function InvoicesPage({
-  showInvoices,
-  setShowInvoices,
-}: {
-  showInvoices: boolean;
-  setShowInvoices: (showInvoices: boolean) => void;
-}) {
+export function InvoicesPage() {
   const navigate = useNavigate();
+  const [invoicesCounter, setInvoicesCounter] = useState(0);
 
   const [companyName, setCompanyName] = useState("");
   const [clientName, setClientName] = useState("");
@@ -82,6 +88,11 @@ export function InvoicesPage({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingInvoice, setEditingInvoice] = useState<ApiInvoice | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState<ApiInvoice | null>(
+    null
+  );
 
   const {
     createInvoice,
@@ -118,15 +129,22 @@ export function InvoicesPage({
   const loadInvoices = async () => {
     setIsLoading(true);
     try {
-      const response = await getInvoices(50, 0);
-      if (response.success) {
-        setInvoices(response.data);
+      const { data, counter } = await getInvoices(50, 0);
+      setInvoicesCounter(counter);
+      if (data.success) {
+        setInvoices(data.data);
       } else {
         toast.error("Failed to load invoices");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading invoices:", error);
-      toast.error("Failed to load invoices");
+      // Display the actual backend error message
+      const errorMessage =
+        error.message ||
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Failed to load invoices";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -248,9 +266,22 @@ export function InvoicesPage({
       } else {
         toast.error(response.message || "Failed to save invoice");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving invoice:", error);
-      toast.error("Failed to save invoice. Please try again.");
+      console.error("Error details:", {
+        message: error.message,
+        response: error.response,
+        responseData: error.response?.data,
+        status: error.response?.status,
+      });
+      // Display the actual backend error message
+      // Check error.message first as the API service already extracts the backend message
+      const errorMessage =
+        error.message ||
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Failed to save invoice. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setIsGenerating(false);
     }
@@ -264,30 +295,52 @@ export function InvoicesPage({
     generateInvoice();
   };
 
-  const handleDelete = async (id: string) => {
-    setDeletingId(id);
+  const handleDeleteClick = (invoice: ApiInvoice) => {
+    setInvoiceToDelete(invoice);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!invoiceToDelete) return;
+
     try {
-      const response = await deleteInvoice(id);
+      const response = await deleteInvoice(invoiceToDelete.id);
       if (response.success) {
         toast.success("Invoice deleted successfully");
-        setInvoices(invoices.filter((invoice) => invoice.id !== id));
+        setInvoices(
+          invoices.filter((invoice) => invoice.id !== invoiceToDelete.id)
+        );
       } else {
         toast.error(response.message || "Failed to delete invoice");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting invoice:", error);
-      toast.error("Failed to delete invoice");
+      // Display the actual backend error message
+      const errorMessage =
+        error.message ||
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Failed to delete invoice";
+      toast.error(errorMessage);
     } finally {
-      setDeletingId(null);
+      setDeleteDialogOpen(false);
+      setInvoiceToDelete(null);
     }
   };
 
-  const handleView = (invoice: ApiInvoice) => {
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setInvoiceToDelete(null);
+  };
+
+  const handleView = async (invoice: ApiInvoice) => {
     try {
-      downloadInvoicePdf(invoice.firebaseUid, invoice.id);
-    } catch (error) {
+      await downloadInvoicePdf(invoice.firebaseUid, invoice.id);
+    } catch (error: any) {
       console.error("Error previewing invoice:", error);
-      toast.error("Failed to preview invoice");
+      // Display the actual backend error message
+      const errorMessage = error.message || "Failed to preview invoice";
+      toast.error(errorMessage);
     }
   };
 
@@ -327,7 +380,6 @@ export function InvoicesPage({
     const rate = conversionRates[i.currency] || 1;
     return sum + i.total * rate;
   }, 0);
-  console.log("Total revenue:", totalRevenue);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
@@ -348,11 +400,17 @@ export function InvoicesPage({
   };
 
   const handleDownload = async (invoice: ApiInvoice) => {
-    const response = await getInvoice(invoice.id);
-    if (response.success) {
-      console.log(response.data, "response.data");
-    } else {
-      toast.error("Failed to download invoice");
+    setDownloadingId(invoice.id);
+    try {
+      await downloadInvoicePdf(invoice.firebaseUid, invoice.id);
+      toast.success("Invoice downloaded successfully");
+    } catch (error: any) {
+      console.error("Error downloading invoice:", error);
+      // Display the actual backend error message
+      const errorMessage = error.message || "Failed to download invoice";
+      toast.error(errorMessage);
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -372,13 +430,6 @@ export function InvoicesPage({
       {/* Header: Back + Title on left, Action button on right */}
       <div className="flex items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/dashboard/essentials")}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
           <div>
             <h2 className="text-3xl font-bold text-gray-900">
               Invoice Generator
@@ -398,8 +449,11 @@ export function InvoicesPage({
           }}
         >
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg">
-              <Plus className="mr-2 h-4 w-4" />
+            <Button
+              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white rounded-xl shadow-lg"
+              disabled={invoicesCounter > 20}
+            >
+              <Plus className="mr-1 h-4 w-4" />
               Create Invoice
             </Button>
           </DialogTrigger>
@@ -609,7 +663,7 @@ export function InvoicesPage({
             <DialogFooter>
               <Button
                 onClick={handleCreateInvoice}
-                className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl"
+                className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  hover:to-deep-blue-dark text-white rounded-xl"
                 disabled={!companyName || !clientName || isGenerating}
               >
                 {isGenerating ? "Creating..." : "Create Invoice"}
@@ -829,7 +883,7 @@ export function InvoicesPage({
           <DialogFooter>
             <Button
               onClick={handleUpdateInvoice}
-              className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl"
+              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] px-6  text-white rounded-xl"
               disabled={!companyName || !clientName || isGenerating}
             >
               {isGenerating ? "Updating..." : "Update Invoice"}
@@ -839,7 +893,7 @@ export function InvoicesPage({
       </Dialog>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card className="border-2 border-gray-100 rounded-2xl">
           <CardContent className="p-6">
             <div>
@@ -849,9 +903,9 @@ export function InvoicesPage({
               </p>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
-        {/* <Card className="border-2 border-gray-100 rounded-2xl">
+      {/* <Card className="border-2 border-gray-100 rounded-2xl">
           <CardContent className="p-6">
             <div>
               <p className="text-sm text-gray-600 mb-1">Paid</p>
@@ -862,7 +916,7 @@ export function InvoicesPage({
           </CardContent>
         </Card> */}
 
-        {/* <Card className="border-2 border-gray-100 rounded-2xl">
+      {/* <Card className="border-2 border-gray-100 rounded-2xl">
           <CardContent className="p-6">
             <div>
               <p className="text-sm text-gray-600 mb-1">Pending</p>
@@ -873,7 +927,7 @@ export function InvoicesPage({
           </CardContent>
         </Card> */}
 
-        <Card className="border-2 border-gray-100 rounded-2xl">
+      {/* <Card className="border-2 border-gray-100 rounded-2xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -887,8 +941,8 @@ export function InvoicesPage({
               </div>
             </div>
           </CardContent>
-        </Card>
-      </div>
+        </Card> 
+      </div>*/}
 
       {/* Search Bar */}
       <div className="mb-6">
@@ -915,19 +969,8 @@ export function InvoicesPage({
                 {searchTerm ? "No invoices found" : "No invoices yet"}
               </h3>
               <p className="text-gray-600 mb-4">
-                {searchTerm
-                  ? "Try adjusting your search terms"
-                  : "Create your first invoice to get started"}
+                {searchTerm && "Try adjusting your search terms"}
               </p>
-              {!searchTerm && (
-                <Button
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="bg-gradient-to-r from-premium-purple to-deep-blue hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Invoice
-                </Button>
-              )}
             </CardContent>
           </Card>
         ) : (
@@ -957,9 +1000,9 @@ export function InvoicesPage({
                   </div>
 
                   {/* Amount & Status */}
-                  <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-6 mb-4">
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Amount</p>
+                      <p className="text-sm text-gray-600 ">Amount</p>
                       <p className="text-2xl font-bold text-gray-900">
                         {getCurrencySymbol(invoice.currency)}
                         {invoice.total.toLocaleString()}
@@ -971,32 +1014,53 @@ export function InvoicesPage({
                   <div className="flex gap-3">
                     <Button
                       onClick={() => handleView(invoice)}
-                      variant="outline"
+                      variant="secondary"
+                      size="lg"
                       className="border-2 border-gray-200 rounded-xl hover:bg-gray-50"
                     >
-                      <Eye className="mr-2 h-4 w-4" />
+                      <Eye className="mr-1 h-4 w-4" />
                       View
                     </Button>
                     <Button
                       onClick={() => openEditModal(invoice)}
                       variant="outline"
+                      size="lg"
                       className="border-2 border-gray-200 rounded-xl hover:bg-gray-50"
                     >
-                      <Edit className="mr-2 h-4 w-4" />
+                      <Edit className="mr-1 h-4 w-4" />
                       Edit
                     </Button>
                     {invoice.status === "pending" && (
                       <Button className="bg-green-600 hover:bg-green-700 text-white rounded-xl">
-                        <Send className="mr-2 h-4 w-4" />
+                        <Send className="mr-1 h-4 w-4" />
                         Send
                       </Button>
                     )}
                     <Button
+                      size="lg"
                       onClick={() => handleDownload(invoice)}
-                      className="bg-deep-blue hover:bg-deep-blue-dark text-white rounded-xl"
+                      className="bg-[#252952] hover:bg-[#161930] text-white rounded-xl"
+                      disabled={downloadingId === invoice.id}
                     >
-                      <Download className="mr-2 h-4 w-4" />
-                      Download
+                      {downloadingId === invoice.id ? (
+                        <>
+                          <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                          Downloading...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="mr-1 h-4 w-4" />
+                          Download
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="lg"
+                      onClick={() => handleDeleteClick(invoice)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -1005,6 +1069,47 @@ export function InvoicesPage({
           ))
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="rounded-2xl border-2 border-red-100 shadow-xl max-w-md">
+          <AlertDialogHeader className="text-left">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+              <AlertDialogTitle className="text-2xl font-bold text-gray-900">
+                Delete Invoice
+              </AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-base text-gray-600 mt-2">
+              Are you sure you want to delete invoice{" "}
+              <span className="font-semibold text-gray-900">
+                "
+                {invoiceToDelete?.invoiceNumber ||
+                  `INV-${invoiceToDelete?.id.slice(-6)}`}
+                "
+              </span>
+              ? This action cannot be undone and all invoice data will be
+              permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-3 sm:justify-end mt-6">
+            <AlertDialogCancel
+              onClick={handleDeleteCancel}
+              className="rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-medium px-6 py-2.5"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium px-6 py-2.5 shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

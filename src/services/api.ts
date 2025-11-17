@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback } from "react";
 import useAxios from "../hooks/useAxios";
-export const API_BASE_URL =
-  "https://foundify-api-production.up.railway.app/api/v1/";
+import { log } from "util";
+import { data } from "react-router-dom";
+// export const API_BASE_URL =
+// "https://foundify-api-production.up.railway.app/api/v1/";
+export const API_BASE_URL = "http://localhost:5001/api/v1/";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -68,6 +71,8 @@ interface PitchFormData {
   targetAudience: string;
   mainProduct: string;
   uniqueSellingPoint: string;
+  primaryColor: string;
+  secondaryColor: string;
   email: string;
 }
 
@@ -214,6 +219,10 @@ interface InvoiceListResponse {
   };
   error?: string;
   message?: string;
+}
+interface ResponseInvoiceListResponse {
+  data: InvoiceListResponse;
+  counter: number;
 }
 
 interface InvoiceHtmlResponse {
@@ -552,9 +561,26 @@ export const useApiService = () => {
         const response = await axiosInstance.post("/invoices", invoiceData);
         return response.data;
       } catch (error: any) {
-        throw new Error(
-          error.response?.data?.message || "Failed to create invoice"
+        console.error("createInvoice API error:", error);
+        console.error("Response data:", error.response?.data);
+        console.error("Status:", error.response?.status);
+        console.error(
+          "Full error:",
+          JSON.stringify(error.response?.data, null, 2)
         );
+
+        // Extract error message from various possible locations
+        const errorMessage =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.response?.data?.details ||
+          (typeof error.response?.data === "string"
+            ? error.response?.data
+            : null) ||
+          error.message ||
+          "Failed to create invoice";
+
+        throw new Error(errorMessage);
       }
     },
     [axiosInstance]
@@ -564,7 +590,7 @@ export const useApiService = () => {
     async (
       limit: number = 20,
       offset: number = 0
-    ): Promise<InvoiceListResponse> => {
+    ): Promise<ResponseInvoiceListResponse> => {
       try {
         const response = await axiosInstance.get("/invoices", {
           params: {
@@ -572,7 +598,22 @@ export const useApiService = () => {
             offset,
           },
         });
-        return response.data;
+        let counter = 0;
+        let dataString = "";
+        response.data.data.forEach((element) => {
+          const dataTime = element.createdAt.slice(0, 7);
+          console.log(dataTime, "responsi");
+          if (dataTime != dataString) {
+            counter = 0;
+            dataString = dataTime;
+            counter++;
+          } else {
+            counter++;
+          }
+        });
+        console.log(counter);
+
+        return { data: response.data, counter: counter };
       } catch (error: any) {
         throw new Error(
           error.response?.data?.message || "Failed to get invoices"
@@ -605,9 +646,22 @@ export const useApiService = () => {
         const response = await axiosInstance.put(`/invoices/${id}`, updateData);
         return response.data;
       } catch (error: any) {
-        throw new Error(
-          error.response?.data?.message || "Failed to update invoice"
-        );
+        console.error("updateInvoice API error:", error);
+        console.error("Response data:", error.response?.data);
+        console.error("Status:", error.response?.status);
+
+        // Extract error message from various possible locations
+        const errorMessage =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.response?.data?.details ||
+          (typeof error.response?.data === "string"
+            ? error.response?.data
+            : null) ||
+          error.message ||
+          "Failed to update invoice";
+
+        throw new Error(errorMessage);
       }
     },
     [axiosInstance]
@@ -649,11 +703,39 @@ export const useApiService = () => {
   }, []);
 
   const downloadInvoicePdf = useCallback(
-    (uid: string, invoiceId: string): void => {
-      const pdfUrl = `${API_BASE_URL}invoices/${uid}/${invoiceId}/pdf`;
-      window.open(pdfUrl, "_blank");
+    async (uid: string, invoiceId: string): Promise<void> => {
+      try {
+        const response = await axiosInstance.get(
+          `/invoices/${uid}/${invoiceId}/pdf`,
+          {
+            responseType: "blob",
+          }
+        );
+
+        // Create a blob from the response
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a temporary link element and trigger download
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `invoice-${invoiceId}.pdf`; // Set filename
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (error: any) {
+        // Extract error message from backend response
+        const errorMessage =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Failed to download invoice PDF";
+        throw new Error(errorMessage);
+      }
     },
-    []
+    [axiosInstance]
   );
 
   // Interview API methods
@@ -1140,9 +1222,61 @@ class ApiService {
     window.open(previewUrl, "_blank");
   }
 
-  downloadInvoicePdf(uid: string, invoiceId: string): void {
-    const pdfUrl = `${API_BASE_URL}invoices/${uid}/${invoiceId}/pdf`;
-    window.open(pdfUrl, "_blank");
+  async downloadInvoicePdf(uid: string, invoiceId: string): Promise<void> {
+    try {
+      const token = await this.getAuthToken();
+      if (!token) {
+        throw new Error("User not authenticated");
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}invoices/${uid}/${invoiceId}/pdf`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message ||
+            errorData.error ||
+            "Failed to download invoice PDF"
+        );
+      }
+
+      // Create a blob from the response
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      // Create a temporary link element and trigger download
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `invoice-${invoiceId}.pdf`; // Set filename
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error: any) {
+      throw new Error(error.message || "Failed to download invoice PDF");
+    }
+  }
+
+  // Contract methods for legacy class-based service
+  async deleteContract(
+    contractId: string
+  ): Promise<{ success: boolean; message: string }> {
+    const response = await this.makeAuthenticatedRequest<any>(
+      `/contracts/${contractId}`,
+      {
+        method: "DELETE",
+      }
+    );
+    return response as { success: boolean; message: string };
   }
 }
 

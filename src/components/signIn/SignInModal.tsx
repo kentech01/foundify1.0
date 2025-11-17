@@ -83,13 +83,17 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[400px] p-0">
-        <div className="flex flex-col items-center text-center px-8 pt-8 pb-4">
-          <div className="w-10 h-10 rounded-lg bg-black flex items-center justify-center mb-4">
-            <span className="text-white">F</span>
-          </div>
-          <h2 className="text-2xl mb-2">
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose();
+        }
+      }}
+    >
+      <DialogContent className="sm:max-w-lg h-auto p-0">
+        <div className="flex flex-col items-center text-center px-8 py-8">
+          <h2 className="text-2xl mb-2 text-gray-900">
             {isLogin ? "Welcome back" : "Welcome to Foundify"}
           </h2>
           <p className="text-sm text-gray-600">
@@ -109,8 +113,8 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
             }}
             className={`flex-1 pb-3 text-sm transition-colors ${
               !isLogin
-                ? "border-b-2 border-black"
-                : "text-gray-500 hover:text-gray-700"
+                ? "border-b-2 border-deep-blue text-deep-blue font-medium"
+                : "text-gray-500 hover:text-deep-blue"
             }`}
           >
             Sign up
@@ -123,8 +127,8 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
             }}
             className={`flex-1 pb-3 text-sm transition-colors ${
               isLogin
-                ? "border-b-2 border-black"
-                : "text-gray-500 hover:text-gray-700"
+                ? "border-b-2 border-deep-blue text-deep-blue font-medium"
+                : "text-gray-500 hover:text-deep-blue"
             }`}
           >
             Sign in
@@ -188,7 +192,7 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
 
               <Button
                 type="submit"
-                className="w-full bg-black hover:bg-gray-800"
+                className="w-full bg-deep-blue hover:bg-deep-blue-dark text-white"
                 disabled={isLoading}
               >
                 {isLoading ? "Creating account..." : "Continue"}
@@ -206,7 +210,7 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full"
+                className="w-full border-gray-200 hover:bg-blue-50 hover:border-blue-200"
                 onClick={handleGoogleSignIn}
                 disabled={isLoading}
               >
@@ -233,11 +237,18 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
 
               <p className="text-xs text-center text-gray-500 pt-4">
                 By continuing, you agree to our{" "}
-                <button type="button" className="underline hover:text-gray-700">
+                <button
+                  type="button"
+                  onClick={() => navigate("/terms")}
+                  className="underline cursor-pointer hover:text-deep-blue text-deep-blue"
+                >
                   Terms of Service
                 </button>{" "}
                 and{" "}
-                <button type="button" className="underline hover:text-gray-700">
+                <button
+                  type="button"
+                  className="underline hover:text-deep-blue text-deep-blue"
+                >
                   Privacy Policy
                 </button>
               </p>
@@ -276,7 +287,7 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
 
               <Button
                 type="submit"
-                className="w-full bg-black hover:bg-gray-800"
+                className="w-full bg-deep-blue hover:bg-deep-blue-dark text-white"
                 disabled={isLoading}
               >
                 {isLoading ? "Signing in..." : "Continue"}
@@ -294,7 +305,7 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full"
+                className="w-full border-gray-200 hover:bg-blue-50 hover:border-blue-200"
                 onClick={handleGoogleSignIn}
                 disabled={isLoading}
               >
@@ -321,11 +332,18 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
 
               <p className="text-xs text-center text-gray-500 pt-4">
                 By continuing, you agree to our{" "}
-                <button type="button" className="underline hover:text-gray-700">
+                <button
+                  type="button"
+                  onClick={() => navigate("/terms")}
+                  className="underline cursor-pointer hover:text-deep-blue text-deep-blue"
+                >
                   Terms of Service
                 </button>{" "}
                 and{" "}
-                <button type="button" className="underline hover:text-gray-700">
+                <button
+                  type="button"
+                  className="underline hover:text-deep-blue text-deep-blue"
+                >
                   Privacy Policy
                 </button>
               </p>
