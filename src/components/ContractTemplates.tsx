@@ -880,6 +880,11 @@ export function ContractTemplates({
 
   // Render editable contract view
   if (step === "edit" && selectedTemplate) {
+    // Check if all required fields are filled (same validation as customize step)
+    const allRequiredFieldsFilled = selectedTemplate.fields
+      .filter((field) => field.required === true)
+      .every((field) => formData[field.id]?.trim());
+
     return (
       <TooltipProvider>
         <div className="max-w-5xl mx-auto space-y-6">
@@ -909,7 +914,7 @@ export function ContractTemplates({
                     <div className="flex items-center gap-2 mb-2">
                       <Label className="" htmlFor={field.id}>
                         {field.label}
-                        {field.required !== false && (
+                        {field.required === true && (
                           <span className="text-red-500 ml-1">*</span>
                         )}
                       </Label>
@@ -1005,7 +1010,7 @@ export function ContractTemplates({
               <Button
                 onClick={handleGenerateContract}
                 size="lg"
-                disabled={isGenerating}
+                disabled={!allRequiredFieldsFilled || isGenerating}
                 className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  text-white rounded-xl shadow-lg"
               >
                 {isGenerating ? (
@@ -1031,6 +1036,11 @@ export function ContractTemplates({
               </Button>
             </div>
           </div>
+          {!allRequiredFieldsFilled && (
+            <p className="text-sm text-center text-gray-500">
+              Please fill in all required fields (marked with *) to continue
+            </p>
+          )}
         </div>
       </TooltipProvider>
     );
