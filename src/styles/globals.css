@@ -242,3 +242,7 @@
     @apply rounded-xl border-2 shadow-lg;
   }
 }
+
+button {
+  cursor: pointer;
+}
