@@ -86,7 +86,7 @@ export function InvoicesPage() {
   const [notes, setNotes] = useState("");
   const [bankDetails, setBankDetails] = useState("");
   const [lineItems, setLineItems] = useState<LineItem[]>([
-    { description: "", quantity: "", rate: "0" }, // Change "1" to ""
+    { description: "", quantity: "", rate: "" },
   ]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -150,14 +150,14 @@ export function InvoicesPage() {
       trimmed.companyName.length < 2 ||
       trimmed.companyName.length > 100
     ) {
-      errs.companyName = "2-100 characters";
+      errs.companyName = "This field is required (minimum 2 characters)";
     }
     if (
       !trimmed.clientName ||
       trimmed.clientName.length < 2 ||
       trimmed.clientName.length > 100
     ) {
-      errs.clientName = "2-100 characters";
+      errs.clientName = "This field is required (minimum 2 characters)";
     }
 
     // Validate line items
@@ -172,10 +172,11 @@ export function InvoicesPage() {
         if (item.description.trim().length === 0) return false; // Skip empty items
         const qty = parseFloat(item.quantity);
         const rate = parseFloat(item.rate);
-        return isNaN(qty) || qty < 0 || isNaN(rate) || rate < 0;
+        return isNaN(qty) || qty <= 0 || isNaN(rate) || rate <= 0;
       });
       if (hasInvalidLineItem) {
-        errs.lineItems = "Quantity and rate must be valid numbers (≥ 0)";
+        errs.lineItems =
+          "Quantity and rate must be valid numbers greater than 0";
       }
     }
 
@@ -224,7 +225,9 @@ export function InvoicesPage() {
   const total = subtotal;
 
   const addLineItem = () => {
-    setLineItems([...lineItems, { description: "", quantity: "1", rate: "0" }]);
+    setLineItems([...lineItems, { description: "", quantity: "1", rate: "" }]);
+    // Don't mark lineItems as touched when just adding an item
+    // Only mark it as touched when user interacts with line item fields
   };
 
   const removeLineItem = (index: number) => {
@@ -250,7 +253,7 @@ export function InvoicesPage() {
     setCurrency("USD");
     setNotes("");
     setBankDetails("");
-    setLineItems([{ description: "", quantity: "", rate: "0" }]); // Change "1" to ""
+    setLineItems([{ description: "", quantity: "", rate: "" }]);
     setEditingInvoice(null);
     setTouched({});
     setErrors({});
@@ -269,9 +272,9 @@ export function InvoicesPage() {
         ? invoice.items.map((item) => ({
             description: item.description || "",
             quantity: String(item.quantity) || "1", // Use String
-            rate: String(item.rate) || "0", // Use String
+            rate: item.rate && item.rate > 0 ? String(item.rate) : "", // Use String, empty if 0 or invalid
           }))
-        : [{ description: "", quantity: "1", rate: "0" }]
+        : [{ description: "", quantity: "1", rate: "" }]
     );
     setTouched({});
     setErrors({});
@@ -429,37 +432,37 @@ export function InvoicesPage() {
   );
 
   // Update stats calculation to remove overdue-specific stat
-  const totalInvoices = invoices.length;
-  const paidInvoices = invoices.filter((i) => i.status === "paid").length;
-  const pendingInvoices = invoices.filter(
-    (i) => i.status === "pending" || i.status === "draft"
-  ).length;
-  console.log(
-    "All invoices:",
-    invoices.map((i) => ({ id: i.id, status: i.status, total: i.total }))
-  );
-  console.log(
-    "Paid invoices:",
-    invoices.filter((i) => i.status === "paid")
-  );
+  // const totalInvoices = invoices.length;
+  // const paidInvoices = invoices.filter((i) => i.status === "paid").length;
+  // const pendingInvoices = invoices.filter(
+  //   (i) => i.status === "pending" || i.status === "draft"
+  // ).length;
+  // console.log(
+  //   "All invoices:",
+  //   invoices.map((i) => ({ id: i.id, status: i.status, total: i.total }))
+  // );
+  // console.log(
+  //   "Paid invoices:",
+  //   invoices.filter((i) => i.status === "paid")
+  // );
 
-  const totalRevenue = invoices.reduce((sum, i) => {
-    // Convert all currencies to USD for consistent calculation
-    const conversionRates: Record<string, number> = {
-      USD: 1,
-      EUR: 1.1,
-      GBP: 1.25,
-      CAD: 0.75,
-      AUD: 0.65,
-    };
+  // const totalRevenue = invoices.reduce((sum, i) => {
+  //   // Convert all currencies to USD for consistent calculation
+  //   const conversionRates: Record<string, number> = {
+  //     USD: 1,
+  //     EUR: 1.1,
+  //     GBP: 1.25,
+  //     CAD: 0.75,
+  //     AUD: 0.65,
+  //   };
 
-    const rate = conversionRates[i.currency] || 1;
-    return sum + i.total * rate;
-  }, 0);
+  //   const rate = conversionRates[i.currency] || 1;
+  //   return sum + i.total * rate;
+  // }, 0);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
+  // const formatDate = (dateString: string) => {
+  //   return new Date(dateString).toLocaleDateString();
+  // };
 
   const handleDownload = async (invoice: ApiInvoice) => {
     setDownloadingId(invoice.id);
@@ -517,7 +520,7 @@ export function InvoicesPage() {
         >
           <DialogTrigger asChild>
             <Button
-              className=" cursor-pointer bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white rounded-xl shadow-lg"
+              className=" cursor-pointer bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110 "
               disabled={invoicesCounter > 20}
             >
               <Plus className="mr-1 h-4 w-4" />
@@ -565,12 +568,15 @@ export function InvoicesPage() {
                       value={companyName}
                       onChange={(e) => {
                         setCompanyName(e.target.value);
-                        if (!touched.companyName)
-                          setTouched({ ...touched, companyName: true });
+                        // Don't mark as touched on change - only on blur or when submitting
                       }}
-                      onBlur={() =>
-                        setTouched({ ...touched, companyName: true })
-                      }
+                      onBlur={() => {
+                        // Only mark as touched on blur if user has actually typed something
+                        // This prevents showing errors when just clicking around
+                        if (companyName.trim().length > 0) {
+                          setTouched({ ...touched, companyName: true });
+                        }
+                      }}
                       placeholder="Your Company Inc."
                       required
                       maxLength={100}
@@ -598,12 +604,15 @@ export function InvoicesPage() {
                       value={clientName}
                       onChange={(e) => {
                         setClientName(e.target.value);
-                        if (!touched.clientName)
-                          setTouched({ ...touched, clientName: true });
+                        // Don't mark as touched on change - only on blur or when submitting
                       }}
-                      onBlur={() =>
-                        setTouched({ ...touched, clientName: true })
-                      }
+                      onBlur={() => {
+                        // Only mark as touched on blur if user has actually typed something
+                        // This prevents showing errors when just clicking around
+                        if (clientName.trim().length > 0) {
+                          setTouched({ ...touched, clientName: true });
+                        }
+                      }}
                       placeholder="Client Company"
                       required
                       maxLength={100}
@@ -708,7 +717,7 @@ export function InvoicesPage() {
                       <Label className={styles.lableWrapper}>Quantity</Label>
                       <Input
                         type="number"
-                        min="0"
+                        min="1"
                         step="1"
                         value={item.quantity}
                         onChange={(e) => {
@@ -729,7 +738,7 @@ export function InvoicesPage() {
                       </Label>
                       <Input
                         type="number"
-                        min="0"
+                        min="0.01"
                         step="0.01"
                         value={item.rate}
                         onChange={(e) => {
@@ -878,10 +887,15 @@ export function InvoicesPage() {
                     value={companyName}
                     onChange={(e) => {
                       setCompanyName(e.target.value);
-                      if (!touched.companyName)
-                        setTouched({ ...touched, companyName: true });
+                      // Don't mark as touched on change - only on blur or when submitting
                     }}
-                    onBlur={() => setTouched({ ...touched, companyName: true })}
+                    onBlur={() => {
+                      // Only mark as touched on blur if user has actually typed something
+                      // This prevents showing errors when just clicking around
+                      if (companyName.trim().length > 0) {
+                        setTouched({ ...touched, companyName: true });
+                      }
+                    }}
                     placeholder="Your Company Inc."
                     required
                     maxLength={100}
@@ -908,10 +922,15 @@ export function InvoicesPage() {
                     value={clientName}
                     onChange={(e) => {
                       setClientName(e.target.value);
-                      if (!touched.clientName)
-                        setTouched({ ...touched, clientName: true });
+                      // Don't mark as touched on change - only on blur or when submitting
                     }}
-                    onBlur={() => setTouched({ ...touched, clientName: true })}
+                    onBlur={() => {
+                      // Only mark as touched on blur if user has actually typed something
+                      // This prevents showing errors when just clicking around
+                      if (clientName.trim().length > 0) {
+                        setTouched({ ...touched, clientName: true });
+                      }
+                    }}
                     placeholder="Client Company"
                     required
                     maxLength={100}
@@ -1007,7 +1026,7 @@ export function InvoicesPage() {
                     <Label>Quantity</Label>
                     <Input
                       type="number"
-                      min="0"
+                      min="1"
                       step="1"
                       value={item.quantity}
                       onChange={(e) => {
@@ -1023,7 +1042,7 @@ export function InvoicesPage() {
                     <Label>Rate ({currencySymbol})</Label>
                     <Input
                       type="number"
-                      min="0"
+                      min="0.01"
                       step="0.01"
                       value={item.rate}
                       onChange={(e) => {

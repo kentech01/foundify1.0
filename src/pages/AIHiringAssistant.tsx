@@ -567,7 +567,7 @@ ${i + 1}. ${q.question}
             <Button
               onClick={handleGenerateQuestions}
               disabled={isGenerating}
-              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer hover:bg-purple-700 text-white"
+              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110"
             >
               {isGenerating ? (
                 <>
@@ -710,7 +710,7 @@ ${i + 1}. ${q.question}
                   <Button
                     onClick={handleRegenerate}
                     variant="outline"
-                    className="border-[#252952] text-blue-600 hover:bg-gray-50 cursor-pointer"
+                    className="border-blue-700 text-blue-600 hover:bg-gray-50 cursor-pointer"
                   >
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Start Over
@@ -718,7 +718,7 @@ ${i + 1}. ${q.question}
                   <Button
                     onClick={handleExportPDF}
                     disabled={isExporting}
-                    className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer text-white"
+                    className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110"
                   >
                     {isExporting ? (
                       <>

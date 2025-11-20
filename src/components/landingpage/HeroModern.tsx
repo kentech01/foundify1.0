@@ -46,7 +46,7 @@ export function HeroModern({ onStart }: HeroModernProps) {
             </p>
           </div>
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+          <div className="flex gap-4 justify-center items-center pt-4">
             <Button
               size="lg"
               className="bg-[#252952] hover:bg-[#161930] cursor-pointer font-bold text-white px-8 py-7 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"

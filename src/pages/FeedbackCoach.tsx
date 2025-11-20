@@ -345,7 +345,7 @@ Examples:
               <Button
                 onClick={generatePDF}
                 disabled={!allFieldsHaveAtLeastOneWord || isGenerating}
-                className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer hover:bg-purple-700"
+                className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110"
               >
                 {isGenerating ? (
                   <>

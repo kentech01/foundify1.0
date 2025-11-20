@@ -441,7 +441,7 @@ export function InvestorEmailDraft() {
               <Button
                 onClick={generateEmail}
                 disabled={generating || !validate.valid}
-                className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer"
+                className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110"
               >
                 <Sparkles className={styles.ctaIcon} />
                 {generating ? "Generating..." : "Generate Email"}
