@@ -303,7 +303,7 @@ export function LandingPageGenerator() {
                   </Button>
                 ) : (
                   <Button
-                    className="px-6 bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
+                    className="px-6 bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
                     onClick={generateLandingPage}
                     disabled={isGenerating}
                   >

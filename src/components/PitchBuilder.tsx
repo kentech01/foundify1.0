@@ -233,13 +233,12 @@ export function PitchBuilder() {
       handleCreatePitch();
     }
   };
-  const handleKeyDown= (event)=>{
-    if(event.key == "Enter"){
+  const handleKeyDown = (event) => {
+    if (event.key == "Enter") {
       console.log("qitu jem");
-      handleNext()
-      
+      handleNext();
     }
-  }
+  };
 
   const handleComplete = async (data: PitchData) => {
     // Validate all fields before submitting
@@ -364,7 +363,13 @@ export function PitchBuilder() {
                 </CardDescription>
               </div>
             </div>
-            <button type="button" onClick={()=>navigate(-1)} className="cursor-pointer"><XIcon/></button>
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="cursor-pointer"
+            >
+              <XIcon />
+            </button>
           </div>
 
           {/* Progress bar */}
@@ -457,7 +462,7 @@ export function PitchBuilder() {
                 placeholder={currentQuestion.placeholder}
                 value={formData[currentQuestion.id as keyof PitchData]}
                 onChange={(e) => handleChange(e.target.value)}
-                className="text-lg py-6 border-2 border-gray-200 focus:border-premium-purple rounded-xl"
+                className="text-lg py-6 border-1 border-[#252952] focus:border-[#161930] rounded-xl placeholder:text-gray-300"
                 onKeyDown={handleKeyDown}
                 autoFocus
                 aria-invalid={Boolean(errors[currentQuestion.id])}
@@ -467,7 +472,7 @@ export function PitchBuilder() {
                 placeholder={currentQuestion.placeholder}
                 value={formData[currentQuestion.id as keyof PitchData]}
                 onChange={(e) => handleChange(e.target.value)}
-                className="text-base min-h-[150px] border-2 border-gray-200 focus:border-premium-purple rounded-xl resize-none"
+                className="text-base min-h-[150px] border-1 border-[#252952] focus:border-[#161930] rounded-xl resize-none placeholder:text-gray-300"
                 onKeyDown={handleKeyDown}
                 autoFocus
                 aria-invalid={Boolean(errors[currentQuestion.id])}

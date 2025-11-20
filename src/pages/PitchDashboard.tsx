@@ -259,7 +259,7 @@ export function PitchDashboard({
         <Button
           onClick={onCreatePitch}
           disabled={(pitches?.length || 0) > 0}
-          className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus className="mr-2 h-4 w-4" />
           New Pitch
@@ -344,7 +344,7 @@ export function PitchDashboard({
                       <Button
                         variant="outline"
                         onClick={() => handleDownload(pitch)}
-                        className="border-2 border-gray-200 rounded-xl hover:bg-gray-50 w-full sm:w-auto"
+                        className=" cursor-pointer border-2 border-gray-200 rounded-xl hover:bg-gray-50 w-full sm:w-auto"
                         disabled={loadingModal.isOpen}
                         size="lg"
                       >
@@ -358,7 +358,7 @@ export function PitchDashboard({
                             ? handleGenerateLanding(pitch.id)
                             : handleViewLanding(pitch)
                         }
-                        className={`rounded-xl w-full sm:w-auto ${
+                        className={`rounded-xl w-full cursor-pointer sm:w-auto ${
                           pitch.hasLandingPage
                             ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
                             : "bg-[#252952] hover:bg-[#161930] text-white"

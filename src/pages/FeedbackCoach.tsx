@@ -181,6 +181,7 @@ export function FeedbackCoach() {
                   value={formData.employeeName}
                   onChange={(e) => updateField("employeeName", e.target.value)}
                   placeholder="John Smith"
+                  className="placeholder:text-gray-400"
                 />
               </div>
               <div>
@@ -191,7 +192,7 @@ export function FeedbackCoach() {
                   value={formData.employeeRole}
                   onValueChange={(value) => updateField("employeeRole", value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="data-[placeholder]:text-gray-400">
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -212,7 +213,7 @@ export function FeedbackCoach() {
                 value={formData.feedbackCycle}
                 onValueChange={(value) => updateField("feedbackCycle", value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="data-[placeholder]:text-gray-400">
                   <SelectValue placeholder="Select review type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -248,6 +249,7 @@ Examples:
 • Great problem-solving skills and attention to detail
 • Takes initiative on challenging projects"
                   rows={5}
+                  className="placeholder:text-gray-400"
                 />
               </CardContent>
             </Card>
@@ -270,6 +272,7 @@ Examples:
 • Consider asking more questions when requirements are unclear
 • Time management on multiple concurrent projects"
                   rows={5}
+                  className="placeholder:text-gray-400"
                 />
               </CardContent>
             </Card>
@@ -292,6 +295,7 @@ Examples:
 • Actively participates in team discussions and planning
 • Could improve on providing more detailed handoffs"
                   rows={4}
+                  className="placeholder:text-gray-400"
                 />
               </CardContent>
             </Card>
@@ -315,6 +319,7 @@ Examples:
 • Complete advanced React certification
 • Improve presentation skills for client demos"
                   rows={5}
+                  className="placeholder:text-gray-400"
                 />
               </CardContent>
             </Card>
@@ -331,6 +336,7 @@ Examples:
                   }
                   placeholder="Any additional feedback, context, or discussion points for your conversation with John..."
                   rows={3}
+                  className="placeholder:text-gray-400"
                 />
               </CardContent>
             </Card>
@@ -339,7 +345,7 @@ Examples:
               <Button
                 onClick={generatePDF}
                 disabled={!allFieldsHaveAtLeastOneWord || isGenerating}
-                className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:bg-purple-700"
+                className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer hover:bg-purple-700"
               >
                 {isGenerating ? (
                   <>

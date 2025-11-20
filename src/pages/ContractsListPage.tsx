@@ -218,11 +218,13 @@ export function ContractsListPage() {
   return (
     <div className="p-8">
       {/* Header: Back + Title on left, Action button on right */}
-      <div className="flex items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
         <div className="flex items-center gap-3">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900">Your Contracts</h2>
-            <p className="text-gray-600">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              Your Contracts
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600">
               Manage and download your generated contracts
             </p>
           </div>
@@ -232,7 +234,7 @@ export function ContractsListPage() {
             setIsCreateModalOpen(true);
             setShowCreateHeader(true);
           }}
-          className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:to-deep-blue-dark text-white rounded-xl"
+          className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer hover:to-deep-blue-dark text-white rounded-xl w-full sm:w-auto"
         >
           <Plus className="mr-2 h-4 w-4" />
           New Contract
@@ -249,9 +251,9 @@ export function ContractsListPage() {
       {/* Empty State */}
       {!isLoading && contracts.length === 0 && (
         <Card className="border-2 border-solid border-gray-200 rounded-2xl">
-          <CardContent className="p-12 text-center">
-            <FileCheck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <CardContent className="p-6 sm:p-12 text-center">
+            <FileCheck className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
               No contracts yet
             </h3>
           </CardContent>
@@ -260,55 +262,61 @@ export function ContractsListPage() {
 
       {/* Contracts List */}
       {!isLoading && contracts.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {contracts.map((contract) => (
             <Card
               key={contract.id}
-              className="border-2 border-gray-100 hover:shadow-md transition-shadow rounded-2xl"
+              className="border-2 border-gray-100 hover:shadow-lg transition-shadow rounded-2xl"
             >
               <CardContent className="p-6">
-                <div className="flex items-center justify-between gap-4">
-                  {/* Left side - Icon and details */}
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-                      <FileCheck className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-1">
-                        <h4 className="font-semibold text-gray-900">
-                          {contract?.template_name}
-                        </h4>
-                        <Badge
-                          className={
-                            contract.status === "completed"
-                              ? "bg-green-100 text-green-700 hover:bg-green-100"
-                              : "bg-gray-100 text-gray-700 hover:bg-gray-100"
-                          }
-                        >
-                          {contract.status === "completed"
-                            ? "Completed"
-                            : "Draft"}
-                        </Badge>
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                  {/* Contract Info */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center">
+                        <FileCheck className="h-6 w-6 text-blue-600" />
                       </div>
-                      <p className="text-sm text-gray-600">{contract.type}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Created {contract.createdDate}
-                      </p>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {contract?.template_name || "Untitled Contract"}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {contract.type || "Contract"}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Right side - Action buttons */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  {/* Status */}
+                  <div className="flex items-center gap-6 ">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-gray-600">Status:</p>
+                      <Badge
+                        className={
+                          contract.status === "completed"
+                            ? "bg-green-100 text-green-700 hover:bg-green-100 w-fit mt-1"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-100 w-fit mt-1"
+                        }
+                      >
+                        {contract.status === "completed"
+                          ? "Completed"
+                          : "Draft"}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-3">
                     <Button
                       onClick={() => handleView(contract)}
                       variant="secondary"
                       size="lg"
+                      className="cursor-pointer border-2 border-gray-200 rounded-xl hover:bg-gray-50"
                       disabled={viewingId === contract.id}
-                      className="border-2 border-gray-200 rounded-xl hover:bg-gray-50 disabled:opacity-50"
                     >
                       {viewingId === contract.id ? (
                         <>
-                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                          <Loader2 className="mr-1 h-4 w-4 animate-spin" />
                           Viewing...
                         </>
                       ) : (
@@ -322,25 +330,25 @@ export function ContractsListPage() {
                       variant="outline"
                       size="lg"
                       onClick={() => handleEdit(contract)}
-                      className="rounded-xl border-2"
+                      className="cursor-pointer border-2 border-gray-200 rounded-xl hover:bg-gray-50"
                     >
-                      <Edit className="h-4 w-4 mr-2" />
+                      <Edit className="mr-1 h-4 w-4" />
                       Edit
                     </Button>
                     <Button
                       size="lg"
                       onClick={() => handleDownload(contract)}
+                      className="bg-[#252952] hover:bg-[#161930] text-white rounded-xl"
                       disabled={downloadingId === contract.id}
-                      className="bg-[#252952] hover:bg-[#161930] text-white rounded-xl disabled:opacity-50"
                     >
                       {downloadingId === contract.id ? (
                         <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          <Loader2 className="mr-1 h-4 w-4 animate-spin" />
                           Downloading...
                         </>
                       ) : (
                         <>
-                          <Download className="h-4 w-4 mr-1" />
+                          <Download className="mr-1 h-4 w-4" />
                           Download
                         </>
                       )}
@@ -425,17 +433,17 @@ export function ContractsListPage() {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="rounded-2xl border-2 border-red-100 shadow-xl max-w-md">
+        <AlertDialogContent className="rounded-2xl border-2 border-red-100 shadow-xl max-w-md w-[95vw] sm:w-full mx-4 sm:mx-auto">
           <AlertDialogHeader className="text-left">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                <AlertTriangle className="h-6 w-6 text-red-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" />
               </div>
-              <AlertDialogTitle className="text-2xl font-bold text-gray-900">
+              <AlertDialogTitle className="text-xl sm:text-2xl font-bold text-gray-900">
                 Delete Contract
               </AlertDialogTitle>
             </div>
-            <AlertDialogDescription className="text-base text-gray-600 mt-2">
+            <AlertDialogDescription className="text-sm sm:text-base text-gray-600 mt-2">
               Are you sure you want to delete{" "}
               <span className="font-semibold text-gray-900">
                 "{contractToDelete?.template_name}"
@@ -444,16 +452,16 @@ export function ContractsListPage() {
               permanently removed.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row gap-3 sm:justify-end mt-6">
+          <AlertDialogFooter className="flex-col sm:flex-row gap-3 sm:justify-end mt-6">
             <AlertDialogCancel
               onClick={handleDeleteCancel}
-              className="rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-medium px-6 py-2.5"
+              className="rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-medium px-4 sm:px-6 py-2.5 w-full sm:w-auto"
             >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium px-6 py-2.5 shadow-sm hover:shadow-md transition-all duration-200"
+              className="bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium px-4 sm:px-6 py-2.5 shadow-sm hover:shadow-md transition-all duration-200 w-full sm:w-auto"
             >
               Delete
             </AlertDialogAction>

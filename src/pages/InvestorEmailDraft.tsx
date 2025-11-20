@@ -212,7 +212,7 @@ export function InvestorEmailDraft() {
               onValueChange={setSelectedTemplate}
               disabled={templatesLoading || !!templatesError}
             >
-              <SelectTrigger>
+              <SelectTrigger className="data-[placeholder]:text-gray-400">
                 <SelectValue
                   placeholder={
                     templatesLoading
@@ -267,6 +267,7 @@ export function InvestorEmailDraft() {
                       onBlur={() => setTouched({ ...touched, yourName: true })}
                       placeholder="John Smith"
                       maxLength={100}
+                      className="placeholder:text-gray-400"
                     />
                     {touched.yourName &&
                       formData.name.trim().length > 0 &&
@@ -299,6 +300,7 @@ export function InvestorEmailDraft() {
                       }
                       placeholder="Your Startup Inc."
                       maxLength={120}
+                      className="placeholder:text-gray-400"
                     />
                     {touched.companyName &&
                       formData.company.trim().length > 0 &&
@@ -333,6 +335,7 @@ export function InvestorEmailDraft() {
                     }
                     placeholder="Alex Johnson"
                     maxLength={120}
+                    className="placeholder:text-gray-400"
                   />
                   {touched.investorName &&
                     formData.investor.trim().length > 0 &&
@@ -366,6 +369,7 @@ export function InvestorEmailDraft() {
                     }
                     placeholder="AI-powered project management"
                     maxLength={280}
+                    className="placeholder:text-gray-400"
                   />
                   {touched.valueProposition &&
                     formData.valueProp.trim().length > 0 &&
@@ -397,6 +401,7 @@ export function InvestorEmailDraft() {
                     onBlur={() => setTouched({ ...touched, keyTraction: true })}
                     placeholder="$50K MRR, 1000+ users"
                     maxLength={280}
+                    className="placeholder:text-gray-400"
                   />
                   {touched.keyTraction &&
                     formData.traction.trim().length > 0 &&
@@ -425,6 +430,7 @@ export function InvestorEmailDraft() {
                         setFormData({ ...formData, contact: e.target.value })
                       }
                       placeholder="Sarah Wilson"
+                      className="placeholder:text-gray-400"
                     />
                   </div>
                 )}
@@ -435,7 +441,7 @@ export function InvestorEmailDraft() {
               <Button
                 onClick={generateEmail}
                 disabled={generating || !validate.valid}
-                className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]"
+                className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer"
               >
                 <Sparkles className={styles.ctaIcon} />
                 {generating ? "Generating..." : "Generate Email"}

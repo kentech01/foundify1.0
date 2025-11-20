@@ -113,28 +113,30 @@ export function AIHiringAssistant() {
 
     const errs: Errors = {};
 
-    if (
-      !trimmed.candidateName ||
-      trimmed.candidateName.length < 2 ||
-      trimmed.candidateName.length > 100
-    ) {
-      errs.candidateName = "2-100 characters";
+    if (!trimmed.candidateName || trimmed.candidateName.length < 2) {
+      errs.candidateName = "This field is required (minimum 2 characters)";
+    } else if (trimmed.candidateName.length > 100) {
+      errs.candidateName = "Maximum 100 characters allowed";
     }
-    if (!trimmed.role || trimmed.role.length < 2 || trimmed.role.length > 120) {
-      errs.role = "2-120 characters";
+
+    if (!trimmed.role || trimmed.role.length < 2) {
+      errs.role = "This field is required (minimum 2 characters)";
+    } else if (trimmed.role.length > 120) {
+      errs.role = "Maximum 120 characters allowed";
     }
+
     if (!trimmed.seniority) {
       errs.seniority = "Please select a seniority level";
     }
+
     if (!trimmed.industry) {
       errs.industry = "Please select an industry";
     }
-    if (
-      !trimmed.interviewGoal ||
-      trimmed.interviewGoal.length < 10 ||
-      trimmed.interviewGoal.length > 500
-    ) {
-      errs.interviewGoal = "10-500 characters";
+
+    if (!trimmed.interviewGoal || trimmed.interviewGoal.length < 10) {
+      errs.interviewGoal = "This field is required (minimum 10 characters)";
+    } else if (trimmed.interviewGoal.length > 500) {
+      errs.interviewGoal = "Maximum 500 characters allowed";
     }
 
     return { trimmed, errs, valid: Object.keys(errs).length === 0 };
@@ -145,7 +147,19 @@ export function AIHiringAssistant() {
   }, [validate]);
 
   const handleGenerateQuestions = async () => {
-    if (!validate.valid) return;
+    // Mark all fields as touched when trying to submit
+    setTouched({
+      candidateName: true,
+      role: true,
+      seniority: true,
+      industry: true,
+      interviewGoal: true,
+    });
+
+    if (!validate.valid) {
+      toast.error("Please fix the validation errors");
+      return;
+    }
 
     setIsGenerating(true);
 
@@ -390,20 +404,19 @@ ${i + 1}. ${q.question}
                   onBlur={() => setTouched({ ...touched, candidateName: true })}
                   placeholder="e.g., Sarah Johnson"
                   maxLength={100}
+                  className="placeholder:text-gray-400"
                 />
-                {touched.candidateName &&
-                  candidateName.trim().length > 0 &&
-                  errors.candidateName && (
-                    <div
-                      style={{
-                        color: "#b91c1c",
-                        fontSize: "0.8rem",
-                        marginTop: "0.375rem",
-                      }}
-                    >
-                      {errors.candidateName}
-                    </div>
-                  )}
+                {touched.candidateName && errors.candidateName && (
+                  <div
+                    style={{
+                      color: "#b91c1c",
+                      fontSize: "0.8rem",
+                      marginTop: "0.375rem",
+                    }}
+                  >
+                    {errors.candidateName}
+                  </div>
+                )}
               </div>
               <div>
                 <Label className="mb-2" htmlFor="role">
@@ -419,8 +432,9 @@ ${i + 1}. ${q.question}
                   onBlur={() => setTouched({ ...touched, role: true })}
                   placeholder="e.g., Senior Frontend Developer"
                   maxLength={120}
+                  className="placeholder:text-gray-400"
                 />
-                {touched.role && role.trim().length > 0 && errors.role && (
+                {touched.role && errors.role && (
                   <div
                     style={{
                       color: "#b91c1c",
@@ -447,7 +461,10 @@ ${i + 1}. ${q.question}
                       setTouched({ ...touched, seniority: true });
                   }}
                 >
-                  <SelectTrigger id="seniority">
+                  <SelectTrigger
+                    id="seniority"
+                    className="data-[placeholder]:text-gray-400"
+                  >
                     <SelectValue placeholder="Select level" />
                   </SelectTrigger>
                   <SelectContent>
@@ -482,7 +499,10 @@ ${i + 1}. ${q.question}
                       setTouched({ ...touched, industry: true });
                   }}
                 >
-                  <SelectTrigger id="industry">
+                  <SelectTrigger
+                    id="industry"
+                    className="data-[placeholder]:text-gray-400"
+                  >
                     <SelectValue placeholder="Select industry" />
                   </SelectTrigger>
                   <SelectContent>
@@ -524,20 +544,19 @@ ${i + 1}. ${q.question}
                 placeholder="Example: Evaluate problem-solving and teamwork in real-world projects."
                 rows={3}
                 maxLength={500}
+                className="placeholder:text-gray-400"
               />
-              {touched.interviewGoal &&
-                interviewGoal.trim().length > 0 &&
-                errors.interviewGoal && (
-                  <div
-                    style={{
-                      color: "#b91c1c",
-                      fontSize: "0.8rem",
-                      marginTop: "0.375rem",
-                    }}
-                  >
-                    {errors.interviewGoal}
-                  </div>
-                )}
+              {touched.interviewGoal && errors.interviewGoal && (
+                <div
+                  style={{
+                    color: "#b91c1c",
+                    fontSize: "0.8rem",
+                    marginTop: "0.375rem",
+                  }}
+                >
+                  {errors.interviewGoal}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -547,8 +566,8 @@ ${i + 1}. ${q.question}
           <div className="text-center">
             <Button
               onClick={handleGenerateQuestions}
-              disabled={!canGenerate || isGenerating}
-              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:bg-purple-700 text-white"
+              disabled={isGenerating}
+              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer hover:bg-purple-700 text-white"
             >
               {isGenerating ? (
                 <>
@@ -651,6 +670,7 @@ ${i + 1}. ${q.question}
                                       }
                                       placeholder="Record the candidate's answer and add your observations..."
                                       rows={3}
+                                      className="placeholder:text-gray-400"
                                     />
                                   </div>
                                 </div>
@@ -690,7 +710,7 @@ ${i + 1}. ${q.question}
                   <Button
                     onClick={handleRegenerate}
                     variant="outline"
-                    className="border-blue-300 text-blue-600 hover:bg-gray-50"
+                    className="border-[#252952] text-blue-600 hover:bg-gray-50 cursor-pointer"
                   >
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Start Over
@@ -698,7 +718,7 @@ ${i + 1}. ${q.question}
                   <Button
                     onClick={handleExportPDF}
                     disabled={isExporting}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer text-white"
                   >
                     {isExporting ? (
                       <>
@@ -742,7 +762,7 @@ ${i + 1}. ${q.question}
               onChange={(e) => setCustomQuestionInput(e.target.value)}
               placeholder="Example: Can you describe a challenging project you've worked on?"
               rows={4}
-              className="resize-none"
+              className="resize-none placeholder:text-gray-400"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && e.ctrlKey) {
                   handleSaveCustomQuestion();
@@ -766,7 +786,7 @@ ${i + 1}. ${q.question}
             <Button
               onClick={handleSaveCustomQuestion}
               disabled={!customQuestionInput.trim()}
-              className="bg-blue-600 hover:bg-blue-800 text-white"
+              className="bg-[#252952] hover:bg-[#161930] text-white"
             >
               Add Question
             </Button>
