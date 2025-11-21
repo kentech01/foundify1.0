@@ -26,7 +26,6 @@ const LandingPage = () => {
       try {
         const res = await getLandingPageHtmlByStartupName(startupName);
 
-        console.log(res, "res");
         if (isMounted) {
           // Extract the JSX string from the response
           const jsxString = res?.data?.landingPagePremium || res || "";
@@ -46,8 +45,6 @@ const LandingPage = () => {
             setError("Failed to parse landing page JSX.");
           }
         }
-
-        console.log(content, "content");
       } catch (e: any) {
         if (isMounted) {
           setError(e?.message || "Failed to load landing page.");

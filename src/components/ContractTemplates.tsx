@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -12,16 +12,8 @@ import {
   Lock,
   Check,
   Copy,
-  HelpCircle,
   Edit,
 } from "lucide-react";
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
 import { useApiService } from "../services/api";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -43,7 +35,6 @@ interface ContractTemplate {
     label: string;
     placeholder: string;
     type: string;
-    tooltip?: string;
     required?: boolean;
     defaultValue?: string | (() => string);
   }[];
@@ -88,8 +79,8 @@ export function ContractTemplates({
   const [generatedContractId, setGeneratedContractId] = useState<string>(
     editMode?.contractId || ""
   );
-
-  console.log(editMode, "editmode");
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (editMode && selectedTemplate) {
@@ -97,6 +88,9 @@ export function ContractTemplates({
       setEditablePreview(editMode.contractText);
       // Also set the editable contract
       setEditableContract(editMode.contractText);
+      // Reset validation state when entering edit mode
+      setTouched({});
+      setErrors({});
     }
   }, [editMode, selectedTemplate]);
 
@@ -127,6 +121,9 @@ export function ContractTemplates({
       }
     });
     setFormData(initialData);
+    // Reset validation state
+    setTouched({});
+    setErrors({});
   };
 
   const handleContinueToCustomize = () => {
@@ -514,8 +511,6 @@ export function ContractTemplates({
   // const toCamel = (s: string) =>
   //   s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
   const mapDataForApi = (data: Record<string, string>) => {
-    console.log(data, "data");
-
     const out: Record<string, string> = data;
 
     if (out["date"] && !out["agreementDate"])
@@ -579,6 +574,9 @@ export function ContractTemplates({
       setEditableContract("");
       setEditablePreview("");
       setGeneratedContractId("");
+      // Reset validation state
+      setTouched({});
+      setErrors({});
 
       // Call success callback if provided
       if (onSuccess) {
@@ -604,44 +602,86 @@ export function ContractTemplates({
 
   const updateFormData = (fieldId: string, value: string) => {
     setFormData({ ...formData, [fieldId]: value });
+    // Mark field as touched when user starts typing
+    if (!touched[fieldId]) {
+      setTouched({ ...touched, [fieldId]: true });
+    }
   };
+
+  // Validation logic similar to InvoicesPage - validates ALL fields
+  const validate = useMemo(() => {
+    if (!selectedTemplate) {
+      return { errs: {}, valid: true };
+    }
+
+    const errs: Record<string, string> = {};
+
+    // Validate all fields (both required and optional)
+    selectedTemplate.fields.forEach((field) => {
+      const value = formData[field.id]?.trim() || "";
+
+      // For required fields: must have value
+      if (field.required === true) {
+        if (!value || value.length < 2) {
+          errs[field.id] = "This field is required (minimum 2 characters)";
+        } else if (value.length > 500) {
+          errs[field.id] = "Maximum 500 characters allowed";
+        }
+      } else {
+        // For optional fields: if they have a value, validate it
+        if (value.length > 0) {
+          if (value.length < 2) {
+            errs[field.id] = "Minimum 2 characters required";
+          } else if (value.length > 500) {
+            errs[field.id] = "Maximum 500 characters allowed";
+          }
+        }
+      }
+    });
+
+    return { errs, valid: Object.keys(errs).length === 0 };
+  }, [formData, selectedTemplate]);
+
+  useEffect(() => {
+    setErrors(validate.errs);
+  }, [validate]);
 
   // Render template selection
   if (step === "select") {
     return (
-      <div className=" space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Breadcrumb */}
 
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl mb-2">Contract Templates</h1>
-          <p className="text-gray-600">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl mb-2">Contract Templates</h1>
+          <p className="text-sm sm:text-base text-gray-600">
             Professional legal templates for your startup
           </p>
         </div>
 
         {/* 2x2 Grid of Template Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {contractTemplates.map((template) => (
             <Card
               key={template.id}
               className={`border shadow-sm hover:shadow-md transition-shadow ${
                 template.isPremium
-                  ? "border-purple-200 bg-purple-50/20"
+                  ? "border-blue-200 bg-blue-50/20"
                   : "border-gray-200 bg-white hover:border-blue-200"
               }`}
             >
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4 mb-4">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center gap-3 sm:gap-4 mb-4">
                   <div
-                    className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                      template.isPremium ? "bg-purple-100" : "bg-blue-100"
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                      template.isPremium ? "bg-blue-100" : "bg-blue-100"
                     }`}
                   >
                     <FileText
-                      className={`w-6 h-6 ${
+                      className={`w-5 h-5 sm:w-6 sm:h-6 ${
                         template.isPremium
-                          ? "text-premium-purple-700"
+                          ? "text-premium-blue-700"
                           : "text-blue-600"
                       }`}
                     />
@@ -649,7 +689,7 @@ export function ContractTemplates({
                   <div className="flex-1">
                     <Badge
                       variant="secondary"
-                      className={` text-xs pb-1 bg-blue-100 text-blue-700`}
+                      className={`text-xs pb-1 bg-blue-100 text-blue-700`}
                     >
                       {template.category}
                     </Badge>
@@ -657,15 +697,17 @@ export function ContractTemplates({
                 </div>
 
                 <div className="mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold">{template.title}</h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                    <h3 className="font-semibold text-sm sm:text-base">
+                      {template.title}
+                    </h3>
                     {template.isPremium && (
-                      <Badge className="bg-premium-purple-700 text-white text-xs px-2 py-0.5">
+                      <Badge className="bg-blue-700 text-white text-xs px-2 py-0.5 w-fit">
                         Premium
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs sm:text-sm text-gray-600">
                     {template.description}
                   </p>
                 </div>
@@ -674,11 +716,7 @@ export function ContractTemplates({
                   <Button
                     onClick={() => handleSelectTemplate(template)}
                     size="sm"
-                    className={
-                      template.isPremium
-                        ? "bg-premium-purple-700 hover:bg-premium-purple-800 text-white"
-                        : "bg-[#252952] hover:bg-[#161930] text-white"
-                    }
+                    className={"bg-[#252952] hover:bg-[#161930] text-white "}
                   >
                     {template.isPremium ? (
                       <>
@@ -696,8 +734,8 @@ export function ContractTemplates({
         </div>
 
         {/* Friendly UX Copy */}
-        <div className="text-center mt-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
-          <p className="text-sm text-gray-600">
+        <div className="text-center mt-6 sm:mt-8 p-4 sm:p-6 bg-gray-50 rounded-xl border border-gray-200">
+          <p className="text-xs sm:text-sm text-gray-600">
             <strong>Your ready-to-use legal template in minutes.</strong> Fill
             in your details to generate your contract.
           </p>
@@ -709,52 +747,63 @@ export function ContractTemplates({
   // Render template preview
   if (step === "preview" && selectedTemplate) {
     return (
-      <div className=" space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Back Button & Header */}
         <div className="flex items-start gap-4">
           <div className="flex-1">
-            <h1 className="text-2xl mb-1">{selectedTemplate.title}</h1>
-            <p className="text-gray-600">Preview and edit before customizing</p>
+            <h1 className="text-xl sm:text-2xl mb-1">
+              {selectedTemplate.title}
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600">
+              Preview and edit before customizing
+            </p>
           </div>
         </div>
 
         {/* Preview Card */}
         <Card className="border border-gray-200 shadow-sm">
-          <CardHeader className="border-b border-gray-100">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Template Preview</CardTitle>
-              <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+          <CardHeader className="border-b border-gray-100 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <CardTitle className="text-base sm:text-lg">
+                Template Preview
+              </CardTitle>
+              <Badge
+                variant="secondary"
+                className="bg-blue-100 text-blue-700 w-fit"
+              >
                 <Edit className="w-3 h-3 mr-1" />
                 Editable
               </Badge>
             </div>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <Textarea
               value={editablePreview}
               onChange={(e) => setEditablePreview(e.target.value)}
-              className="w-full min-h-[450px] font-mono text-sm leading-relaxed resize-none"
+              className="w-full min-h-[300px] sm:min-h-[450px] font-mono text-xs sm:text-sm leading-relaxed resize-none"
               placeholder="Your template preview..."
             />
           </CardContent>
         </Card>
 
         {/* CTA Section */}
-        <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-xl p-6">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-[#252952] flex items-center justify-center flex-shrink-0">
-              <Check className="w-6 h-6 text-white" />
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#252952] flex items-center justify-center flex-shrink-0">
+              <Check className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">Ready to customize?</p>
-              <p className="text-sm text-gray-600">
+              <p className="font-medium text-sm sm:text-base text-gray-900">
+                Ready to customize?
+              </p>
+              <p className="text-xs sm:text-sm text-gray-600">
                 Fill in your details to generate the contract
               </p>
             </div>
           </div>
           <Button
             onClick={handleContinueToCustomize}
-            className="bg-[#252952] hover:bg-[#161930] text-white"
+            className="bg-[#252952] hover:bg-[#161930]  text-white w-full sm:w-auto"
             size="lg"
           >
             Continue to Customize
@@ -766,283 +815,322 @@ export function ContractTemplates({
 
   // Render customization form
   if (step === "customize" && selectedTemplate) {
-    // Only check required fields (explicitly marked as required: true)
-    const allRequiredFieldsFilled = selectedTemplate.fields
-      .filter((field) => field.required === true)
-      .every((field) => formData[field.id]?.trim());
-
     return (
-      <TooltipProvider>
-        <div className=" space-y-6">
-          <div className="flex items-start gap-4">
-            <Button
-              onClick={handleBack}
-              variant="outline"
-              size="sm"
-              className="mt-1"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            <div className="flex-1">
-              <h1 className="text-2xl mb-1">
-                Customize {selectedTemplate.title}
-              </h1>
-              <p className="text-gray-600">Fill in the required information</p>
-            </div>
-          </div>
-
-          <Card className="border border-gray-200 shadow-sm">
-            <CardHeader className="border-b border-gray-100">
-              <CardTitle className="text-lg">Contract Details</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {selectedTemplate.fields.map((field) => (
-                  <div
-                    key={field.id}
-                    className={field.type === "textarea" ? "md:col-span-2" : ""}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <Label className="" htmlFor={field.id}>
-                        {field.label}
-                      </Label>
-                      {field.tooltip && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="w-4 h-4 text-gray-400 cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="text-sm max-w-xs">{field.tooltip}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
-                    </div>
-                    {field.type === "textarea" ? (
-                      <Textarea
-                        id={field.id}
-                        value={formData[field.id] || ""}
-                        onChange={(e) =>
-                          updateFormData(field.id, e.target.value)
-                        }
-                        placeholder={field.placeholder}
-                        rows={3}
-                        className="w-full"
-                      />
-                    ) : (
-                      <Input
-                        id={field.id}
-                        type={field.type}
-                        value={formData[field.id] || ""}
-                        onChange={(e) =>
-                          updateFormData(field.id, e.target.value)
-                        }
-                        placeholder={field.placeholder}
-                        className="w-full"
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="flex items-center justify-center gap-4">
-            <Button
-              onClick={handleGenerateContract}
-              size="lg"
-              disabled={!allRequiredFieldsFilled || isGenerating}
-              className="bg-[#252952] hover:bg-[#161930] text-white"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <Edit className="w-4 h-4 mr-2" />
-                  Create Contract
-                </>
-              )}
-            </Button>
-          </div>
-
-          {!allRequiredFieldsFilled && (
-            <p className="text-sm text-center text-gray-500">
-              Please fill in all required fields to continue
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex items-start gap-3 sm:gap-4">
+          <Button
+            onClick={handleBack}
+            variant="outline"
+            size="sm"
+            className="mt-1 flex-shrink-0"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Back</span>
+          </Button>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl mb-1">
+              Customize {selectedTemplate.title}
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600">
+              Fill in the required information
             </p>
-          )}
+          </div>
         </div>
-      </TooltipProvider>
+
+        <Card className="border border-gray-200 shadow-sm">
+          <CardHeader className="border-b border-gray-100 p-4 sm:p-6">
+            <CardTitle className="text-base sm:text-lg">
+              Contract Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {selectedTemplate.fields.map((field) => (
+                <div
+                  key={field.id}
+                  className={field.type === "textarea" ? "md:col-span-2" : ""}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <Label className="" htmlFor={field.id}>
+                      {field.label}
+                      {field.required === true && (
+                        <span className="text-red-500 ml-1">*</span>
+                      )}
+                    </Label>
+                  </div>
+                  {field.type === "textarea" ? (
+                    <Textarea
+                      id={field.id}
+                      value={formData[field.id] || ""}
+                      onChange={(e) => updateFormData(field.id, e.target.value)}
+                      onBlur={() =>
+                        setTouched({ ...touched, [field.id]: true })
+                      }
+                      placeholder={field.placeholder}
+                      rows={3}
+                      className="w-full placeholder:text-gray-400"
+                    />
+                  ) : (
+                    <Input
+                      id={field.id}
+                      type={field.type}
+                      value={formData[field.id] || ""}
+                      onChange={(e) => updateFormData(field.id, e.target.value)}
+                      onBlur={() =>
+                        setTouched({ ...touched, [field.id]: true })
+                      }
+                      placeholder={field.placeholder}
+                      className="w-full placeholder:text-gray-400"
+                    />
+                  )}
+                  {touched[field.id] && errors[field.id] && (
+                    <div
+                      style={{
+                        color: "#b91c1c",
+                        fontSize: "0.8rem",
+                        marginTop: "0.375rem",
+                      }}
+                    >
+                      {errors[field.id]}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex items-center justify-center gap-4">
+          <Button
+            onClick={() => {
+              // Mark all fields as touched when trying to submit
+              const allFields = selectedTemplate.fields.map((f) => f.id);
+              const newTouched: Record<string, boolean> = { ...touched };
+              allFields.forEach((fieldId) => {
+                newTouched[fieldId] = true;
+              });
+              setTouched(newTouched);
+
+              if (validate.valid) {
+                handleGenerateContract();
+              } else {
+                toast.error("Please fix the validation errors");
+              }
+            }}
+            size="lg"
+            disabled={isGenerating}
+            className="bg-[#252952] hover:bg-[#161930] text-white w-full sm:w-auto"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <span className="hidden sm:inline">Creating...</span>
+                <span className="sm:hidden">Creating...</span>
+              </>
+            ) : (
+              <>
+                <Edit className="w-4 h-4 mr-2" />
+                <span className="sm:inline">Create Contract</span>
+              </>
+            )}
+          </Button>
+        </div>
+
+        {!validate.valid && (
+          <p className="text-xs sm:text-sm text-center text-gray-500">
+            Please fill in all required fields (marked with *) to continue
+          </p>
+        )}
+      </div>
     );
   }
 
   // Render editable contract view
   if (step === "edit" && selectedTemplate) {
-    // Check if all required fields are filled (same validation as customize step)
-    const allRequiredFieldsFilled = selectedTemplate.fields
-      .filter((field) => field.required === true)
-      .every((field) => formData[field.id]?.trim());
-
     return (
-      <TooltipProvider>
-        <div className="max-w-5xl mx-auto space-y-6">
-          <div className="flex items-start gap-4">
-            <div className="flex-1">
-              <h1 className="text-2xl mb-1">
-                Review & Edit {selectedTemplate.title}
-              </h1>
-              <p className="text-gray-600">
-                Edit the contract details and preview text
+      <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
+        <div className="flex items-start gap-4">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl mb-1">
+              Review & Edit {selectedTemplate.title}
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600">
+              Edit the contract details and preview text
+            </p>
+          </div>
+        </div>
+
+        {/* Form Inputs Section */}
+        <Card className="border border-gray-200 shadow-sm">
+          <CardHeader className="border-b border-gray-100 p-4 sm:p-6">
+            <CardTitle className="text-base sm:text-lg">
+              Contract Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {selectedTemplate.fields.map((field) => (
+                <div
+                  key={field.id}
+                  className={field.type === "textarea" ? "md:col-span-2" : ""}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <Label className="" htmlFor={field.id}>
+                      {field.label}
+                      {field.required === true && (
+                        <span className="text-red-500 ml-1">*</span>
+                      )}
+                    </Label>
+                  </div>
+                  {field.type === "textarea" ? (
+                    <Textarea
+                      id={field.id}
+                      value={formData[field.id] || ""}
+                      onChange={(e) => updateFormData(field.id, e.target.value)}
+                      onBlur={() =>
+                        setTouched({ ...touched, [field.id]: true })
+                      }
+                      placeholder={field.placeholder}
+                      rows={3}
+                      className="w-full placeholder:text-gray-400"
+                    />
+                  ) : (
+                    <Input
+                      id={field.id}
+                      type={field.type}
+                      value={formData[field.id] || ""}
+                      onChange={(e) => updateFormData(field.id, e.target.value)}
+                      onBlur={() =>
+                        setTouched({ ...touched, [field.id]: true })
+                      }
+                      placeholder={field.placeholder}
+                      className="w-full placeholder:text-gray-400"
+                    />
+                  )}
+                  {touched[field.id] && errors[field.id] && (
+                    <div
+                      style={{
+                        color: "#b91c1c",
+                        fontSize: "0.8rem",
+                        marginTop: "0.375rem",
+                      }}
+                    >
+                      {errors[field.id]}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Contract Preview Section */}
+        <Card className="border border-gray-200 shadow-sm">
+          <CardHeader className="border-b border-gray-100 bg-blue-50 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <CardTitle className="text-base sm:text-lg">
+                Editable Contract Text
+              </CardTitle>
+              <Badge
+                variant="secondary"
+                className="bg-blue-100 text-blue-700 w-fit"
+              >
+                Fully Editable
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6">
+            <Textarea
+              value={editableContract}
+              onChange={(e) => setEditableContract(e.target.value)}
+              className="w-full min-h-[300px] sm:min-h-[500px] font-mono text-xs sm:text-sm leading-relaxed placeholder:text-gray-400"
+              placeholder="Your contract text will appear here..."
+            />
+          </CardContent>
+        </Card>
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 bg-green-50 border border-green-200 rounded-xl p-4 sm:p-6">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
+              <Check className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </div>
+            <div>
+              <p className="font-medium text-sm sm:text-base text-gray-900">
+                Contract ready to finalize?
+              </p>
+              <p className="text-xs sm:text-sm text-gray-600">
+                Save your changes or copy the text to use elsewhere
               </p>
             </div>
           </div>
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <Button
+              onClick={handleCopyText}
+              size="lg"
+              variant="outline"
+              className="border-blue-300 text-blue-700 hover:bg-blue-50 w-full sm:w-auto"
+            >
+              <Copy className="w-4 h-4 mr-2" />
+              Copy Text
+            </Button>
+            <Button
+              onClick={() => {
+                // Mark all fields as touched when trying to submit
+                const allFields = selectedTemplate.fields.map((f) => f.id);
+                const newTouched: Record<string, boolean> = { ...touched };
+                allFields.forEach((fieldId) => {
+                  newTouched[fieldId] = true;
+                });
+                setTouched(newTouched);
 
-          {/* Form Inputs Section */}
-          <Card className="border border-gray-200 shadow-sm">
-            <CardHeader className="border-b border-gray-100">
-              <CardTitle className="text-lg">Contract Details</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {selectedTemplate.fields.map((field) => (
-                  <div
-                    key={field.id}
-                    className={field.type === "textarea" ? "md:col-span-2" : ""}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <Label className="" htmlFor={field.id}>
-                        {field.label}
-                        {field.required === true && (
-                          <span className="text-red-500 ml-1">*</span>
-                        )}
-                      </Label>
-                      {field.tooltip && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="w-4 h-4 text-gray-400 cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="text-sm max-w-xs">{field.tooltip}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
-                    </div>
-                    {field.type === "textarea" ? (
-                      <Textarea
-                        id={field.id}
-                        value={formData[field.id] || ""}
-                        onChange={(e) =>
-                          updateFormData(field.id, e.target.value)
-                        }
-                        placeholder={field.placeholder}
-                        rows={3}
-                        className="w-full"
-                      />
-                    ) : (
-                      <Input
-                        id={field.id}
-                        type={field.type}
-                        value={formData[field.id] || ""}
-                        onChange={(e) =>
-                          updateFormData(field.id, e.target.value)
-                        }
-                        placeholder={field.placeholder}
-                        className="w-full"
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Contract Preview Section */}
-          <Card className="border border-gray-200 shadow-sm">
-            <CardHeader className="border-b border-gray-100 bg-blue-50">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">
-                  Editable Contract Text
-                </CardTitle>
-                <Badge
-                  variant="secondary"
-                  className="bg-blue-100 text-blue-700"
-                >
-                  Fully Editable
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              <Textarea
-                value={editableContract}
-                onChange={(e) => setEditableContract(e.target.value)}
-                className="w-full min-h-[500px] font-mono text-sm leading-relaxed"
-                placeholder="Your contract text will appear here..."
-              />
-            </CardContent>
-          </Card>
-
-          <div className="flex items-center justify-between gap-6 bg-green-50 border border-green-200 rounded-xl p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
-                <Check className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-900">
-                  Contract ready to finalize?
-                </p>
-                <p className="text-sm text-gray-600">
-                  Save your changes or copy the text to use elsewhere
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Button
-                onClick={handleCopyText}
-                size="lg"
-                variant="outline"
-                className="border-blue-300 text-blue-700 hover:bg-blue-50"
-              >
-                <Copy className="w-4 h-4 mr-2" />
-                Copy Text
-              </Button>
-              <Button
-                onClick={handleGenerateContract}
-                size="lg"
-                disabled={!allRequiredFieldsFilled || isGenerating}
-                className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  text-white rounded-xl shadow-lg"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                if (validate.valid) {
+                  handleGenerateContract();
+                } else {
+                  toast.error("Please fix the validation errors");
+                }
+              }}
+              size="lg"
+              disabled={!validate.valid || isGenerating}
+              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white rounded-xl shadow-lg w-full sm:w-auto"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <span className="hidden sm:inline">
                     {editMode ? "Updating..." : "Generating..."}
-                  </>
-                ) : (
-                  <>
-                    {editMode ? (
-                      <>
-                        <Edit className="w-4 h-4 mr-2" />
-                        Update Contract
-                      </>
-                    ) : (
-                      <>
-                        <Download className="w-4 h-4 mr-2" />
+                  </span>
+                  <span className="sm:hidden">
+                    {editMode ? "Updating..." : "Generating..."}
+                  </span>
+                </>
+              ) : (
+                <>
+                  {editMode ? (
+                    <>
+                      <Edit className="w-4 h-4 mr-2" />
+                      <span className="hidden sm:inline">Update Contract</span>
+                      <span className="sm:hidden">Update</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 mr-2" />
+                      <span className="hidden sm:inline">
                         Generate Contract PDF
-                      </>
-                    )}
-                  </>
-                )}
-              </Button>
-            </div>
+                      </span>
+                      <span className="sm:hidden">Generate PDF</span>
+                    </>
+                  )}
+                </>
+              )}
+            </Button>
           </div>
-          {!allRequiredFieldsFilled && (
-            <p className="text-sm text-center text-gray-500">
-              Please fill in all required fields (marked with *) to continue
-            </p>
-          )}
         </div>
-      </TooltipProvider>
+        {!validate.valid && (
+          <p className="text-xs sm:text-sm text-center text-gray-500">
+            Please fill in all required fields (marked with *) to continue
+          </p>
+        )}
+      </div>
     );
   }
 

@@ -131,7 +131,7 @@ export function Dashboard({
                 <div className="flex items-center gap-2">
                   <h1 className="text-2xl font-bold text-gray-900">Foundify</h1>
                   {isPremium && (
-                    <Badge className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  text-white hover:from-premium-purple-dark hover:to-deep-blue-dark">
+                    <Badge className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  text-white">
                       ✨ Premium
                     </Badge>
                   )}

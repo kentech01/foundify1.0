@@ -21,9 +21,12 @@ createRoot(document.getElementById("root")!).render(
     <RecoilRoot>
       <AuthContextProvider>
         <AppProvider>
-          <ThemeProvider defaultTheme="light"> {/* Add this */}
+          <ThemeProvider defaultTheme="light">
+            {" "}
+            {/* Add this */}
             <App />
-          </ThemeProvider> {/* Add this */}
+          </ThemeProvider>{" "}
+          {/* Add this */}
         </AppProvider>
       </AuthContextProvider>
     </RecoilRoot>
@@ -47,21 +50,21 @@ import { ThemeToggle, ThemeToggleIcon } from "@/components/ThemeToggle";
 You already have `next-themes` installed. To use it:
 
 ```tsx
-import { ThemeProvider } from 'next-themes';
+import { ThemeProvider } from "next-themes";
 
 // In main.tsx or App.tsx
 <ThemeProvider attribute="class" defaultTheme="light">
   <App />
-</ThemeProvider>
+</ThemeProvider>;
 
 // In any component
-import { useTheme } from 'next-themes';
+import { useTheme } from "next-themes";
 
 function ThemeButton() {
   const { theme, setTheme } = useTheme();
-  
+
   return (
-    <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+    <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
       Toggle Theme
     </button>
   );
@@ -123,7 +126,7 @@ Components that automatically adjust to light/dark mode:
 </div>
 
 // Input field
-<input 
+<input
   type="text"
   className="w-full px-4 py-2 bg-input-background border border-border rounded-lg text-foreground focus:border-deep-blue focus:ring-2 focus:ring-deep-blue/20 outline-none transition-colors"
   placeholder="Enter text..."
@@ -140,6 +143,7 @@ Components that automatically adjust to light/dark mode:
 ## 📱 Responsive Examples
 
 ### Navigation Bar
+
 ```tsx
 <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -148,13 +152,19 @@ Components that automatically adjust to light/dark mode:
       <div className="flex items-center gap-2">
         <span className="text-2xl font-bold text-deep-blue">Foundify</span>
       </div>
-      
+
       {/* Navigation */}
       <div className="hidden md:flex items-center gap-6">
-        <a href="#" className="text-foreground hover:text-deep-blue transition-colors">
+        <a
+          href="#"
+          className="text-foreground hover:text-deep-blue transition-colors"
+        >
           Features
         </a>
-        <a href="#" className="text-foreground hover:text-deep-blue transition-colors">
+        <a
+          href="#"
+          className="text-foreground hover:text-deep-blue transition-colors"
+        >
           Pricing
         </a>
         <ThemeToggleIcon />
@@ -168,6 +178,7 @@ Components that automatically adjust to light/dark mode:
 ```
 
 ### Feature Card Grid
+
 ```tsx
 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
   <div className="p-6 bg-card border border-border rounded-xl hover:shadow-lg transition-shadow">
@@ -175,14 +186,17 @@ Components that automatically adjust to light/dark mode:
       {/* Icon */}
     </div>
     <h3 className="text-lg font-semibold text-foreground mb-2">Feature Name</h3>
-    <p className="text-muted-foreground">Feature description that adapts to theme</p>
+    <p className="text-muted-foreground">
+      Feature description that adapts to theme
+    </p>
   </div>
-  
+
   {/* More cards... */}
 </div>
 ```
 
 ### Premium Pricing Card
+
 ```tsx
 <div className="relative p-8 bg-gradient-to-br from-premium-purple to-premium-purple-dark text-white rounded-2xl shadow-2xl">
   <div className="absolute top-4 right-4">
@@ -190,21 +204,23 @@ Components that automatically adjust to light/dark mode:
       Popular
     </span>
   </div>
-  
+
   <h3 className="text-2xl font-bold mb-2">Pro Plan</h3>
   <div className="flex items-baseline gap-2 mb-6">
     <span className="text-4xl font-bold">$29</span>
     <span className="text-white/80">/month</span>
   </div>
-  
+
   <ul className="space-y-3 mb-8">
     <li className="flex items-center gap-2">
-      <span className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">✓</span>
+      <span className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
+        ✓
+      </span>
       <span>All features included</span>
     </li>
     {/* More features... */}
   </ul>
-  
+
   <button className="w-full py-3 bg-white text-premium-purple rounded-lg font-semibold hover:bg-white/90 transition-colors">
     Get Started
   </button>
@@ -214,8 +230,9 @@ Components that automatically adjust to light/dark mode:
 ## 🎯 Common Patterns
 
 ### Hover Effects
+
 ```tsx
-<div className="group cursor-pointer">
+<div className="group ">
   <div className="transition-transform group-hover:scale-105">
     {/* Content that scales on hover */}
   </div>
@@ -223,6 +240,7 @@ Components that automatically adjust to light/dark mode:
 ```
 
 ### Focus States
+
 ```tsx
 <button className="focus:outline-none focus:ring-2 focus:ring-deep-blue focus:ring-offset-2">
   Accessible Button
@@ -230,12 +248,13 @@ Components that automatically adjust to light/dark mode:
 ```
 
 ### Loading States
+
 ```tsx
-<button 
+<button
   disabled={isLoading}
   className="px-6 py-3 bg-deep-blue text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
 >
-  {isLoading ? 'Loading...' : 'Submit'}
+  {isLoading ? "Loading..." : "Submit"}
 </button>
 ```
 
@@ -249,15 +268,14 @@ Components that automatically adjust to light/dark mode:
 
 ## 🎨 Quick Color Reference
 
-| Use Case | Light Mode | Dark Mode |
-|----------|-----------|-----------|
-| Primary Action | `bg-deep-blue text-white` | Same |
-| Premium Feature | `bg-premium-purple text-white` | Same |
-| Background | `bg-background` | Auto-adjusts |
-| Card | `bg-card border-border` | Auto-adjusts |
-| Text | `text-foreground` | Auto-adjusts |
-| Muted Text | `text-muted-foreground` | Auto-adjusts |
-| Hover Overlay | `hover:bg-accent` | Auto-adjusts |
+| Use Case        | Light Mode                     | Dark Mode    |
+| --------------- | ------------------------------ | ------------ |
+| Primary Action  | `bg-deep-blue text-white`      | Same         |
+| Premium Feature | `bg-premium-purple text-white` | Same         |
+| Background      | `bg-background`                | Auto-adjusts |
+| Card            | `bg-card border-border`        | Auto-adjusts |
+| Text            | `text-foreground`              | Auto-adjusts |
+| Muted Text      | `text-muted-foreground`        | Auto-adjusts |
+| Hover Overlay   | `hover:bg-accent`              | Auto-adjusts |
 
 Start building with these patterns and your app will look professional in both light and dark modes! 🚀
-

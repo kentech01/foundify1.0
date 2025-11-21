@@ -210,7 +210,7 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full border-gray-200 hover:bg-blue-50 hover:border-blue-200"
+                className="w-full border-gray-200 hover:bg-blue-50 hover:border-blue-200 "
                 onClick={handleGoogleSignIn}
                 disabled={isLoading}
               >
@@ -240,14 +240,14 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
                 <button
                   type="button"
                   onClick={() => navigate("/terms")}
-                  className="underline cursor-pointer hover:text-deep-blue text-deep-blue"
+                  className="underline  hover:text-deep-blue text-deep-blue"
                 >
                   Terms of Service
                 </button>{" "}
                 and{" "}
                 <button
                   type="button"
-                  className="underline hover:text-deep-blue text-deep-blue"
+                  className="underline  hover:text-deep-blue text-deep-blue"
                 >
                   Privacy Policy
                 </button>
@@ -287,7 +287,7 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
 
               <Button
                 type="submit"
-                className="w-full bg-deep-blue hover:bg-deep-blue-dark text-white"
+                className="w-full bg-deep-blue  hover:bg-deep-blue-dark text-white"
                 disabled={isLoading}
               >
                 {isLoading ? "Signing in..." : "Continue"}
@@ -305,7 +305,7 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full border-gray-200 hover:bg-blue-50 hover:border-blue-200"
+                className="w-full border-gray-200  hover:bg-blue-50 hover:border-blue-200"
                 onClick={handleGoogleSignIn}
                 disabled={isLoading}
               >
@@ -335,14 +335,14 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
                 <button
                   type="button"
                   onClick={() => navigate("/terms")}
-                  className="underline cursor-pointer hover:text-deep-blue text-deep-blue"
+                  className="underline  hover:text-deep-blue text-deep-blue"
                 >
                   Terms of Service
                 </button>{" "}
                 and{" "}
                 <button
                   type="button"
-                  className="underline hover:text-deep-blue text-deep-blue"
+                  className="underline  hover:text-deep-blue text-deep-blue"
                 >
                   Privacy Policy
                 </button>

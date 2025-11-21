@@ -35,7 +35,7 @@ export function CTASection({ onStart }: CTASectionProps) {
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
                 <Button
                   size="lg"
-                  className="bg-[#252952]  hover:bg-[#161930] font-bold  text-white px-10 py-7 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105"
+                  className="bg-[#252952] hover:bg-[#161930]  font-bold  text-white px-10 py-7 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105"
                   onClick={onStart}
                 >
                   Start Free Today

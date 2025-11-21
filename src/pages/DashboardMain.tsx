@@ -36,7 +36,7 @@ export function DashboardMain() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-premium-purple border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-8 h-8 border-4 border-blue-700 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
@@ -48,7 +48,7 @@ export function DashboardMain() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center space-y-6">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-premium-purple to-deep-blue flex items-center justify-center mx-auto">
+          <div className="w-16 h-16 rounded-full bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] flex items-center justify-center mx-auto">
             <svg
               className="h-8 w-8 text-white"
               fill="none"
