@@ -49,7 +49,7 @@ export function HeroModern({ onStart }: HeroModernProps) {
           <div className="flex gap-4 justify-center items-center pt-4">
             <Button
               size="lg"
-              className="bg-[#252952] hover:bg-[#161930] cursor-pointer font-bold text-white px-8 py-7 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+              className="bg-[#252952] hover:bg-[#161930]  font-bold text-white px-8 py-7 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
               onClick={handleStartClick}
             >
               Start Free
@@ -58,7 +58,7 @@ export function HeroModern({ onStart }: HeroModernProps) {
             <Button
               variant="outline"
               size="lg"
-              className=" border-3 border-[#161930] cursor-pointer font-bold text-gray-700 hover:bg-[#161930] hover:text-white px-8 py-7 rounded-2xl transition-all duration-300"
+              className=" border-3 border-[#161930]  font-bold text-gray-700 hover:bg-[#161930] hover:text-white px-8 py-7 rounded-2xl transition-all duration-300"
             >
               View Demo
             </Button>

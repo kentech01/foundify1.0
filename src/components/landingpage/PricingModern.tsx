@@ -126,7 +126,7 @@ export function PricingModern({ onStart }: HeroModernProps) {
               <Button
                 onClick={handleStartClick}
                 variant="outline"
-                className="w-full font-bold cursor-pointer py-6 rounded-xl border-3 border-gray-300 hover:bg-gray-50 transition-all duration-300"
+                className="w-full font-bold  py-6 rounded-xl border-3 border-gray-300 hover:bg-gray-50 transition-all duration-300"
               >
                 Get Started Free
               </Button>
@@ -227,7 +227,7 @@ export function PricingModern({ onStart }: HeroModernProps) {
                 </li>
               </ul>
 
-              {/* <Button className="w-full py-6 cursor-pointer rounded-xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:from-premium-purple-dark hover:to-deep-blue-dark text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+              {/* <Button className="w-full py-6  rounded-xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:from-premium-purple-dark hover:to-deep-blue-dark text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                 Upgrade to Premium
               </Button> */}
             </CardContent>

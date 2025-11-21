@@ -32,7 +32,6 @@ export default function App() {
         setUserLoading(true);
         setUserError(null);
         const userProfile = await apiService.getCurrentUserProfile();
-        console.log(userProfile, "userProfile");
         setCurrentUser(userProfile);
       } catch (error) {
         console.error("Failed to fetch user profile:", error);

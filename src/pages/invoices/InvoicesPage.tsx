@@ -437,14 +437,6 @@ export function InvoicesPage() {
   // const pendingInvoices = invoices.filter(
   //   (i) => i.status === "pending" || i.status === "draft"
   // ).length;
-  // console.log(
-  //   "All invoices:",
-  //   invoices.map((i) => ({ id: i.id, status: i.status, total: i.total }))
-  // );
-  // console.log(
-  //   "Paid invoices:",
-  //   invoices.filter((i) => i.status === "paid")
-  // );
 
   // const totalRevenue = invoices.reduce((sum, i) => {
   //   // Convert all currencies to USD for consistent calculation
@@ -493,7 +485,7 @@ export function InvoicesPage() {
   return (
     <div className="p-8">
       {/* Header: Back + Title on left, Action button on right */}
-      <div className="flex items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
         <div className="flex items-center gap-3">
           <div>
             <h2 className="text-3xl font-bold text-gray-900">
@@ -520,7 +512,7 @@ export function InvoicesPage() {
         >
           <DialogTrigger asChild>
             <Button
-              className=" cursor-pointer bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110 "
+              className=" bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110 "
               disabled={invoicesCounter > 20}
             >
               <Plus className="mr-1 h-4 w-4" />
@@ -823,7 +815,7 @@ export function InvoicesPage() {
             <DialogFooter>
               <Button
                 onClick={handleCreateInvoice}
-                className=" bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer px-4 hover:to-deep-blue-dark text-white rounded-xl"
+                className=" bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  px-4 hover:to-deep-blue-dark text-white rounded-xl"
                 disabled={isGenerating}
               >
                 {isGenerating ? "Creating..." : "Create Invoice"}
@@ -1265,7 +1257,7 @@ export function InvoicesPage() {
                       onClick={() => handleView(invoice)}
                       variant="secondary"
                       size="lg"
-                      className=" cursor-pointer border-2 border-gray-200 rounded-xl hover:bg-gray-50"
+                      className="  border-2 border-gray-200 rounded-xl hover:bg-gray-50"
                       disabled={viewingId === invoice.id}
                     >
                       {viewingId === invoice.id ? (
@@ -1284,7 +1276,7 @@ export function InvoicesPage() {
                       onClick={() => openEditModal(invoice)}
                       variant="outline"
                       size="lg"
-                      className="cursor-pointer border-2 border-gray-200 rounded-xl hover:bg-gray-50"
+                      className=" border-2 border-gray-200 rounded-xl hover:bg-gray-50"
                     >
                       <Edit className="mr-1 h-4 w-4" />
                       Edit

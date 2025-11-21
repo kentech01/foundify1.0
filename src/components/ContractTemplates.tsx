@@ -82,8 +82,6 @@ export function ContractTemplates({
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  console.log(editMode, "editmode");
-
   useEffect(() => {
     if (editMode && selectedTemplate) {
       // Set the editable preview to the contract text for editing
@@ -513,8 +511,6 @@ export function ContractTemplates({
   // const toCamel = (s: string) =>
   //   s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
   const mapDataForApi = (data: Record<string, string>) => {
-    console.log(data, "data");
-
     const out: Record<string, string> = data;
 
     if (out["date"] && !out["agreementDate"])
@@ -671,7 +667,7 @@ export function ContractTemplates({
               key={template.id}
               className={`border shadow-sm hover:shadow-md transition-shadow ${
                 template.isPremium
-                  ? "border-purple-200 bg-purple-50/20"
+                  ? "border-blue-200 bg-blue-50/20"
                   : "border-gray-200 bg-white hover:border-blue-200"
               }`}
             >
@@ -679,13 +675,13 @@ export function ContractTemplates({
                 <div className="flex items-center gap-3 sm:gap-4 mb-4">
                   <div
                     className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                      template.isPremium ? "bg-purple-100" : "bg-blue-100"
+                      template.isPremium ? "bg-blue-100" : "bg-blue-100"
                     }`}
                   >
                     <FileText
                       className={`w-5 h-5 sm:w-6 sm:h-6 ${
                         template.isPremium
-                          ? "text-premium-purple-700"
+                          ? "text-premium-blue-700"
                           : "text-blue-600"
                       }`}
                     />
@@ -706,7 +702,7 @@ export function ContractTemplates({
                       {template.title}
                     </h3>
                     {template.isPremium && (
-                      <Badge className="bg-premium-purple-700 text-white text-xs px-2 py-0.5 w-fit">
+                      <Badge className="bg-blue-700 text-white text-xs px-2 py-0.5 w-fit">
                         Premium
                       </Badge>
                     )}
@@ -720,9 +716,7 @@ export function ContractTemplates({
                   <Button
                     onClick={() => handleSelectTemplate(template)}
                     size="sm"
-                    className={
-                      "bg-[#252952] hover:bg-[#161930] text-white cursor-pointer"
-                    }
+                    className={"bg-[#252952] hover:bg-[#161930] text-white "}
                   >
                     {template.isPremium ? (
                       <>
@@ -809,7 +803,7 @@ export function ContractTemplates({
           </div>
           <Button
             onClick={handleContinueToCustomize}
-            className="bg-[#252952] hover:bg-[#161930] cursor-pointer text-white w-full sm:w-auto"
+            className="bg-[#252952] hover:bg-[#161930]  text-white w-full sm:w-auto"
             size="lg"
           >
             Continue to Customize

@@ -567,7 +567,8 @@ ${i + 1}. ${q.question}
             <Button
               onClick={handleGenerateQuestions}
               disabled={isGenerating}
-              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110"
+              size="lg"
+              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110"
             >
               {isGenerating ? (
                 <>
@@ -608,7 +609,7 @@ ${i + 1}. ${q.question}
                       onOpenChange={() => toggleCategory(category.id)}
                     >
                       <CollapsibleTrigger className="w-full">
-                        <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                        <CardHeader className=" hover:bg-muted/50 transition-colors">
                           <div className="flex  justify-between">
                             <div className="flex items-center gap-3 mb-6">
                               <div
@@ -710,7 +711,7 @@ ${i + 1}. ${q.question}
                   <Button
                     onClick={handleRegenerate}
                     variant="outline"
-                    className="border-blue-700 text-blue-600 hover:bg-gray-50 cursor-pointer"
+                    className="border-blue-700 text-blue-600 hover:bg-gray-50 "
                   >
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Start Over
@@ -718,7 +719,7 @@ ${i + 1}. ${q.question}
                   <Button
                     onClick={handleExportPDF}
                     disabled={isExporting}
-                    className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110"
+                    className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110"
                   >
                     {isExporting ? (
                       <>

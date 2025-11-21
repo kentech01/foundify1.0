@@ -217,7 +217,7 @@ export function LandingPageGenerator() {
                 className={`w-full border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
                   firstPitchHasPremiumLanding
                     ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-60"
-                    : "border-gray-300 hover:border-purple-500"
+                    : "border-gray-300 hover:border-blue-500"
                 }`}
               >
                 <label
