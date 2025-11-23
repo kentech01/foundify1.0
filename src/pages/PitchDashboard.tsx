@@ -259,7 +259,7 @@ export function PitchDashboard({
         <Button
           onClick={onCreatePitch}
           disabled={(pitches?.length || 0) > 0}
-          className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:from-premium-purple-dark hover:to-deep-blue-dark text-white rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  text-white rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg disabled:hover:brightness-100"
         >
           <Plus className="mr-2 h-4 w-4" />
           New Pitch
@@ -311,20 +311,6 @@ export function PitchDashboard({
                         <h3 className="text-lg md:text-xl font-semibold text-gray-900 truncate">
                           {pitch.startupName}
                         </h3>
-                        {/* <Badge
-                          variant={
-                            pitch.status === "published"
-                              ? "default"
-                              : "secondary"
-                          }
-                          className={
-                            pitch.status === "published"
-                              ? "bg-green-500 hover:bg-green-600"
-                              : ""
-                          }
-                        >
-                          {pitch.status}
-                        </Badge> */}
                       </div>
                       <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                         <div className="flex items-center gap-1">
@@ -344,7 +330,7 @@ export function PitchDashboard({
                       <Button
                         variant="outline"
                         onClick={() => handleDownload(pitch)}
-                        className="border-2 border-gray-200 rounded-xl hover:bg-gray-50 w-full sm:w-auto"
+                        className="  border-2 border-gray-200 rounded-xl hover:bg-gray-50 w-full sm:w-auto"
                         disabled={loadingModal.isOpen}
                         size="lg"
                       >
@@ -358,7 +344,7 @@ export function PitchDashboard({
                             ? handleGenerateLanding(pitch.id)
                             : handleViewLanding(pitch)
                         }
-                        className={`rounded-xl w-full sm:w-auto ${
+                        className={`rounded-xl w-full  sm:w-auto ${
                           pitch.hasLandingPage
                             ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
                             : "bg-[#252952] hover:bg-[#161930] text-white"

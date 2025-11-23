@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -9,7 +9,7 @@ import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import styles from "../../pages/invoices/InvoicesPage.module.scss";
+import styles from "./InvoicesPage.module.scss";
 import { Textarea } from "../../components/ui/textarea";
 import {
   Select,
@@ -65,6 +65,12 @@ interface LineItem {
   rate: string; // Change from number to string
 }
 
+type Errors = Partial<{
+  companyName: string;
+  clientName: string;
+  lineItems: string;
+}>;
+
 export function InvoicesPage() {
   const navigate = useNavigate();
   const [invoicesCounter, setInvoicesCounter] = useState(0);
@@ -80,7 +86,7 @@ export function InvoicesPage() {
   const [notes, setNotes] = useState("");
   const [bankDetails, setBankDetails] = useState("");
   const [lineItems, setLineItems] = useState<LineItem[]>([
-    { description: "", quantity: "", rate: "0" }, // Change "1" to ""
+    { description: "", quantity: "", rate: "" },
   ]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -89,6 +95,7 @@ export function InvoicesPage() {
   const [editingInvoice, setEditingInvoice] = useState<ApiInvoice | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [viewingId, setViewingId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<ApiInvoice | null>(
     null
@@ -106,6 +113,14 @@ export function InvoicesPage() {
 
   const [invoices, setInvoices] = useState<ApiInvoice[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [errors, setErrors] = useState<Errors>({});
+  const [touched, setTouched] = useState<
+    Partial<{
+      companyName: boolean;
+      clientName: boolean;
+      lineItems: boolean;
+    }>
+  >({});
 
   // Helper function to get currency symbol
   const getCurrencySymbol = (currencyCode: string) => {
@@ -120,6 +135,57 @@ export function InvoicesPage() {
   };
 
   const currencySymbol = getCurrencySymbol(currency);
+
+  // Validation
+  const validate = useMemo(() => {
+    const trimmed = {
+      companyName: companyName.trim(),
+      clientName: clientName.trim(),
+    };
+
+    const errs: Errors = {};
+
+    if (
+      !trimmed.companyName ||
+      trimmed.companyName.length < 2 ||
+      trimmed.companyName.length > 100
+    ) {
+      errs.companyName = "This field is required (minimum 2 characters)";
+    }
+    if (
+      !trimmed.clientName ||
+      trimmed.clientName.length < 2 ||
+      trimmed.clientName.length > 100
+    ) {
+      errs.clientName = "This field is required (minimum 2 characters)";
+    }
+
+    // Validate line items
+    const hasValidLineItem = lineItems.some(
+      (item) => item.description.trim().length > 0
+    );
+    if (!hasValidLineItem) {
+      errs.lineItems = "At least one item with description is required";
+    } else {
+      // Only validate quantity and rate if we have at least one valid line item
+      const hasInvalidLineItem = lineItems.some((item) => {
+        if (item.description.trim().length === 0) return false; // Skip empty items
+        const qty = parseFloat(item.quantity);
+        const rate = parseFloat(item.rate);
+        return isNaN(qty) || qty <= 0 || isNaN(rate) || rate <= 0;
+      });
+      if (hasInvalidLineItem) {
+        errs.lineItems =
+          "Quantity and rate must be valid numbers greater than 0";
+      }
+    }
+
+    return { trimmed, errs, valid: Object.keys(errs).length === 0 };
+  }, [companyName, clientName, lineItems]);
+
+  useEffect(() => {
+    setErrors(validate.errs);
+  }, [validate]);
 
   // Load invoices from API
   useEffect(() => {
@@ -159,7 +225,9 @@ export function InvoicesPage() {
   const total = subtotal;
 
   const addLineItem = () => {
-    setLineItems([...lineItems, { description: "", quantity: "1", rate: "0" }]);
+    setLineItems([...lineItems, { description: "", quantity: "1", rate: "" }]);
+    // Don't mark lineItems as touched when just adding an item
+    // Only mark it as touched when user interacts with line item fields
   };
 
   const removeLineItem = (index: number) => {
@@ -185,8 +253,10 @@ export function InvoicesPage() {
     setCurrency("USD");
     setNotes("");
     setBankDetails("");
-    setLineItems([{ description: "", quantity: "", rate: "0" }]); // Change "1" to ""
+    setLineItems([{ description: "", quantity: "", rate: "" }]);
     setEditingInvoice(null);
+    setTouched({});
+    setErrors({});
   };
 
   const openEditModal = (invoice: ApiInvoice) => {
@@ -202,37 +272,43 @@ export function InvoicesPage() {
         ? invoice.items.map((item) => ({
             description: item.description || "",
             quantity: String(item.quantity) || "1", // Use String
-            rate: String(item.rate) || "0", // Use String
+            rate: item.rate && item.rate > 0 ? String(item.rate) : "", // Use String, empty if 0 or invalid
           }))
-        : [{ description: "", quantity: "1", rate: "0" }]
+        : [{ description: "", quantity: "1", rate: "" }]
     );
+    setTouched({});
+    setErrors({});
     setIsEditModalOpen(true);
   };
 
   const generateInvoice = async () => {
-    if (
-      !companyName ||
-      !clientName ||
-      lineItems.some((item) => !item.description)
-    ) {
-      toast.error("Please fill in all required fields");
+    if (!validate.valid) {
+      // Mark all fields as touched to show errors
+      setTouched({
+        companyName: true,
+        clientName: true,
+        lineItems: true,
+      });
+      toast.error("Please fix the validation errors");
       return;
     }
 
     setIsGenerating(true);
     try {
       const invoiceData = {
-        companyName,
-        clientName,
+        companyName: validate.trimmed.companyName,
+        clientName: validate.trimmed.clientName,
         invoiceNumber,
         currency,
-        items: lineItems.map((item) => ({
-          description: item.description,
-          quantity: parseFloat(item.quantity) || 1,
-          rate: parseFloat(item.rate) || 0,
-          amount:
-            (parseFloat(item.quantity) || 0) * (parseFloat(item.rate) || 0),
-        })),
+        items: lineItems
+          .filter((item) => item.description.trim().length > 0)
+          .map((item) => ({
+            description: item.description.trim(),
+            quantity: parseFloat(item.quantity) || 1,
+            rate: parseFloat(item.rate) || 0,
+            amount:
+              (parseFloat(item.quantity) || 0) * (parseFloat(item.rate) || 0),
+          })),
         subtotal,
         total,
         notes: notes || undefined,
@@ -334,6 +410,7 @@ export function InvoicesPage() {
   };
 
   const handleView = async (invoice: ApiInvoice) => {
+    setViewingId(invoice.id);
     try {
       await downloadInvoicePdf(invoice.firebaseUid, invoice.id);
     } catch (error: any) {
@@ -341,6 +418,8 @@ export function InvoicesPage() {
       // Display the actual backend error message
       const errorMessage = error.message || "Failed to preview invoice";
       toast.error(errorMessage);
+    } finally {
+      setViewingId(null);
     }
   };
 
@@ -353,51 +432,29 @@ export function InvoicesPage() {
   );
 
   // Update stats calculation to remove overdue-specific stat
-  const totalInvoices = invoices.length;
-  const paidInvoices = invoices.filter((i) => i.status === "paid").length;
-  const pendingInvoices = invoices.filter(
-    (i) => i.status === "pending" || i.status === "draft"
-  ).length;
-  console.log(
-    "All invoices:",
-    invoices.map((i) => ({ id: i.id, status: i.status, total: i.total }))
-  );
-  console.log(
-    "Paid invoices:",
-    invoices.filter((i) => i.status === "paid")
-  );
+  // const totalInvoices = invoices.length;
+  // const paidInvoices = invoices.filter((i) => i.status === "paid").length;
+  // const pendingInvoices = invoices.filter(
+  //   (i) => i.status === "pending" || i.status === "draft"
+  // ).length;
 
-  const totalRevenue = invoices.reduce((sum, i) => {
-    // Convert all currencies to USD for consistent calculation
-    const conversionRates: Record<string, number> = {
-      USD: 1,
-      EUR: 1.1,
-      GBP: 1.25,
-      CAD: 0.75,
-      AUD: 0.65,
-    };
+  // const totalRevenue = invoices.reduce((sum, i) => {
+  //   // Convert all currencies to USD for consistent calculation
+  //   const conversionRates: Record<string, number> = {
+  //     USD: 1,
+  //     EUR: 1.1,
+  //     GBP: 1.25,
+  //     CAD: 0.75,
+  //     AUD: 0.65,
+  //   };
 
-    const rate = conversionRates[i.currency] || 1;
-    return sum + i.total * rate;
-  }, 0);
+  //   const rate = conversionRates[i.currency] || 1;
+  //   return sum + i.total * rate;
+  // }, 0);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
-
-  const getStatusBadgeColor = (status: string) => {
-    switch (status) {
-      case "paid":
-        return "bg-green-100 text-green-700 hover:bg-green-100";
-      case "pending":
-      case "draft":
-        return "bg-yellow-100 text-yellow-700 hover:bg-yellow-100";
-      case "overdue":
-        return "bg-red-100 text-red-700 hover:bg-red-100";
-      default:
-        return "bg-gray-100 text-gray-700 hover:bg-gray-100";
-    }
-  };
+  // const formatDate = (dateString: string) => {
+  //   return new Date(dateString).toLocaleDateString();
+  // };
 
   const handleDownload = async (invoice: ApiInvoice) => {
     setDownloadingId(invoice.id);
@@ -428,7 +485,7 @@ export function InvoicesPage() {
   return (
     <div className="p-8">
       {/* Header: Back + Title on left, Action button on right */}
-      <div className="flex items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
         <div className="flex items-center gap-3">
           <div>
             <h2 className="text-3xl font-bold text-gray-900">
@@ -442,6 +499,11 @@ export function InvoicesPage() {
         <Dialog
           open={isCreateModalOpen}
           onOpenChange={(open) => {
+            // Allow closing even during generation
+            if (!open && isGenerating) {
+              // User wants to close during generation - allow it
+              setIsGenerating(false);
+            }
             setIsCreateModalOpen(open);
             if (open) {
               resetForm();
@@ -450,14 +512,28 @@ export function InvoicesPage() {
         >
           <DialogTrigger asChild>
             <Button
-              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white rounded-xl shadow-lg"
+              className=" bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110 "
               disabled={invoicesCounter > 20}
             >
               <Plus className="mr-1 h-4 w-4" />
               Create Invoice
             </Button>
           </DialogTrigger>
-          <DialogContent className="overflow-y-auto ">
+          <DialogContent
+            className="overflow-y-auto "
+            onEscapeKeyDown={(e) => {
+              // Allow closing with Escape even during generation
+              if (isGenerating) {
+                setIsGenerating(false);
+              }
+            }}
+            onInteractOutside={(e) => {
+              // Allow closing by clicking outside even during generation
+              if (isGenerating) {
+                setIsGenerating(false);
+              }
+            }}
+          >
             <DialogHeader>
               <DialogTitle className="text-xl font-bold">
                 Create New Invoice
@@ -476,27 +552,75 @@ export function InvoicesPage() {
                 <div className={styles.twoCol}>
                   <div>
                     <Label className={styles.lableWrapper} htmlFor="company">
-                      Your Company *
+                      Your Company
+                      <span className="text-red-500 ml-1">*</span>
                     </Label>
                     <Input
                       id="company"
                       value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
+                      onChange={(e) => {
+                        setCompanyName(e.target.value);
+                        // Don't mark as touched on change - only on blur or when submitting
+                      }}
+                      onBlur={() => {
+                        // Only mark as touched on blur if user has actually typed something
+                        // This prevents showing errors when just clicking around
+                        if (companyName.trim().length > 0) {
+                          setTouched({ ...touched, companyName: true });
+                        }
+                      }}
                       placeholder="Your Company Inc."
                       required
+                      maxLength={100}
+                      className="placeholder:text-gray-400"
                     />
+                    {touched.companyName && errors.companyName && (
+                      <div
+                        style={{
+                          color: "#b91c1c",
+                          fontSize: "0.8rem",
+                          marginTop: "0.375rem",
+                        }}
+                      >
+                        {errors.companyName}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <Label className={styles.lableWrapper} htmlFor="client">
-                      Client Name *
+                      Client Name
+                      <span className="text-red-500 ml-1">*</span>
                     </Label>
                     <Input
                       id="client"
                       value={clientName}
-                      onChange={(e) => setClientName(e.target.value)}
+                      onChange={(e) => {
+                        setClientName(e.target.value);
+                        // Don't mark as touched on change - only on blur or when submitting
+                      }}
+                      onBlur={() => {
+                        // Only mark as touched on blur if user has actually typed something
+                        // This prevents showing errors when just clicking around
+                        if (clientName.trim().length > 0) {
+                          setTouched({ ...touched, clientName: true });
+                        }
+                      }}
                       placeholder="Client Company"
                       required
+                      maxLength={100}
+                      className="placeholder:text-gray-400"
                     />
+                    {touched.clientName && errors.clientName && (
+                      <div
+                        style={{
+                          color: "#b91c1c",
+                          fontSize: "0.8rem",
+                          marginTop: "0.375rem",
+                        }}
+                      >
+                        {errors.clientName}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -548,32 +672,56 @@ export function InvoicesPage() {
                 </div>
               </CardHeader>
               <CardContent className={styles.items}>
+                {touched.lineItems && errors.lineItems && (
+                  <div
+                    style={{
+                      color: "#b91c1c",
+                      fontSize: "0.8rem",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    {errors.lineItems}
+                  </div>
+                )}
                 {lineItems.map((item, index) => (
                   <div key={index} className={styles.itemRow}>
                     <div className={styles.flexGrow}>
                       <Label className={styles.lableWrapper}>
-                        Description *
+                        Description
+                        <span className="text-red-500 ml-1">*</span>
                       </Label>
                       <Input
                         value={item.description}
-                        onChange={(e) =>
-                          updateLineItem(index, "description", e.target.value)
+                        onChange={(e) => {
+                          updateLineItem(index, "description", e.target.value);
+                          if (!touched.lineItems)
+                            setTouched({ ...touched, lineItems: true });
+                        }}
+                        onBlur={() =>
+                          setTouched({ ...touched, lineItems: true })
                         }
                         placeholder="Service or product name"
                         required
+                        className="placeholder:text-gray-400"
                       />
                     </div>
                     <div className={styles.amountCol}>
                       <Label className={styles.lableWrapper}>Quantity</Label>
                       <Input
                         type="number"
-                        min="0"
+                        min="1"
                         step="1"
                         value={item.quantity}
-                        onChange={(e) =>
-                          updateLineItem(index, "quantity", e.target.value)
+                        onChange={(e) => {
+                          updateLineItem(index, "quantity", e.target.value);
+                          if (!touched.lineItems)
+                            setTouched({ ...touched, lineItems: true });
+                        }}
+                        onBlur={() =>
+                          setTouched({ ...touched, lineItems: true })
                         }
                         placeholder="1"
+                        className="placeholder:text-gray-400"
                       />
                     </div>
                     <div className={styles.amountCol}>
@@ -582,11 +730,16 @@ export function InvoicesPage() {
                       </Label>
                       <Input
                         type="number"
-                        min="0"
+                        min="0.01"
                         step="0.01"
                         value={item.rate}
-                        onChange={(e) =>
-                          updateLineItem(index, "rate", e.target.value)
+                        onChange={(e) => {
+                          updateLineItem(index, "rate", e.target.value);
+                          if (!touched.lineItems)
+                            setTouched({ ...touched, lineItems: true });
+                        }}
+                        onBlur={() =>
+                          setTouched({ ...touched, lineItems: true })
                         }
                         placeholder="0.00"
                       />
@@ -595,6 +748,10 @@ export function InvoicesPage() {
                       <Label className={styles.lableWrapper}>Amount</Label>
                       <Input
                         readOnly
+                        tabIndex={-1}
+                        onClick={(e) => e.preventDefault()}
+                        onFocus={(e) => e.target.blur()}
+                        style={{ pointerEvents: "none", cursor: "default" }}
                         value={`${currencySymbol}${(
                           (parseFloat(item.quantity) || 0) *
                           (parseFloat(item.rate) || 0)
@@ -615,13 +772,6 @@ export function InvoicesPage() {
                 ))}
 
                 <div className={styles.summarySection}>
-                  <div className={styles.summaryRow}>
-                    <span className={styles.summaryLabel}>Subtotal:</span>
-                    <span className={styles.summaryValue}>
-                      {currencySymbol}
-                      {subtotal.toFixed(2)}
-                    </span>
-                  </div>
                   <div className={styles.totalRow}>
                     <span className={styles.totalLabel}>Total:</span>
                     <span className={styles.totalValue}>
@@ -646,6 +796,7 @@ export function InvoicesPage() {
                     placeholder="Add any additional notes or terms (e.g., payment terms, thank you message)"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
+                    className="placeholder:text-gray-400"
                   />
                 </div>
                 <div>
@@ -655,6 +806,7 @@ export function InvoicesPage() {
                     placeholder="Bank name, account number, routing number, SWIFT/BIC code"
                     value={bankDetails}
                     onChange={(e) => setBankDetails(e.target.value)}
+                    className="placeholder:text-gray-400"
                   />
                 </div>
               </CardContent>
@@ -663,8 +815,8 @@ export function InvoicesPage() {
             <DialogFooter>
               <Button
                 onClick={handleCreateInvoice}
-                className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  hover:to-deep-blue-dark text-white rounded-xl"
-                disabled={!companyName || !clientName || isGenerating}
+                className=" bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  px-4 hover:to-deep-blue-dark text-white rounded-xl"
+                disabled={isGenerating}
               >
                 {isGenerating ? "Creating..." : "Create Invoice"}
               </Button>
@@ -677,13 +829,32 @@ export function InvoicesPage() {
       <Dialog
         open={isEditModalOpen}
         onOpenChange={(open) => {
+          // Allow closing even during generation
+          if (!open && isGenerating) {
+            // User wants to close during generation - allow it
+            setIsGenerating(false);
+          }
           setIsEditModalOpen(open);
           if (!open) {
             resetForm();
           }
         }}
       >
-        <DialogContent className="!max-w-4xl !max-h-[90vh] overflow-y-auto rounded-2xl">
+        <DialogContent
+          className="max-w-4xl overflow-y-auto rounded-2xl"
+          onEscapeKeyDown={(e) => {
+            // Allow closing with Escape even during generation
+            if (isGenerating) {
+              setIsGenerating(false);
+            }
+          }}
+          onInteractOutside={(e) => {
+            // Allow closing by clicking outside even during generation
+            if (isGenerating) {
+              setIsGenerating(false);
+            }
+          }}
+        >
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
               Edit Invoice
@@ -699,24 +870,74 @@ export function InvoicesPage() {
             <CardContent className={styles.details}>
               <div className={styles.twoCol}>
                 <div>
-                  <Label htmlFor="edit-company">Your Company *</Label>
+                  <Label htmlFor="edit-company">
+                    Your Company
+                    <span className="text-red-500 ml-1">*</span>
+                  </Label>
                   <Input
                     id="edit-company"
                     value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
+                    onChange={(e) => {
+                      setCompanyName(e.target.value);
+                      // Don't mark as touched on change - only on blur or when submitting
+                    }}
+                    onBlur={() => {
+                      // Only mark as touched on blur if user has actually typed something
+                      // This prevents showing errors when just clicking around
+                      if (companyName.trim().length > 0) {
+                        setTouched({ ...touched, companyName: true });
+                      }
+                    }}
                     placeholder="Your Company Inc."
                     required
+                    maxLength={100}
                   />
+                  {touched.companyName && errors.companyName && (
+                    <div
+                      style={{
+                        color: "#b91c1c",
+                        fontSize: "0.8rem",
+                        marginTop: "0.375rem",
+                      }}
+                    >
+                      {errors.companyName}
+                    </div>
+                  )}
                 </div>
                 <div>
-                  <Label htmlFor="edit-client">Client Name *</Label>
+                  <Label htmlFor="edit-client">
+                    Client Name
+                    <span className="text-red-500 ml-1">*</span>
+                  </Label>
                   <Input
                     id="edit-client"
                     value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
+                    onChange={(e) => {
+                      setClientName(e.target.value);
+                      // Don't mark as touched on change - only on blur or when submitting
+                    }}
+                    onBlur={() => {
+                      // Only mark as touched on blur if user has actually typed something
+                      // This prevents showing errors when just clicking around
+                      if (clientName.trim().length > 0) {
+                        setTouched({ ...touched, clientName: true });
+                      }
+                    }}
                     placeholder="Client Company"
                     required
+                    maxLength={100}
                   />
+                  {touched.clientName && errors.clientName && (
+                    <div
+                      style={{
+                        color: "#b91c1c",
+                        fontSize: "0.8rem",
+                        marginTop: "0.375rem",
+                      }}
+                    >
+                      {errors.clientName}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -763,15 +984,32 @@ export function InvoicesPage() {
               </div>
             </CardHeader>
             <CardContent className={styles.items}>
+              {touched.lineItems && errors.lineItems && (
+                <div
+                  style={{
+                    color: "#b91c1c",
+                    fontSize: "0.8rem",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  {errors.lineItems}
+                </div>
+              )}
               {lineItems.map((item, index) => (
                 <div key={index} className={styles.itemRow}>
                   <div className={styles.flexGrow}>
-                    <Label>Description *</Label>
+                    <Label>
+                      Description
+                      <span className="text-red-500 ml-1">*</span>
+                    </Label>
                     <Input
                       value={item.description}
-                      onChange={(e) =>
-                        updateLineItem(index, "description", e.target.value)
-                      }
+                      onChange={(e) => {
+                        updateLineItem(index, "description", e.target.value);
+                        if (!touched.lineItems)
+                          setTouched({ ...touched, lineItems: true });
+                      }}
+                      onBlur={() => setTouched({ ...touched, lineItems: true })}
                       placeholder="Service or product name"
                       required
                     />
@@ -780,12 +1018,15 @@ export function InvoicesPage() {
                     <Label>Quantity</Label>
                     <Input
                       type="number"
-                      min="0"
+                      min="1"
                       step="1"
                       value={item.quantity}
-                      onChange={(e) =>
-                        updateLineItem(index, "quantity", e.target.value)
-                      }
+                      onChange={(e) => {
+                        updateLineItem(index, "quantity", e.target.value);
+                        if (!touched.lineItems)
+                          setTouched({ ...touched, lineItems: true });
+                      }}
+                      onBlur={() => setTouched({ ...touched, lineItems: true })}
                       placeholder={item.quantity === "" ? "1" : undefined}
                     />
                   </div>
@@ -793,12 +1034,15 @@ export function InvoicesPage() {
                     <Label>Rate ({currencySymbol})</Label>
                     <Input
                       type="number"
-                      min="0"
+                      min="0.01"
                       step="0.01"
                       value={item.rate}
-                      onChange={(e) =>
-                        updateLineItem(index, "rate", e.target.value)
-                      }
+                      onChange={(e) => {
+                        updateLineItem(index, "rate", e.target.value);
+                        if (!touched.lineItems)
+                          setTouched({ ...touched, lineItems: true });
+                      }}
+                      onBlur={() => setTouched({ ...touched, lineItems: true })}
                       placeholder="0.00"
                     />
                   </div>
@@ -806,6 +1050,10 @@ export function InvoicesPage() {
                     <Label>Amount</Label>
                     <Input
                       readOnly
+                      tabIndex={-1}
+                      onClick={(e) => e.preventDefault()}
+                      onFocus={(e) => e.target.blur()}
+                      style={{ pointerEvents: "none", cursor: "default" }}
                       value={`${currencySymbol}${(
                         (parseFloat(item.quantity) || 0) *
                         (parseFloat(item.rate) || 0)
@@ -826,13 +1074,6 @@ export function InvoicesPage() {
               ))}
 
               <div className={styles.summarySection}>
-                <div className={styles.summaryRow}>
-                  <span className={styles.summaryLabel}>Subtotal:</span>
-                  <span className={styles.summaryValue}>
-                    {currencySymbol}
-                    {subtotal.toFixed(2)}
-                  </span>
-                </div>
                 <div className={styles.totalRow}>
                   <span className={styles.totalLabel}>Total:</span>
                   <span className={styles.totalValue}>
@@ -884,7 +1125,7 @@ export function InvoicesPage() {
             <Button
               onClick={handleUpdateInvoice}
               className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] px-6  text-white rounded-xl"
-              disabled={!companyName || !clientName || isGenerating}
+              disabled={!validate.valid || isGenerating}
             >
               {isGenerating ? "Updating..." : "Update Invoice"}
             </Button>
@@ -950,7 +1191,7 @@ export function InvoicesPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           <Input
             placeholder="Search invoices..."
-            className="pl-10 border-2 border-gray-200 rounded-xl"
+            className="pl-10 border-2 border-gray-200 rounded-xl placeholder:text-gray-400"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -1016,16 +1257,26 @@ export function InvoicesPage() {
                       onClick={() => handleView(invoice)}
                       variant="secondary"
                       size="lg"
-                      className="border-2 border-gray-200 rounded-xl hover:bg-gray-50"
+                      className="  border-2 border-gray-200 rounded-xl hover:bg-gray-50"
+                      disabled={viewingId === invoice.id}
                     >
-                      <Eye className="mr-1 h-4 w-4" />
-                      View
+                      {viewingId === invoice.id ? (
+                        <>
+                          <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                          Viewing...
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="mr-1 h-4 w-4" />
+                          View
+                        </>
+                      )}
                     </Button>
                     <Button
                       onClick={() => openEditModal(invoice)}
                       variant="outline"
                       size="lg"
-                      className="border-2 border-gray-200 rounded-xl hover:bg-gray-50"
+                      className=" border-2 border-gray-200 rounded-xl hover:bg-gray-50"
                     >
                       <Edit className="mr-1 h-4 w-4" />
                       Edit
