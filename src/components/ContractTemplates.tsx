@@ -616,25 +616,37 @@ export function ContractTemplates({
 
     const errs: Record<string, string> = {};
 
-    // Validate all fields (both required and optional)
-    selectedTemplate.fields.forEach((field) => {
-      const value = formData[field.id]?.trim() || "";
+    // Validate only required fields
+    // Numeric fields that should allow 1 character minimum
+    const numericFields = [
+      "duration",
+      "vesting_years",
+      "cliff_months",
+      "percentage_1",
+      "percentage_2",
+      "percentage_3",
+      "decision_threshold",
+      "salary_amount",
+      "non_compete_duration",
+      "amount",
+      "interest_rate",
+      "hours_per_week",
+    ];
 
-      // For required fields: must have value
+    selectedTemplate.fields.forEach((field) => {
+      // Only validate required fields
       if (field.required === true) {
-        if (!value || value.length < 2) {
-          errs[field.id] = "This field is required (minimum 2 characters)";
+        const value = formData[field.id]?.trim() || "";
+
+        // Special case: numeric fields allow 1 character minimum
+        const minLength = numericFields.includes(field.id) ? 1 : 2;
+
+        if (!value || value.length < minLength) {
+          errs[field.id] = `This field is required (minimum ${minLength} ${
+            minLength === 1 ? "character" : "characters"
+          })`;
         } else if (value.length > 500) {
           errs[field.id] = "Maximum 500 characters allowed";
-        }
-      } else {
-        // For optional fields: if they have a value, validate it
-        if (value.length > 0) {
-          if (value.length < 2) {
-            errs[field.id] = "Minimum 2 characters required";
-          } else if (value.length > 500) {
-            errs[field.id] = "Maximum 500 characters allowed";
-          }
         }
       }
     });

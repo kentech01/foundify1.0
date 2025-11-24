@@ -3,7 +3,8 @@ import { useCallback } from "react";
 import useAxios from "../hooks/useAxios";
 import { log } from "util";
 import { data } from "react-router-dom";
-export const API_BASE_URL = "https://foundify-api-production.up.railway.app/api/v1/";
+export const API_BASE_URL =
+  "https://foundify-api-production.up.railway.app/api/v1/";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -700,6 +701,51 @@ export const useApiService = () => {
     window.open(previewUrl, "_blank");
   }, []);
 
+  const viewInvoicePdf = useCallback(
+    async (uid: string, invoiceId: string): Promise<void> => {
+      try {
+        const response = await axiosInstance.get(
+          `/invoices/${uid}/${invoiceId}/pdf`,
+          {
+            responseType: "blob",
+          }
+        );
+
+        // Create a blob from the response
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(blob);
+
+        // Open PDF in a new tab for viewing (not downloading)
+        const newWindow = window.open(url, "_blank");
+
+        // Clean up the URL after the window is closed or after a delay
+        // Note: We don't revoke immediately as the new window needs the URL
+        if (newWindow) {
+          newWindow.addEventListener("beforeunload", () => {
+            window.URL.revokeObjectURL(url);
+          });
+          // Fallback: revoke after 5 minutes if window is still open
+          setTimeout(() => {
+            window.URL.revokeObjectURL(url);
+          }, 300000);
+        } else {
+          // If popup was blocked, revoke immediately
+          window.URL.revokeObjectURL(url);
+          throw new Error("Popup blocked. Please allow popups for this site.");
+        }
+      } catch (error: any) {
+        // Extract error message from backend response
+        const errorMessage =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message ||
+          "Failed to view invoice PDF";
+        throw new Error(errorMessage);
+      }
+    },
+    [axiosInstance]
+  );
+
   const downloadInvoicePdf = useCallback(
     async (uid: string, invoiceId: string): Promise<void> => {
       try {
@@ -1002,6 +1048,7 @@ export const useApiService = () => {
     renderInvoiceHtml,
     previewInvoice,
     downloadInvoicePdf,
+    viewInvoicePdf,
     // Interview methods
     generateInterviewQuestions,
     exportInterviewPdf,
