@@ -107,6 +107,7 @@ export function InvoicesPage() {
     deleteInvoice,
     updateInvoice,
     downloadInvoicePdf,
+    viewInvoicePdf,
     getInvoice,
   } = useApiService();
   const { currentUser } = useCurrentUser();
@@ -412,9 +413,9 @@ export function InvoicesPage() {
   const handleView = async (invoice: ApiInvoice) => {
     setViewingId(invoice.id);
     try {
-      await downloadInvoicePdf(invoice.firebaseUid, invoice.id);
+      await viewInvoicePdf(invoice.firebaseUid, invoice.id);
     } catch (error: any) {
-      console.error("Error previewing invoice:", error);
+      console.error("Error viewing invoice:", error);
       // Display the actual backend error message
       const errorMessage = error.message || "Failed to preview invoice";
       toast.error(errorMessage);
