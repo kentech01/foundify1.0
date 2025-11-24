@@ -268,16 +268,16 @@ export function ContractsListPage() {
               key={contract.id}
               className="border-2 border-gray-100 hover:shadow-lg transition-shadow rounded-2xl"
             >
-              <CardContent className="p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <CardContent className="p-4 sm:p-6 overflow-hidden">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6">
                   {/* Contract Info */}
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
                         <FileCheck className="h-6 w-6 text-blue-600" />
                       </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
+                      <div className="min-w-0">
+                        <h3 className="text-lg font-semibold text-gray-900 truncate">
                           {contract?.template_name || "Untitled Contract"}
                         </h3>
                         <p className="text-sm text-gray-600">
@@ -288,7 +288,7 @@ export function ContractsListPage() {
                   </div>
 
                   {/* Status */}
-                  <div className="flex items-center gap-6 ">
+                  <div className="flex items-center gap-4 lg:gap-6 flex-shrink-0">
                     <div className="flex items-center gap-2">
                       <p className="text-sm text-gray-600">Status:</p>
                       <Badge
@@ -306,58 +306,60 @@ export function ContractsListPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-2 sm:gap-3 w-full lg:w-auto">
                     <Button
                       onClick={() => handleView(contract)}
                       variant="secondary"
-                      size="lg"
-                      className=" border-2 border-gray-200 rounded-xl hover:bg-gray-50"
+                      size="sm"
+                      className="sm:h-10 border-2 border-gray-200 rounded-xl hover:bg-gray-50 flex-1 sm:flex-none"
                       disabled={viewingId === contract.id}
                     >
                       {viewingId === contract.id ? (
                         <>
                           <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                          Viewing...
+                          <span className="hidden sm:inline">Viewing...</span>
                         </>
                       ) : (
                         <>
                           <Eye className="mr-1 h-4 w-4" />
-                          View
+                          <span className="hidden sm:inline">View</span>
                         </>
                       )}
                     </Button>
                     <Button
                       variant="outline"
-                      size="lg"
+                      size="sm"
+                      className="sm:h-10 border-2 border-gray-200 rounded-xl hover:bg-gray-50 flex-1 sm:flex-none"
                       onClick={() => handleEdit(contract)}
-                      className="border-2 border-gray-200 rounded-xl hover:bg-gray-50"
                     >
                       <Edit className="mr-1 h-4 w-4" />
-                      Edit
+                      <span className="hidden sm:inline">Edit</span>
                     </Button>
                     <Button
-                      size="lg"
+                      size="sm"
+                      className="sm:h-10 bg-[#252952] hover:bg-[#161930] text-white rounded-xl flex-1 sm:flex-none"
                       onClick={() => handleDownload(contract)}
-                      className="bg-[#252952] hover:bg-[#161930] text-white rounded-xl"
                       disabled={downloadingId === contract.id}
                     >
                       {downloadingId === contract.id ? (
                         <>
                           <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                          Downloading...
+                          <span className="hidden sm:inline">
+                            Downloading...
+                          </span>
                         </>
                       ) : (
                         <>
                           <Download className="mr-1 h-4 w-4" />
-                          Download
+                          <span className="hidden sm:inline">Download</span>
                         </>
                       )}
                     </Button>
                     <Button
                       variant="ghost"
-                      size="lg"
+                      size="sm"
+                      className="sm:h-10 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl flex-1 sm:flex-none"
                       onClick={() => handleDeleteClick(contract)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -379,7 +381,7 @@ export function ContractsListPage() {
           }
         }}
       >
-        <DialogContent className="overflow-y-auto max-h-[90vh]">
+        <DialogContent className="!w-[calc(100%-3rem)] lg:!w-full max-w-5xl overflow-y-auto rounded-2xl sm:mx-auto max-h-[90vh]">
           {showCreateHeader && (
             <DialogHeader>
               <DialogTitle>Create New Contract</DialogTitle>
@@ -410,7 +412,7 @@ export function ContractsListPage() {
           }
         }}
       >
-        <DialogContent className="overflow-y-auto max-h-[90vh]">
+        <DialogContent className="!w-[calc(100%-3rem)] lg:!w-full max-w-5xl overflow-y-auto rounded-2xl mx-4 sm:mx-auto max-h-[90vh]">
           {showEditHeader && (
             <DialogHeader>
               <DialogTitle>Edit Contract</DialogTitle>
