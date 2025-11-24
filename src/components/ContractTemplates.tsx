@@ -854,7 +854,7 @@ export function ContractTemplates({
                     <Label className="" htmlFor={field.id}>
                       {field.label}
                       {field.required === true && (
-                        <span className="text-red-500 ml-1">*</span>
+                        <span className="text-red-500 ml-[-4px]">*</span>
                       )}
                     </Label>
                   </div>
@@ -978,7 +978,7 @@ export function ContractTemplates({
                     <Label className="" htmlFor={field.id}>
                       {field.label}
                       {field.required === true && (
-                        <span className="text-red-500 ml-1">*</span>
+                        <span className="text-red-500 ml-[-4px]">*</span>
                       )}
                     </Label>
                   </div>

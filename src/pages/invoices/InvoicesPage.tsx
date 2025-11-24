@@ -520,7 +520,7 @@ export function InvoicesPage() {
             </Button>
           </DialogTrigger>
           <DialogContent
-            className="overflow-y-auto "
+            className="!w-[calc(100%-3rem)] lg:!w-full max-w-5xl overflow-y-auto rounded-2xl sm:mx-auto"
             onEscapeKeyDown={(e) => {
               // Allow closing with Escape even during generation
               if (isGenerating) {
@@ -553,7 +553,7 @@ export function InvoicesPage() {
                   <div>
                     <Label className={styles.lableWrapper} htmlFor="company">
                       Your Company
-                      <span className="text-red-500 ml-1">*</span>
+                      <span className="text-red-500 ml-[-4px]">*</span>
                     </Label>
                     <Input
                       id="company"
@@ -589,7 +589,7 @@ export function InvoicesPage() {
                   <div>
                     <Label className={styles.lableWrapper} htmlFor="client">
                       Client Name
-                      <span className="text-red-500 ml-1">*</span>
+                      <span className="text-red-500 ml-[-4px]">*</span>
                     </Label>
                     <Input
                       id="client"
@@ -672,23 +672,12 @@ export function InvoicesPage() {
                 </div>
               </CardHeader>
               <CardContent className={styles.items}>
-                {touched.lineItems && errors.lineItems && (
-                  <div
-                    style={{
-                      color: "#b91c1c",
-                      fontSize: "0.8rem",
-                      marginBottom: "0.5rem",
-                    }}
-                  >
-                    {errors.lineItems}
-                  </div>
-                )}
                 {lineItems.map((item, index) => (
                   <div key={index} className={styles.itemRow}>
                     <div className={styles.flexGrow}>
                       <Label className={styles.lableWrapper}>
                         Description
-                        <span className="text-red-500 ml-1">*</span>
+                        <span className="text-red-500 ml-[-4px]">*</span>
                       </Label>
                       <Input
                         value={item.description}
@@ -758,6 +747,7 @@ export function InvoicesPage() {
                         ).toFixed(2)}`}
                       />
                     </div>
+
                     {lineItems.length > 1 && (
                       <Button
                         onClick={() => removeLineItem(index)}
@@ -770,6 +760,17 @@ export function InvoicesPage() {
                     )}
                   </div>
                 ))}
+                {touched.lineItems && errors.lineItems && (
+                  <div
+                    style={{
+                      color: "#b91c1c",
+                      fontSize: "0.8rem",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    {errors.lineItems}
+                  </div>
+                )}
 
                 <div className={styles.summarySection}>
                   <div className={styles.totalRow}>
@@ -841,7 +842,7 @@ export function InvoicesPage() {
         }}
       >
         <DialogContent
-          className="max-w-4xl overflow-y-auto rounded-2xl"
+          className="!w-[calc(100%-3rem)] lg:!w-full max-w-5xl overflow-y-auto rounded-2xl mx-4 sm:mx-auto"
           onEscapeKeyDown={(e) => {
             // Allow closing with Escape even during generation
             if (isGenerating) {
@@ -1220,16 +1221,16 @@ export function InvoicesPage() {
               key={invoice.id}
               className="border-2 border-gray-100 hover:shadow-lg transition-shadow rounded-2xl"
             >
-              <CardContent className="p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <CardContent className="p-4 sm:p-6 overflow-hidden">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6">
                   {/* Invoice Info */}
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-12 h-12 rounded-xl bg-deep-blue-50 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-xl bg-deep-blue-50 flex items-center justify-center flex-shrink-0">
                         <FileText className="h-6 w-6 text-deep-blue" />
                       </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
+                      <div className="min-w-0">
+                        <h3 className="text-lg font-semibold text-gray-900 truncate">
                           {invoice.invoiceNumber ||
                             `INV-${invoice.id.slice(-6)}`}
                         </h3>
@@ -1241,10 +1242,10 @@ export function InvoicesPage() {
                   </div>
 
                   {/* Amount & Status */}
-                  <div className="flex items-center gap-6 mb-4">
+                  <div className="flex items-center gap-4 lg:gap-6 flex-shrink-0 mb-4 lg:mb-0">
                     <div>
-                      <p className="text-sm text-gray-600 ">Amount</p>
-                      <p className="text-2xl font-bold text-gray-900">
+                      <p className="text-sm text-gray-600">Amount</p>
+                      <p className="text-xl sm:text-2xl font-bold text-gray-900">
                         {getCurrencySymbol(invoice.currency)}
                         {invoice.total.toLocaleString()}
                       </p>
@@ -1252,64 +1253,69 @@ export function InvoicesPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-2 sm:gap-3 w-full lg:w-auto">
                     <Button
                       onClick={() => handleView(invoice)}
                       variant="secondary"
-                      size="lg"
-                      className="  border-2 border-gray-200 rounded-xl hover:bg-gray-50"
+                      size="sm"
+                      className="sm:h-10 border-2 border-gray-200 rounded-xl hover:bg-gray-50 flex-1 sm:flex-none"
                       disabled={viewingId === invoice.id}
                     >
                       {viewingId === invoice.id ? (
                         <>
                           <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                          Viewing...
+                          <span className="hidden sm:inline">Viewing...</span>
                         </>
                       ) : (
                         <>
                           <Eye className="mr-1 h-4 w-4" />
-                          View
+                          <span className="hidden sm:inline">View</span>
                         </>
                       )}
                     </Button>
                     <Button
                       onClick={() => openEditModal(invoice)}
                       variant="outline"
-                      size="lg"
-                      className=" border-2 border-gray-200 rounded-xl hover:bg-gray-50"
+                      size="sm"
+                      className="sm:h-10 border-2 border-gray-200 rounded-xl hover:bg-gray-50 flex-1 sm:flex-none"
                     >
                       <Edit className="mr-1 h-4 w-4" />
-                      Edit
+                      <span className="hidden sm:inline">Edit</span>
                     </Button>
                     {invoice.status === "pending" && (
-                      <Button className="bg-green-600 hover:bg-green-700 text-white rounded-xl">
+                      <Button
+                        size="sm"
+                        className="sm:h-10 bg-green-600 hover:bg-green-700 text-white rounded-xl flex-1 sm:flex-none"
+                      >
                         <Send className="mr-1 h-4 w-4" />
-                        Send
+                        <span className="hidden sm:inline">Send</span>
                       </Button>
                     )}
                     <Button
-                      size="lg"
+                      size="sm"
+                      className="sm:h-10 bg-[#252952] hover:bg-[#161930] text-white rounded-xl flex-1 sm:flex-none"
                       onClick={() => handleDownload(invoice)}
-                      className="bg-[#252952] hover:bg-[#161930] text-white rounded-xl"
                       disabled={downloadingId === invoice.id}
                     >
                       {downloadingId === invoice.id ? (
                         <>
                           <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                          Downloading...
+                          <span className="hidden sm:inline">
+                            Downloading...
+                          </span>
                         </>
                       ) : (
                         <>
                           <Download className="mr-1 h-4 w-4" />
-                          Download
+                          <span className="hidden sm:inline">Download</span>
                         </>
                       )}
                     </Button>
                     <Button
                       variant="ghost"
-                      size="lg"
+                      size="sm"
+                      className="sm:h-10 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl flex-1 sm:flex-none"
                       onClick={() => handleDeleteClick(invoice)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
