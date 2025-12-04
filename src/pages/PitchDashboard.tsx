@@ -1,7 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
+import { Input } from "../components/ui/input";
 import {
   FileText,
   Globe,
@@ -15,6 +21,10 @@ import {
   ExternalLink,
   ArrowLeft,
   Plus,
+  Upload,
+  X,
+  FileCheck,
+  Loader2,
 } from "lucide-react";
 import { LoadingModal } from "../components/LoadingModal";
 import { toast } from "sonner";
@@ -58,6 +68,18 @@ export function PitchDashboard({
     type: "generating",
   });
   const [progress, setProgress] = useState(0);
+
+  // Landing Page Generator states
+  const [firstPitchMeta, setFirstPitchMeta] = useState<any>(null);
+  const [firstPitchHasPremiumLanding, setFirstPitchHasPremiumLanding] =
+    useState(false);
+  const [isFetchingFirstPitch, setIsFetchingFirstPitch] = useState(false);
+  const [logoSvgContent, setLogoSvgContent] = useState<string | null>(null);
+  const [logoFileName, setLogoFileName] = useState<string>("");
+  const [uploadError, setUploadError] = useState<string>("");
+  const [isGeneratingLanding, setIsGeneratingLanding] = useState(false);
+  const [showLandingLoading, setShowLandingLoading] = useState(false);
+  const [landingProgress, setLandingProgress] = useState(0);
 
   // Load pitches with pagination
   const loadPitches = useCallback(
@@ -104,6 +126,140 @@ export function PitchDashboard({
     loadPitches(1);
   }, []);
 
+  // Fetch first pitch for landing page generator
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        setIsFetchingFirstPitch(true);
+        const fp = await apiService.getFirstPitch();
+        if (isMounted && fp) {
+          setFirstPitchMeta(fp);
+          setFirstPitchHasPremiumLanding(!!fp.hasLandingPagePremium);
+        }
+      } catch (_e) {
+        // Silently fail - landing page generator will just not show
+      } finally {
+        if (isMounted) {
+          setIsFetchingFirstPitch(false);
+        }
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty dependency array - only run once on mount
+
+  // Refresh first pitch data after landing page generation
+  const refreshFirstPitch = async () => {
+    try {
+      const refreshed = await apiService.getFirstPitch();
+      if (refreshed) {
+        setFirstPitchMeta(refreshed);
+        setFirstPitchHasPremiumLanding(!!refreshed.hasLandingPagePremium);
+      }
+    } catch (_e) {
+      // no-op: keep previous state if refresh fails
+    }
+  };
+
+  // Handle SVG file upload
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.includes("svg")) {
+      setUploadError("Please upload only SVG files");
+      setLogoSvgContent(null);
+      setLogoFileName("");
+      return;
+    }
+
+    setUploadError("");
+    setLogoFileName(file.name);
+
+    // Read SVG file content
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      setLogoSvgContent(content);
+    };
+    reader.onerror = () => {
+      setUploadError("Failed to read SVG file");
+      setLogoSvgContent(null);
+      setLogoFileName("");
+    };
+    reader.readAsText(file);
+  };
+
+  // Clear logo
+  const clearLogo = () => {
+    setLogoSvgContent(null);
+    setLogoFileName("");
+    setUploadError("");
+  };
+
+  // Open landing page in new tab
+  const openLandingPage = () => {
+    if (firstPitchMeta?.startupName) {
+      window.open(`/${firstPitchMeta.startupName}`, "_blank");
+    }
+  };
+
+  // Generate premium landing page
+  const generateLandingPage = async () => {
+    if (!firstPitchMeta) {
+      toast.error("No pitch found", {
+        description:
+          "Please create your first pitch to generate a premium landing page.",
+      });
+      return;
+    }
+
+    let progressInterval: number | undefined;
+
+    try {
+      setIsGeneratingLanding(true);
+      setShowLandingLoading(true);
+      setLandingProgress(10);
+
+      progressInterval = window.setInterval(() => {
+        setLandingProgress((p) => Math.min(p + 5, 95));
+      }, 5000);
+
+      const response = await apiService.generateLandingPage(
+        firstPitchMeta.id,
+        "premium",
+        logoSvgContent || undefined
+      );
+
+      setLandingProgress(100);
+
+      toast.success("Premium Landing Page Generated!", {
+        description: "Your premium landing page has been created successfully.",
+      });
+
+      // Clear logo after successful generation
+      clearLogo();
+
+      // Refresh first pitch data
+      await refreshFirstPitch();
+    } catch (error: any) {
+      toast.error("Failed to generate premium landing page", {
+        description: error.message || "Please try again later.",
+      });
+    } finally {
+      if (progressInterval) window.clearInterval(progressInterval);
+      setTimeout(() => {
+        setShowLandingLoading(false);
+        setLandingProgress(0);
+      }, 400);
+      setIsGeneratingLanding(false);
+    }
+  };
+
   const handleDownload = (pitch: PitchHistoryItem) => {
     try {
       const container = document.createElement("div");
@@ -125,76 +281,6 @@ export function PitchDashboard({
     } catch (error: any) {
       console.error("Failed to download PDF:", error);
       toast.error("Failed to download PDF", {
-        description: error.message || "Please try again later.",
-      });
-    }
-  };
-
-  const handleGenerateLanding = async (pitchId: string) => {
-    // Find the first pitch to ensure we only generate for the first pitch
-    const firstPitch = pitches?.find((pitch) => pitch.isFirstPitch);
-
-    if (!firstPitch) {
-      toast.error("No first pitch found", {
-        description:
-          "Please create your first pitch to generate a landing page.",
-      });
-      return;
-    }
-
-    if (firstPitch.id !== pitchId) {
-      toast.error("Landing page generation restricted", {
-        description:
-          "You can only generate a basic landing page for your first pitch.",
-      });
-      return;
-    }
-
-    setLoadingModal({ isOpen: true, type: "landing" });
-    setProgress(0);
-
-    try {
-      // Simulate progress
-      const interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 90) {
-            clearInterval(interval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 4000);
-
-      // Call the actual API to generate landing page with basic plan
-      const response = await apiService.generateLandingPage(pitchId, "basic");
-
-      clearInterval(interval);
-      setProgress(100);
-
-      // Update the pitch in state with the new landing page
-      setPitches(
-        (prev) =>
-          prev?.map((pitch) =>
-            pitch.id === pitchId
-              ? {
-                  ...pitch,
-                  landingPage: response.data.landingPage,
-                  hasLandingPage: true,
-                  status: "published",
-                }
-              : pitch
-          ) || []
-      );
-
-      setTimeout(() => {
-        setLoadingModal({ isOpen: false, type: "landing" });
-        toast.success("Basic Landing Page Generated!", {
-          description: "Your basic landing page has been created successfully.",
-        });
-      }, 500);
-    } catch (error: any) {
-      setLoadingModal({ isOpen: false, type: "landing" });
-      toast.error("Failed to generate landing page", {
         description: error.message || "Please try again later.",
       });
     }
@@ -338,28 +424,18 @@ export function PitchDashboard({
                         <span className="whitespace-nowrap">Download PDF</span>
                       </Button>
 
-                      <Button
-                        onClick={() =>
-                          !pitch.hasLandingPage
-                            ? handleGenerateLanding(pitch.id)
-                            : handleViewLanding(pitch)
-                        }
-                        className={`rounded-xl w-full  sm:w-auto ${
-                          pitch.hasLandingPage
-                            ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
-                            : "bg-[#252952] hover:bg-[#161930] text-white"
-                        }`}
-                        size="lg"
-                      >
-                        {pitch.hasLandingPage ? (
+                      {pitch.hasLandingPage && (
+                        <Button
+                          onClick={() => handleViewLanding(pitch)}
+                          className="rounded-xl w-full sm:w-auto bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
+                          size="lg"
+                        >
                           <ExternalLink className="mr-2 h-4 w-4" />
-                        ) : null}
-                        <span className="whitespace-nowrap">
-                          {pitch.hasLandingPage
-                            ? "View Landing Page"
-                            : "Generate Landing Page"}
-                        </span>
-                      </Button>
+                          <span className="whitespace-nowrap">
+                            View Landing Page
+                          </span>
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -393,6 +469,161 @@ export function PitchDashboard({
         )}
       </div>
 
+      {/* Landing Page Generator */}
+      <div className="mt-8">
+        <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-4">
+          Landing Page Generator
+        </h3>
+        <Card className="border-2 border-gray-100">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold">
+              Upload Your Logo (Optional)
+            </CardTitle>
+            <p className="text-sm text-gray-600">
+              Upload an SVG logo to include in your premium landing page. You
+              can also skip this step.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {isFetchingFirstPitch ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+                  <p className="text-gray-600">Loading...</p>
+                </div>
+              </div>
+            ) : !firstPitchMeta ? (
+              <div className="text-center py-8">
+                <Globe className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 mb-4">
+                  Create your first pitch to generate a premium landing page.
+                </p>
+                <Button
+                  onClick={() => navigate("/builder")}
+                  className="bg-[#252952] hover:bg-[#161930]"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Create Your First Pitch
+                </Button>
+              </div>
+            ) : (
+              <>
+                {/* File Upload Area */}
+                <div
+                  className={`w-full border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                    firstPitchHasPremiumLanding
+                      ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-60"
+                      : "border-gray-300 hover:border-blue-500"
+                  }`}
+                >
+                  <label
+                    htmlFor="logo-upload"
+                    className={`block ${
+                      firstPitchHasPremiumLanding
+                        ? "cursor-not-allowed"
+                        : "cursor-pointer"
+                    }`}
+                  >
+                    <Upload
+                      className={`mx-auto h-12 w-12 mb-3 ${
+                        firstPitchHasPremiumLanding
+                          ? "text-gray-300"
+                          : "text-gray-400"
+                      }`}
+                    />
+                    <p
+                      className={`text-sm mb-2 ${
+                        firstPitchHasPremiumLanding
+                          ? "text-gray-400"
+                          : "text-gray-600"
+                      }`}
+                    >
+                      {firstPitchHasPremiumLanding
+                        ? "Upload disabled - Landing page already exists"
+                        : "Click to upload or drag and drop"}
+                    </p>
+                    <p
+                      className={`text-xs ${
+                        firstPitchHasPremiumLanding
+                          ? "text-gray-400"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      SVG files only
+                    </p>
+                    <Input
+                      id="logo-upload"
+                      type="file"
+                      accept=".svg,image/svg+xml"
+                      onChange={handleLogoUpload}
+                      className="hidden"
+                      disabled={
+                        isGeneratingLanding || firstPitchHasPremiumLanding
+                      }
+                    />
+                  </label>
+                </div>
+
+                {/* Show uploaded file */}
+                {logoFileName && (
+                  <div className="flex items-center justify-between bg-purple-50 p-3 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <FileCheck className="h-5 w-5 text-purple-600" />
+                      <span className="text-sm text-gray-700">
+                        {logoFileName}
+                      </span>
+                    </div>
+                    <button
+                      onClick={clearLogo}
+                      className="text-gray-500 hover:text-red-500"
+                      disabled={
+                        isGeneratingLanding || firstPitchHasPremiumLanding
+                      }
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Error message */}
+                {uploadError && (
+                  <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+                    {uploadError}
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                <div className="flex justify-center gap-3 pt-4">
+                  {firstPitchHasPremiumLanding ? (
+                    <Button
+                      className="px-6 bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110"
+                      onClick={openLandingPage}
+                    >
+                      View Landing Page
+                    </Button>
+                  ) : (
+                    <Button
+                      className="px-6 bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer hover:from-premium-purple-dark hover:to-deep-blue-dark text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                      onClick={generateLandingPage}
+                      disabled={isGeneratingLanding || !firstPitchMeta}
+                    >
+                      {isGeneratingLanding ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        "Generate Premium Landing Page"
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Premium Status */}
       {isPremium && (
         <Card className="mt-6 md:mt-8 border-2 border-green-200 bg-gradient-to-br from-green-50 to-white rounded-2xl">
@@ -424,6 +655,11 @@ export function PitchDashboard({
         isOpen={loadingModal.isOpen}
         type={loadingModal.type}
         progress={progress}
+      />
+      <LoadingModal
+        isOpen={showLandingLoading}
+        type="landing"
+        progress={landingProgress}
       />
     </div>
   );

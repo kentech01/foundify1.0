@@ -12,7 +12,6 @@ import React from "react";
 import { FeedbackCoach } from "./FeedbackCoach";
 import { InvestorEmailDraft } from "./InvestorEmailDraft";
 import { AIHiringAssistant } from "./AIHiringAssistant";
-import { LandingPageGenerator } from "./LandingPageGenerator";
 
 export function DashboardMain() {
   const navigate = useNavigate();
@@ -111,10 +110,6 @@ export function DashboardMain() {
         <Route path="feedbackCoach" element={<FeedbackCoach />} />
         <Route path="investor-email-draft" element={<InvestorEmailDraft />} />
         <Route path="ai-hiring-assistant" element={<AIHiringAssistant />} />
-        <Route
-          path="landing-page-generator"
-          element={<LandingPageGenerator />}
-        />
       </Routes>
     </DashboardLayout>
   );
