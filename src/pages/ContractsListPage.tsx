@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { Badge } from "../components/ui/badge";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import {
@@ -270,7 +269,7 @@ export function ContractsListPage() {
             >
               <CardContent className="p-4 sm:p-6 overflow-hidden">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6">
-                  {/* Contract Info */}
+                  {/* Contract Info (title + subtitle) */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
@@ -278,30 +277,18 @@ export function ContractsListPage() {
                       </div>
                       <div className="min-w-0">
                         <h3 className="text-lg font-semibold text-gray-900 truncate">
-                          {contract?.template_name || "Untitled Contract"}
+                          {contract.data?.contract_name ||
+                            contract.title ||
+                            contract.template_name ||
+                            "Untitled Contract"}
                         </h3>
                         <p className="text-sm text-gray-600">
-                          {contract.type || "Contract"}
+                          {contract.data?.template_name ||
+                            contract.template_name ||
+                            contract.type ||
+                            "Contract"}
                         </p>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Status */}
-                  <div className="flex items-center gap-4 lg:gap-6 flex-shrink-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm text-gray-600">Status:</p>
-                      <Badge
-                        className={
-                          contract.status === "completed"
-                            ? "bg-green-100 text-green-700 hover:bg-green-100 w-fit mt-1"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-100 w-fit mt-1"
-                        }
-                      >
-                        {contract.status === "completed"
-                          ? "Completed"
-                          : "Draft"}
-                      </Badge>
                     </div>
                   </div>
 

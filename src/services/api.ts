@@ -3,8 +3,9 @@ import { useCallback } from "react";
 import useAxios from "../hooks/useAxios";
 import { log } from "util";
 import { data } from "react-router-dom";
-export const API_BASE_URL =
-  "https://foundify-api-production.up.railway.app/api/v1/";
+// export const API_BASE_URL =
+//   "https://foundify-api-production.up.railway.app/api/v1/";
+export const API_BASE_URL = "http://localhost:5001/api/v1/";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -366,6 +367,73 @@ const errorMessage = (error: any) => {
     error?.message ||
     "Request failed";
   return status ? `${status} ${msg}` : msg;
+};
+
+// Centralized fetch helper that attaches a Firebase ID token and
+// transparently refreshes it once if the backend reports it as invalid/expired.
+export const apiFetch = async (
+  input: RequestInfo | URL,
+  init: RequestInit = {}
+): Promise<Response> => {
+  const { auth } = await import("../../firebase");
+  const user = auth.currentUser;
+
+  // Helper to perform a single fetch with an optional forced token refresh
+  const doRequest = async (forceRefresh = false): Promise<Response> => {
+    const freshUser = auth.currentUser;
+    const token = freshUser ? await freshUser.getIdToken(forceRefresh) : null;
+
+    const headers = new Headers(init.headers || {});
+
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    } else {
+      headers.delete("Authorization");
+    }
+
+    // Preserve existing Content-Type if provided, otherwise default to JSON
+    if (
+      !headers.has("Content-Type") &&
+      init.body &&
+      !(init.body instanceof FormData)
+    ) {
+      headers.set("Content-Type", "application/json");
+    }
+
+    return fetch(input, {
+      ...init,
+      headers,
+    });
+  };
+
+  // First attempt with the current token
+  let response = await doRequest(false);
+
+  // If unauthorized, check if it's specifically the "invalid or expired" case
+  if (response.status === 401 && user) {
+    try {
+      const data = await response
+        .clone()
+        .json()
+        .catch(() => null);
+      const message =
+        data?.message || data?.error || (typeof data === "string" ? data : "");
+
+      if (
+        typeof message === "string" &&
+        message
+          .toLowerCase()
+          .includes("invalid or expired authentication token")
+      ) {
+        // Force-refresh the token and retry once
+        response = await doRequest(true);
+      }
+    } catch {
+      // If we fail to read the body, just fall through and return the original response
+    }
+  }
+
+  return response;
 };
 
 // Hook-based API service
@@ -1077,6 +1145,7 @@ class ApiService {
     if (!user) {
       return null;
     }
+    // Use Firebase's built-in token handling; this will already refresh if needed
     return await user.getIdToken();
   }
 
@@ -1084,20 +1153,7 @@ class ApiService {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
-    const token = await this.getAuthToken();
-
-    if (!token) {
-      throw new Error("No authentication token available");
-    }
-
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-        ...options.headers,
-      },
-    });
+    const response = await apiFetch(`${API_BASE_URL}${endpoint}`, options);
 
     if (!response.ok) {
       throw new Error(`API request failed: ${response.status}`);
@@ -1269,18 +1325,8 @@ class ApiService {
 
   async downloadInvoicePdf(uid: string, invoiceId: string): Promise<void> {
     try {
-      const token = await this.getAuthToken();
-      if (!token) {
-        throw new Error("User not authenticated");
-      }
-
-      const response = await fetch(
-        `${API_BASE_URL}invoices/${uid}/${invoiceId}/pdf`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await apiFetch(
+        `${API_BASE_URL}invoices/${uid}/${invoiceId}/pdf`
       );
 
       if (!response.ok) {

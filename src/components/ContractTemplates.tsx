@@ -524,17 +524,15 @@ export function ContractTemplates({
 
       // If in edit mode, we're updating an existing contract
       if (editMode) {
-        // Remove placeholders for falsy fields, but keep placeholders for truthy fields
-        // so backend can fill them from the data object
-        const processedContract = removeFalsyPlaceholders(editableContract);
-
         // Prepare the edit payload
         const editPayload = {
           templateId: editMode.templateId,
           originalData: editMode.formData, // Use the original data from editMode
           updates: {
             data: mapDataForApi(formData), // Use the updated form data
-            customContent: processedContract, // Keep placeholders for backend to fill
+            // Keep all placeholders (even if their values are empty) so they remain visible
+            // in the saved contract text. Backend can decide how to handle them.
+            customContent: editableContract,
           },
           contractId: editMode.contractId, // Include the contract ID
           saveToDb: true, // Make sure to save to database
@@ -546,20 +544,17 @@ export function ContractTemplates({
         toast.success("Contract updated successfully!");
       } else {
         // Creating a new contract
-        // Remove placeholders for falsy fields, but keep placeholders for truthy fields
-        // so backend can fill them from the data object
         const baseText =
           step === "edit" && editableContract.trim()
             ? editableContract
             : editablePreview;
 
-        // Remove placeholders for falsy fields only, keep others for backend to fill
-        const processedContract = removeFalsyPlaceholders(baseText);
-
         const contractPayload = {
           templateId: selectedTemplate!.id,
           data: mapDataForApi(formData),
-          customContent: processedContract, // Keep placeholders for backend to fill
+          // Keep all placeholders in the content (even when values are empty)
+          // so they stay visible in the generated contract.
+          customContent: baseText,
         };
 
         const contractResponse = await generateContract(contractPayload);

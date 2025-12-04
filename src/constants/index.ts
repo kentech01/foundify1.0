@@ -35,43 +35,45 @@ WHEREAS, the Disclosing Party possesses certain confidential, proprietary, and t
 
 NOW, THEREFORE, the parties agree as follows:
 
-Purpose
+<strong>Purpose</strong>
+
 The Disclosing Party intends to share Confidential Information with the Receiving Party for the purpose of [PURPOSE].
 
-Definition of Confidential Information
+<strong>Definition of Confidential Information</strong>
+
 "Confidential Information" means all technical and non-technical information disclosed by the Disclosing Party, including but not limited to data, financial information, customer details, software, inventions, know-how, trade secrets, and documentation—whether disclosed orally, visually, or in written form.
 
-Exclusions
+<strong>Exclusions</strong>
+
 Confidential Information does not include information that:
 • Is or becomes public through no fault of the Receiving Party;
 • Was already in the Receiving Party's possession prior to disclosure;
 • Is independently developed by the Receiving Party without use of the Confidential Information; or
 • Is rightfully obtained from a third party without restriction.
 
-Obligations of the Receiving Party
+<strong>Obligations of the Receiving Party</strong>
+
 The Receiving Party agrees to:
 • Maintain confidentiality and use at least the same degree of care it uses for its own confidential materials;
 • Not disclose any Confidential Information to third parties without prior written consent;
 • Use the Confidential Information solely for the purpose stated above;
 • Promptly notify the Disclosing Party of any unauthorized use or disclosure.
 
-Return or Destruction
+<strong>Return or Destruction</strong>
+
 Upon termination of discussions or at the Disclosing Party's request, the Receiving Party shall return or destroy all Confidential Information and certify such destruction.
 
-Term
+<strong>Term</strong>
+
 This Agreement shall remain in effect for [DURATION] years from the date signed, and the obligations regarding confidentiality shall survive termination.
 
-No License
+<strong>No License</strong>
+
 Nothing in this Agreement grants the Receiving Party any ownership or license rights to the Confidential Information.
 
-Governing Law
-This Agreement shall be governed by and construed in accordance with the laws of the State of [JURISDICTION].
+<strong>Governing Law</strong>
 
-IN WITNESS WHEREOF, the parties have executed this Agreement as of the date written above.
-
-Disclosing Party______________
-
-Receiving Party______________`,
+This Agreement shall be governed by and construed in accordance with the laws of the State of [JURISDICTION].`,
     fields: [
       {
         id: "contract_name",
@@ -140,10 +142,12 @@ This Founder Agreement ("Agreement") is entered into on [DATE] by and between th
 
 WHEREAS, the Founders desire to formalize their relationship, define their roles, ownership, and rights, and prevent future misunderstandings.
 
-Company Formation
+<strong>Company Formation</strong>
+
 The Founders agree to form a company under the name [COMPANY_NAME], engaged in the business of [BUSINESS_DESCRIPTION]. The company will be incorporated in the State of [JURISDICTION] as a [TYPE_OF_ENTITY].
 
-Equity Ownership
+<strong>Equity Ownership</strong>
+
 Each Founder's ownership in the company shall be as follows:
 • [FOUNDER_1_NAME] — [PERCENTAGE_1]%
 • [FOUNDER_2_NAME] — [PERCENTAGE_2]%
@@ -151,7 +155,8 @@ Each Founder's ownership in the company shall be as follows:
 
 No Founder shall transfer, sell, or assign their equity without first offering it to the other Founders.
 
-Roles and Responsibilities
+<strong>Roles and Responsibilities</strong>
+
 Each Founder agrees to take on the following initial responsibilities:
 • [FOUNDER_1_NAME] — [ROLE_1]
 • [FOUNDER_2_NAME] — [ROLE_2]
@@ -159,28 +164,25 @@ Each Founder agrees to take on the following initial responsibilities:
 
 Founders agree to devote their reasonable efforts and time to the success of the company.
 
-Decision Making
+<strong>Decision Making</strong>
+
 Major decisions (e.g., fundraising, new product launches, hiring key executives) require approval from at least [DECISION_THRESHOLD]% of equity holders or unanimous consent, as determined by the Founders.
 
-Intellectual Property
+<strong>Intellectual Property</strong>
+
 All intellectual property (IP) created by the Founders related to the company's operations shall be owned by the company. Each Founder hereby assigns all rights, title, and interest in such IP to the company.
 
-Vesting Schedule
+<strong>Vesting Schedule</strong>
+
 Each Founder's shares shall vest over a period of [VESTING_YEARS] years with a [CLIFF_MONTHS] month cliff. If a Founder leaves before the cliff, they forfeit all unvested shares.
 
-Expenses and Reimbursements
+<strong>Expenses and Reimbursements</strong>
+
 Any expenses incurred on behalf of the company shall be reimbursed with proper documentation and approval by the other Founders.
 
-Dispute Resolution
-Any disputes arising under this Agreement shall be first resolved by mediation, and if unresolved, by binding arbitration under the laws of the State of [JURISDICTION].
+<strong>Dispute Resolution</strong>
 
-IN WITNESS WHEREOF, the Founders have executed this Agreement as of the date written above.
-
-Founder 1______________
-
-Founder 2______________
-
-Founder 3______________`,
+Any disputes arising under this Agreement shall be first resolved by mediation, and if unresolved, by binding arbitration under the laws of the State of [JURISDICTION].`,
     fields: [
       {
         id: "contract_name",
@@ -329,38 +331,41 @@ Founder 3______________`,
 
 This Employment Agreement ("Agreement") is made effective as of [DATE] by and between [COMPANY_NAME] ("Employer") and [EMPLOYEE_NAME] ("Employee").
 
-Position and Duties
+<strong>Position and Duties</strong>
+
 The Employer hereby employs the Employee in the position of [JOB_TITLE]. The Employee agrees to perform all duties and responsibilities consistent with that role, including [KEY_RESPONSIBILITIES], and to follow the company's policies and code of conduct.
 
-Term of Employment
+<strong>Term of Employment</strong>
+
 The employment relationship will commence on [START_DATE] and will continue until terminated by either party in accordance with this Agreement.
 
-Compensation
+<strong>Compensation</strong>
+
 The Employee shall receive a salary of [SALARY_AMOUNT] per [PAY_PERIOD], payable [PAYMENT_FREQUENCY], subject to applicable deductions. Any bonuses or commissions will be at the discretion of the Employer.
 
-Benefits
+<strong>Benefits</strong>
+
 The Employee shall be entitled to [BENEFITS] as per the company's current benefits policy, which may include health insurance, paid leave, and remote work flexibility.
 
-Working Hours and Location
+<strong>Working Hours and Location</strong>
+
 The Employee is expected to work [HOURS_PER_WEEK] hours per week, primarily from [WORK_LOCATION], unless otherwise agreed in writing.
 
-Confidentiality and Intellectual Property
+<strong>Confidentiality and Intellectual Property</strong>
+
 The Employee agrees not to disclose any proprietary or confidential information. All work, inventions, designs, and materials produced during employment are the sole property of the Employer.
 
-Termination
+<strong>Termination</strong>
+
 Either party may terminate this Agreement with [NOTICE_PERIOD] written notice. The Employer reserves the right to terminate immediately for misconduct, breach of duty, or gross negligence.
 
-Non-Compete and Non-Solicitation
+<strong>Non-Compete and Non-Solicitation</strong>
+
 For [NON_COMPETE_DURATION] months after termination, the Employee shall not engage with competitors or solicit clients, employees, or contractors of the Employer.
 
-Governing Law
-This Agreement is governed by the laws of the State of [JURISDICTION].
+<strong>Governing Law</strong>
 
-IN WITNESS WHEREOF, the parties have executed this Agreement as of the date written above.
-
-Employer_________________
-
-Employee______________`,
+This Agreement is governed by the laws of the State of [JURISDICTION].`,
     fields: [
       {
         id: "contract_name",
@@ -491,44 +496,48 @@ This Consultant Agreement ("Agreement") is entered into on [DATE] between [CLIEN
 
 WHEREAS, the Client desires to engage the Consultant for certain services, and the Consultant agrees to provide such services under the following terms.
 
-Services
+<strong>Services</strong>
+
 The Consultant agrees to provide professional services as described below:
 [SERVICE_DESCRIPTION].
 
 The Consultant shall perform the services with diligence, in a professional manner, and in accordance with industry standards.
 
-Term
+<strong>Term</strong>
+
 This Agreement begins on [START_DATE] and continues until [END_DATE] or completion of services, unless terminated earlier.
 
-Compensation
+<strong>Compensation</strong>
+
 The Client agrees to pay the Consultant [AMOUNT] per [PAYMENT_UNIT], payable [PAYMENT_TERMS]. Late payments may accrue interest at [INTEREST_RATE]% per month.
 
-Expenses
+<strong>Expenses</strong>
+
 The Consultant shall be reimbursed for reasonable pre-approved expenses incurred during service delivery, provided that receipts are submitted.
 
-Independent Contractor
+<strong>Independent Contractor</strong>
+
 The Consultant is an independent contractor and not an employee of the Client. The Consultant is responsible for their own taxes, insurance, and benefits.
 
-Confidentiality
+<strong>Confidentiality</strong>
+
 The Consultant agrees to maintain strict confidentiality regarding all non-public information disclosed by the Client during the course of engagement.
 
-Ownership of Work
+<strong>Ownership of Work</strong>
+
 All deliverables, documents, and materials created by the Consultant under this Agreement shall be the property of the Client upon full payment. The Consultant retains no rights to such materials.
 
-Termination
+<strong>Termination</strong>
+
 Either party may terminate this Agreement with [NOTICE_PERIOD] written notice. The Client may terminate immediately for breach or non-performance.
 
-Liability and Indemnity
+<strong>Liability and Indemnity</strong>
+
 The Consultant shall not be liable for indirect damages. The Consultant agrees to indemnify the Client for damages resulting from intentional misconduct or gross negligence.
 
-Governing Law
-This Agreement shall be governed by the laws of the State of [JURISDICTION].
+<strong>Governing Law</strong>
 
-IN WITNESS WHEREOF, the parties have executed this Agreement as of the date written above.
-
-Client _________
-
-Consultant __________`,
+This Agreement shall be governed by the laws of the State of [JURISDICTION].`,
     fields: [
       {
         id: "contract_name",

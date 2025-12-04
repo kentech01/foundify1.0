@@ -1,9 +1,15 @@
 // hooks/useAxios.ts
 import axios from "axios";
-import type { AxiosInstance, AxiosResponse, AxiosError } from "axios";
+import type {
+  AxiosInstance,
+  AxiosResponse,
+  AxiosError,
+  AxiosRequestConfig,
+} from "axios";
 import { useMemo } from "react";
 import { UserAuth } from "../context/AuthContext";
 import { API_BASE_URL } from "../services/api";
+import { getAuth } from "firebase/auth";
 
 const useAxios = (): AxiosInstance => {
   const { accessToken } = UserAuth();
@@ -18,33 +24,65 @@ const useAxios = (): AxiosInstance => {
       timeout: 3000000, // 5  minutes timeout
     });
 
-    // Request interceptor to add auth token
+    // Request interceptor to always attach the latest Firebase ID token
     instance.interceptors.request.use(
-      (config) => {
-        // Update the Authorization header with the latest token
-        if (accessToken) {
-          config.headers.Authorization = `Bearer ${accessToken}`;
+      async (config) => {
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        if (user) {
+          const token = await user.getIdToken();
+          if (!config.headers) {
+            config.headers = {};
+          }
+          (config.headers as any).Authorization = `Bearer ${token}`;
+        } else if (config.headers) {
+          // If there's no user, ensure we don't send a stale token
+          delete (config.headers as any).Authorization;
         }
+
         return config;
       },
-      (error) => {
-        return Promise.reject(error);
-      }
+      (error) => Promise.reject(error)
     );
 
     // Response interceptor for error handling
     instance.interceptors.response.use(
-      (response: AxiosResponse) => {
-        return response;
-      },
+      (response: AxiosResponse) => response,
       async (error: AxiosError) => {
-        const originalRequest = error.config;
+        const originalRequest = error.config as
+          | (AxiosRequestConfig & { _retry?: boolean })
+          | undefined;
 
-        // Handle 401 Unauthorized errors
-        if (error.response?.status === 401 && originalRequest) {
-          // You could implement token refresh logic here
-          // For now, we'll just reject the error.
-          console.warn("Authentication failed. Please sign in again.");
+        // Handle 401 Unauthorized errors with possible token refresh
+        if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+          const data: any = error.response.data;
+          const message: string | undefined =
+            (typeof data === "string" && data) ||
+            data?.message ||
+            data?.error;
+
+          if (
+            message &&
+            message
+              .toLowerCase()
+              .includes("invalid or expired authentication token")
+          ) {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (user) {
+              try {
+                const newToken = await user.getIdToken(true); // force refresh
+                originalRequest._retry = true;
+                originalRequest.headers = originalRequest.headers || {};
+                (originalRequest.headers as any).Authorization = `Bearer ${newToken}`;
+                return instance(originalRequest);
+              } catch (refreshError) {
+                console.error("Failed to refresh auth token", refreshError);
+              }
+            }
+          }
         }
 
         // Handle network errors
