@@ -67,6 +67,7 @@ export function ContractsListPage() {
   );
   const [showCreateHeader, setShowCreateHeader] = useState(true);
   const [showEditHeader, setShowEditHeader] = useState(true);
+  const [language, setLanguage] = useState<"en" | "alb">("en");
 
   const {
     getContracts,
@@ -371,9 +372,15 @@ export function ContractsListPage() {
         <DialogContent className="!w-[calc(100%-3rem)] lg:!w-full max-w-5xl overflow-y-auto rounded-2xl sm:mx-auto max-h-[90vh]">
           {showCreateHeader && (
             <DialogHeader>
-              <DialogTitle>Create New Contract</DialogTitle>
+              <DialogTitle>
+                {language === "en"
+                  ? "Create New Contract"
+                  : "Krijo Kontratë të Re"}
+              </DialogTitle>
               <DialogDescription>
-                Choose a contract template to get started
+                {language === "en"
+                  ? "Choose a contract template to get started"
+                  : "Zgjidhni një shabllon kontrate për të filluar"}
               </DialogDescription>
             </DialogHeader>
           )}
@@ -382,6 +389,8 @@ export function ContractsListPage() {
             onStepChange={(step: ContractTemplatesStep) =>
               setShowCreateHeader(step === "select")
             }
+            onLanguageChange={setLanguage}
+            initialLanguage={language}
           />
         </DialogContent>
       </Dialog>
