@@ -239,17 +239,13 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
                 By continuing, you agree to our{" "}
                 <button
                   type="button"
-                  onClick={() => navigate("/terms")}
+                  onClick={() => {
+                    onClose();
+                    navigate("/terms");
+                  }}
                   className="underline  hover:text-deep-blue text-deep-blue"
                 >
                   Terms of Service
-                </button>{" "}
-                and{" "}
-                <button
-                  type="button"
-                  className="underline  hover:text-deep-blue text-deep-blue"
-                >
-                  Privacy Policy
                 </button>
               </p>
             </form>
@@ -334,17 +330,13 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
                 By continuing, you agree to our{" "}
                 <button
                   type="button"
-                  onClick={() => navigate("/terms")}
+                  onClick={() => {
+                    onClose();
+                    navigate("/terms");
+                  }}
                   className="underline  hover:text-deep-blue text-deep-blue"
                 >
                   Terms of Service
-                </button>{" "}
-                and{" "}
-                <button
-                  type="button"
-                  className="underline  hover:text-deep-blue text-deep-blue"
-                >
-                  Privacy Policy
                 </button>
               </p>
             </form>

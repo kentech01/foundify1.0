@@ -118,7 +118,7 @@ export function PricingModern({ onStart }: HeroModernProps) {
                 <li className="flex items-start gap-3">
                   <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700">
-                    Create and export a basic landing page
+                    Professional hosted landing page
                   </span>
                 </li>
               </ul>
@@ -169,12 +169,6 @@ export function PricingModern({ onStart }: HeroModernProps) {
                   <Check className="h-5 w-5 text-blue-900 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700 font-medium">
                     Everything in Free, plus:
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-blue-900 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700">
-                    Professional hosted landing page
                   </span>
                 </li>
                 <li className="flex items-start gap-3">

@@ -26,7 +26,7 @@ const features = [
   {
     id: "invoice",
     title: "Invoice Generator",
-    description: "Professional invoices in seconds",
+    description: "Professional invoices",
     icon: FileText,
     free: false,
   },
