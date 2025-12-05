@@ -179,7 +179,6 @@ export function UpgradePage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {[
-                  "Professional hosted landing page",
                   "Built-in analytics (page views, clicks)",
                   "Multiple premium templates",
                   "AI-assisted pitch building",

@@ -6,6 +6,13 @@ import { Textarea } from "./ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import {
   ArrowLeft,
   Download,
   FileText,
@@ -13,6 +20,7 @@ import {
   Check,
   Copy,
   Edit,
+  Info,
 } from "lucide-react";
 import { useApiService } from "../services/api";
 import { Loader2 } from "lucide-react";
@@ -22,18 +30,33 @@ import React from "react";
 
 export type ContractTemplatesStep = "select" | "preview" | "customize" | "edit";
 
+type Language = "en" | "alb";
+
 interface ContractTemplate {
   id: string;
-  title: string;
-  description: string;
-  category: string;
+  title: {
+    en: string;
+    alb: string;
+  };
+  description: {
+    en: string;
+    alb: string;
+  };
+  category: {
+    en: string;
+    alb: string;
+  };
   downloads: number;
   isPremium: boolean;
-  previewContent: string;
+  previewContent: {
+    en: string;
+    alb: string;
+  };
   fields: {
     id: string;
     label: string;
     placeholder: string;
+    placeholderAlb?: string;
     type: string;
     required?: boolean;
     defaultValue?: string | (() => string);
@@ -50,12 +73,16 @@ interface ContractTemplatesProps {
     contractText: string;
   };
   onStepChange?: (step: ContractTemplatesStep) => void;
+  onLanguageChange?: (language: Language) => void;
+  initialLanguage?: Language;
 }
 
 export function ContractTemplates({
   onSuccess,
   editMode,
   onStepChange,
+  onLanguageChange,
+  initialLanguage = "en",
 }: ContractTemplatesProps = {}) {
   const [step, setStep] = useState<ContractTemplatesStep>(
     editMode ? "edit" : "select"
@@ -81,6 +108,12 @@ export function ContractTemplates({
   );
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [language, setLanguage] = useState<Language>(initialLanguage);
+
+  const handleLanguageChange = (newLanguage: Language) => {
+    setLanguage(newLanguage);
+    onLanguageChange?.(newLanguage);
+  };
 
   useEffect(() => {
     if (editMode && selectedTemplate) {
@@ -98,6 +131,13 @@ export function ContractTemplates({
     onStepChange?.(step);
   }, [step, onStepChange]);
 
+  // Update preview content when language changes
+  useEffect(() => {
+    if (selectedTemplate && step !== "edit") {
+      setEditablePreview(selectedTemplate.previewContent[language]);
+    }
+  }, [language, selectedTemplate, step]);
+
   const { generateContract, exportContractPdf, editContract } = useApiService();
 
   const handleSelectTemplate = (template: ContractTemplate) => {
@@ -106,7 +146,7 @@ export function ContractTemplates({
       return;
     }
     setSelectedTemplate(template);
-    setEditablePreview(template.previewContent);
+    setEditablePreview(template.previewContent[language]);
     setStep("preview");
     // Initialize form data with default values
     const initialData: Record<string, string> = {};
@@ -524,17 +564,16 @@ export function ContractTemplates({
 
       // If in edit mode, we're updating an existing contract
       if (editMode) {
-        // Remove placeholders for falsy fields, but keep placeholders for truthy fields
-        // so backend can fill them from the data object
-        const processedContract = removeFalsyPlaceholders(editableContract);
-
         // Prepare the edit payload
         const editPayload = {
           templateId: editMode.templateId,
           originalData: editMode.formData, // Use the original data from editMode
           updates: {
             data: mapDataForApi(formData), // Use the updated form data
-            customContent: processedContract, // Keep placeholders for backend to fill
+            // Keep all placeholders (even if their values are empty) so they remain visible
+            // in the saved contract text. Backend can decide how to handle them.
+            customContent: editableContract,
+            language: language,
           },
           contractId: editMode.contractId, // Include the contract ID
           saveToDb: true, // Make sure to save to database
@@ -546,20 +585,18 @@ export function ContractTemplates({
         toast.success("Contract updated successfully!");
       } else {
         // Creating a new contract
-        // Remove placeholders for falsy fields, but keep placeholders for truthy fields
-        // so backend can fill them from the data object
         const baseText =
           step === "edit" && editableContract.trim()
             ? editableContract
             : editablePreview;
 
-        // Remove placeholders for falsy fields only, keep others for backend to fill
-        const processedContract = removeFalsyPlaceholders(baseText);
-
         const contractPayload = {
           templateId: selectedTemplate!.id,
           data: mapDataForApi(formData),
-          customContent: processedContract, // Keep placeholders for backend to fill
+          // Keep all placeholders in the content (even when values are empty)
+          // so they stay visible in the generated contract.
+          customContent: baseText,
+          language: language,
         };
 
         const contractResponse = await generateContract(contractPayload);
@@ -666,10 +703,71 @@ export function ContractTemplates({
 
         {/* Header */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-xl sm:text-2xl mb-2">Contract Templates</h1>
+          <h1 className="text-xl sm:text-2xl mb-2">
+            {language === "en"
+              ? "Contract Templates"
+              : "Shabllonet e Kontratave"}
+          </h1>
           <p className="text-sm sm:text-base text-gray-600">
-            Professional legal templates for your startup
+            {language === "en"
+              ? "Professional legal templates for your startup"
+              : "Shabllone profesionale ligjore për startup-in tuaj"}
           </p>
+        </div>
+        <div className="flex justify-end">
+          <div>
+            <Label
+              htmlFor="language-select-template"
+              className="text-xs text-gray-600 mb-1 block"
+            >
+              Language
+            </Label>
+            <Select
+              value={language}
+              onValueChange={(value) => handleLanguageChange(value as Language)}
+            >
+              <SelectTrigger
+                id="language-select-template"
+                className="w-40 h-10 text-sm"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="alb">Albanian</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Info Hint */}
+        <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 flex items-start gap-3">
+          <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm text-blue-900">
+              {language === "en" ? (
+                <>
+                  <strong>Important:</strong> Values inside square brackets{" "}
+                  <span className="font-mono text-xs bg-blue-100 px-1.5 py-0.5 rounded">
+                    [LIKE THIS]
+                  </span>{" "}
+                  cannot be edited directly in the preview. Use the form fields
+                  above to fill in the details, or remove the bracketed text
+                  entirely if you don&apos;t need it.
+                </>
+              ) : (
+                <>
+                  <strong>E rëndësishme:</strong> Vlerat brenda kllapave katrore{" "}
+                  <span className="font-mono text-xs bg-blue-100 px-1.5 py-0.5 rounded">
+                    [SI KJO]
+                  </span>{" "}
+                  nuk mund të redaktohen drejtpërdrejt në parapamje. Përdorni
+                  fushat e formularit më sipër për të plotësuar detajet, ose
+                  hiqni tekstin e kllapave plotësisht nëse nuk ju nevojitet.
+                </>
+              )}
+            </p>
+          </div>
         </div>
 
         {/* 2x2 Grid of Template Cards */}
@@ -703,7 +801,7 @@ export function ContractTemplates({
                       variant="secondary"
                       className={`text-xs pb-1 bg-blue-100 text-blue-700`}
                     >
-                      {template.category}
+                      {template.category[language]}
                     </Badge>
                   </div>
                 </div>
@@ -711,7 +809,7 @@ export function ContractTemplates({
                 <div className="mb-4">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
                     <h3 className="font-semibold text-sm sm:text-base">
-                      {template.title}
+                      {template.title[language]}
                     </h3>
                     {template.isPremium && (
                       <Badge className="bg-blue-700 text-white text-xs px-2 py-0.5 w-fit">
@@ -720,7 +818,7 @@ export function ContractTemplates({
                     )}
                   </div>
                   <p className="text-xs sm:text-sm text-gray-600">
-                    {template.description}
+                    {template.description[language]}
                   </p>
                 </div>
 
@@ -733,10 +831,12 @@ export function ContractTemplates({
                     {template.isPremium ? (
                       <>
                         <Lock className="w-4 h-4 mr-2" />
-                        Upgrade
+                        {language === "en" ? "Upgrade" : "Përmirëso"}
                       </>
-                    ) : (
+                    ) : language === "en" ? (
                       "Use Template"
+                    ) : (
+                      "Përdor Shabllonin"
                     )}
                   </Button>
                 </div>
@@ -748,8 +848,14 @@ export function ContractTemplates({
         {/* Friendly UX Copy */}
         <div className="text-center mt-6 sm:mt-8 p-4 sm:p-6 bg-gray-50 rounded-xl border border-gray-200">
           <p className="text-xs sm:text-sm text-gray-600">
-            <strong>Your ready-to-use legal template in minutes.</strong> Fill
-            in your details to generate your contract.
+            <strong>
+              {language === "en"
+                ? "Your ready-to-use legal template in minutes."
+                : "Shablloni juaj ligjor i gatshëm për përdorim në minuta."}
+            </strong>{" "}
+            {language === "en"
+              ? "Fill in your details to generate your contract."
+              : "Plotësoni detajet tuaja për të gjeneruar kontratën tuaj."}
           </p>
         </div>
       </div>
@@ -764,11 +870,35 @@ export function ContractTemplates({
         <div className="flex items-start gap-4">
           <div className="flex-1">
             <h1 className="text-xl sm:text-2xl mb-1">
-              {selectedTemplate.title}
+              {selectedTemplate.title[language]}
             </h1>
             <p className="text-sm sm:text-base text-gray-600">
-              Preview and edit before customizing
+              {language === "en"
+                ? "Preview and edit before customizing"
+                : "Parapamje dhe redakto para personalizimit"}
             </p>
+          </div>
+        </div>
+        <div className="flex justify-end">
+          <div>
+            <Label
+              htmlFor="language-select"
+              className="text-xs text-gray-600 mb-1 block"
+            >
+              {language === "en" ? "Language" : "Gjuha"}
+            </Label>
+            <Select
+              value={language}
+              onValueChange={(value) => handleLanguageChange(value as Language)}
+            >
+              <SelectTrigger id="language-select" className="w-40 h-10 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="alb">Albanian</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -777,14 +907,14 @@ export function ContractTemplates({
           <CardHeader className="border-b border-gray-100 p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <CardTitle className="text-base sm:text-lg">
-                Template Preview
+                {language === "en" ? "Template Preview" : "Parapamje Shablloni"}
               </CardTitle>
               <Badge
                 variant="secondary"
                 className="bg-blue-100 text-blue-700 w-fit"
               >
                 <Edit className="w-3 h-3 mr-1" />
-                Editable
+                {language === "en" ? "Editable" : "E Redaktueshme"}
               </Badge>
             </div>
           </CardHeader>
@@ -793,7 +923,11 @@ export function ContractTemplates({
               value={editablePreview}
               onChange={(e) => setEditablePreview(e.target.value)}
               className="w-full min-h-[300px] sm:min-h-[450px] font-mono text-xs sm:text-sm leading-relaxed resize-none"
-              placeholder="Your template preview..."
+              placeholder={
+                language === "en"
+                  ? "Your template preview..."
+                  : "Parapamja e shabllonit tuaj..."
+              }
             />
           </CardContent>
         </Card>
@@ -806,10 +940,14 @@ export function ContractTemplates({
             </div>
             <div>
               <p className="font-medium text-sm sm:text-base text-gray-900">
-                Ready to customize?
+                {language === "en"
+                  ? "Ready to customize?"
+                  : "Gati për personalizim?"}
               </p>
               <p className="text-xs sm:text-sm text-gray-600">
-                Fill in your details to generate the contract
+                {language === "en"
+                  ? "Fill in your details to generate the contract"
+                  : "Plotësoni detajet tuaja për të gjeneruar kontratën"}
               </p>
             </div>
           </div>
@@ -818,7 +956,9 @@ export function ContractTemplates({
             className="bg-[#252952] hover:bg-[#161930]  text-white w-full sm:w-auto"
             size="lg"
           >
-            Continue to Customize
+            {language === "en"
+              ? "Continue to Customize"
+              : "Vazhdo te Personalizimi"}
           </Button>
         </div>
       </div>
@@ -841,18 +981,45 @@ export function ContractTemplates({
           </Button>
           <div className="flex-1 min-w-0">
             <h1 className="text-xl sm:text-2xl mb-1">
-              Customize {selectedTemplate.title}
+              Customize {selectedTemplate.title[language]}
             </h1>
             <p className="text-sm sm:text-base text-gray-600">
-              Fill in the required information
+              {language === "en"
+                ? "Fill in the required information"
+                : "Plotësoni informacionin e kërkuar"}
             </p>
+          </div>
+        </div>
+        <div className="flex justify-end">
+          <div>
+            <Label
+              htmlFor="language-select-customize"
+              className="text-xs text-gray-600 mb-1 block"
+            >
+              {language === "en" ? "Language" : "Gjuha"}
+            </Label>
+            <Select
+              value={language}
+              onValueChange={(value) => handleLanguageChange(value as Language)}
+            >
+              <SelectTrigger
+                id="language-select-customize"
+                className="w-40 h-10 text-sm"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="alb">Albanian</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
         <Card className="border border-gray-200 shadow-sm">
           <CardHeader className="border-b border-gray-100 p-4 sm:p-6">
             <CardTitle className="text-base sm:text-lg">
-              Contract Details
+              {language === "en" ? "Contract Details" : "Detajet e Kontratës"}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
@@ -878,7 +1045,11 @@ export function ContractTemplates({
                       onBlur={() =>
                         setTouched({ ...touched, [field.id]: true })
                       }
-                      placeholder={field.placeholder}
+                      placeholder={
+                        language === "en"
+                          ? field.placeholder
+                          : field.placeholderAlb ?? field.placeholder
+                      }
                       rows={3}
                       className="w-full placeholder:text-gray-400"
                     />
@@ -891,7 +1062,11 @@ export function ContractTemplates({
                       onBlur={() =>
                         setTouched({ ...touched, [field.id]: true })
                       }
-                      placeholder={field.placeholder}
+                      placeholder={
+                        language === "en"
+                          ? field.placeholder
+                          : field.placeholderAlb ?? field.placeholder
+                      }
                       className="w-full placeholder:text-gray-400"
                     />
                   )}
@@ -926,7 +1101,11 @@ export function ContractTemplates({
               if (validate.valid) {
                 handleGenerateContract();
               } else {
-                toast.error("Please fix the validation errors");
+                toast.error(
+                  language === "en"
+                    ? "Please fix the validation errors"
+                    : "Ju lutemi korrigjoni gabimet e validimit"
+                );
               }
             }}
             size="lg"
@@ -936,13 +1115,19 @@ export function ContractTemplates({
             {isGenerating ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                <span className="hidden sm:inline">Creating...</span>
-                <span className="sm:hidden">Creating...</span>
+                <span className="hidden sm:inline">
+                  {language === "en" ? "Creating..." : "Duke krijuar..."}
+                </span>
+                <span className="sm:hidden">
+                  {language === "en" ? "Creating..." : "Duke krijuar..."}
+                </span>
               </>
             ) : (
               <>
                 <Edit className="w-4 h-4 mr-2" />
-                <span className="sm:inline">Create Contract</span>
+                <span className="sm:inline">
+                  {language === "en" ? "Create Contract" : "Krijo Kontratën"}
+                </span>
               </>
             )}
           </Button>
@@ -950,7 +1135,9 @@ export function ContractTemplates({
 
         {!validate.valid && (
           <p className="text-xs sm:text-sm text-center text-gray-500">
-            Please fill in all required fields (marked with *) to continue
+            {language === "en"
+              ? "Please fill in all required fields (marked with *) to continue"
+              : "Ju lutemi plotësoni të gjitha fushat e kërkuara (të shënuara me *) për të vazhduar"}
           </p>
         )}
       </div>
@@ -964,7 +1151,7 @@ export function ContractTemplates({
         <div className="flex items-start gap-4">
           <div className="flex-1 min-w-0">
             <h1 className="text-xl sm:text-2xl mb-1">
-              Review & Edit {selectedTemplate.title}
+              Review & Edit {selectedTemplate.title[language]}
             </h1>
             <p className="text-sm sm:text-base text-gray-600">
               Edit the contract details and preview text
@@ -976,7 +1163,7 @@ export function ContractTemplates({
         <Card className="border border-gray-200 shadow-sm">
           <CardHeader className="border-b border-gray-100 p-4 sm:p-6">
             <CardTitle className="text-base sm:text-lg">
-              Contract Details
+              {language === "en" ? "Contract Details" : "Detajet e Kontratës"}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
@@ -1002,7 +1189,11 @@ export function ContractTemplates({
                       onBlur={() =>
                         setTouched({ ...touched, [field.id]: true })
                       }
-                      placeholder={field.placeholder}
+                      placeholder={
+                        language === "en"
+                          ? field.placeholder
+                          : field.placeholderAlb ?? field.placeholder
+                      }
                       rows={3}
                       className="w-full placeholder:text-gray-400"
                     />
@@ -1015,7 +1206,11 @@ export function ContractTemplates({
                       onBlur={() =>
                         setTouched({ ...touched, [field.id]: true })
                       }
-                      placeholder={field.placeholder}
+                      placeholder={
+                        language === "en"
+                          ? field.placeholder
+                          : field.placeholderAlb ?? field.placeholder
+                      }
                       className="w-full placeholder:text-gray-400"
                     />
                   )}
@@ -1139,7 +1334,9 @@ export function ContractTemplates({
         </div>
         {!validate.valid && (
           <p className="text-xs sm:text-sm text-center text-gray-500">
-            Please fill in all required fields (marked with *) to continue
+            {language === "en"
+              ? "Please fill in all required fields (marked with *) to continue"
+              : "Ju lutemi plotësoni të gjitha fushat e kërkuara (të shënuara me *) për të vazhduar"}
           </p>
         )}
       </div>

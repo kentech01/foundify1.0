@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { Badge } from "../components/ui/badge";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import {
@@ -68,6 +67,7 @@ export function ContractsListPage() {
   );
   const [showCreateHeader, setShowCreateHeader] = useState(true);
   const [showEditHeader, setShowEditHeader] = useState(true);
+  const [language, setLanguage] = useState<"en" | "alb">("en");
 
   const {
     getContracts,
@@ -270,7 +270,7 @@ export function ContractsListPage() {
             >
               <CardContent className="p-4 sm:p-6 overflow-hidden">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6">
-                  {/* Contract Info */}
+                  {/* Contract Info (title + subtitle) */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
@@ -278,30 +278,18 @@ export function ContractsListPage() {
                       </div>
                       <div className="min-w-0">
                         <h3 className="text-lg font-semibold text-gray-900 truncate">
-                          {contract?.template_name || "Untitled Contract"}
+                          {contract.data?.contract_name ||
+                            contract.title ||
+                            contract.template_name ||
+                            "Untitled Contract"}
                         </h3>
                         <p className="text-sm text-gray-600">
-                          {contract.type || "Contract"}
+                          {contract.data?.template_name ||
+                            contract.template_name ||
+                            contract.type ||
+                            "Contract"}
                         </p>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Status */}
-                  <div className="flex items-center gap-4 lg:gap-6 flex-shrink-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm text-gray-600">Status:</p>
-                      <Badge
-                        className={
-                          contract.status === "completed"
-                            ? "bg-green-100 text-green-700 hover:bg-green-100 w-fit mt-1"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-100 w-fit mt-1"
-                        }
-                      >
-                        {contract.status === "completed"
-                          ? "Completed"
-                          : "Draft"}
-                      </Badge>
                     </div>
                   </div>
 
@@ -384,9 +372,15 @@ export function ContractsListPage() {
         <DialogContent className="!w-[calc(100%-3rem)] lg:!w-full max-w-5xl overflow-y-auto rounded-2xl sm:mx-auto max-h-[90vh]">
           {showCreateHeader && (
             <DialogHeader>
-              <DialogTitle>Create New Contract</DialogTitle>
+              <DialogTitle>
+                {language === "en"
+                  ? "Create New Contract"
+                  : "Krijo Kontratë të Re"}
+              </DialogTitle>
               <DialogDescription>
-                Choose a contract template to get started
+                {language === "en"
+                  ? "Choose a contract template to get started"
+                  : "Zgjidhni një shabllon kontrate për të filluar"}
               </DialogDescription>
             </DialogHeader>
           )}
@@ -395,6 +389,8 @@ export function ContractsListPage() {
             onStepChange={(step: ContractTemplatesStep) =>
               setShowCreateHeader(step === "select")
             }
+            onLanguageChange={setLanguage}
+            initialLanguage={language}
           />
         </DialogContent>
       </Dialog>

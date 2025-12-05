@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
-import { Clock, Globe } from "lucide-react";
+import { Clock } from "lucide-react";
 import dayjs from "dayjs";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import {
@@ -86,11 +86,6 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
       path: "/dashboard/ai-hiring-assistant",
       label: "AI Hiring Assistant",
       icon: Users,
-    },
-    {
-      path: "/dashboard/landing-page-generator",
-      label: "Landing Page Generator",
-      icon: Globe,
     },
   ];
 
