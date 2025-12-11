@@ -115,13 +115,7 @@ export function InvoicesPage() {
   const [invoices, setInvoices] = useState<ApiInvoice[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
-  const [touched, setTouched] = useState<
-    Partial<{
-      companyName: boolean;
-      clientName: boolean;
-      lineItems: boolean;
-    }>
-  >({});
+  const [submitted, setSubmitted] = useState(false);
 
   // Helper function to get currency symbol
   const getCurrencySymbol = (currencyCode: string) => {
@@ -185,8 +179,10 @@ export function InvoicesPage() {
   }, [companyName, clientName, lineItems]);
 
   useEffect(() => {
-    setErrors(validate.errs);
-  }, [validate]);
+    if (submitted) {
+      setErrors(validate.errs);
+    }
+  }, [validate, submitted]);
 
   // Load invoices from API
   useEffect(() => {
@@ -256,7 +252,7 @@ export function InvoicesPage() {
     setBankDetails("");
     setLineItems([{ description: "", quantity: "", rate: "" }]);
     setEditingInvoice(null);
-    setTouched({});
+    setSubmitted(false);
     setErrors({});
   };
 
@@ -277,19 +273,14 @@ export function InvoicesPage() {
           }))
         : [{ description: "", quantity: "1", rate: "" }]
     );
-    setTouched({});
+    setSubmitted(false);
     setErrors({});
     setIsEditModalOpen(true);
   };
 
   const generateInvoice = async () => {
+    setSubmitted(true);
     if (!validate.valid) {
-      // Mark all fields as touched to show errors
-      setTouched({
-        companyName: true,
-        clientName: true,
-        lineItems: true,
-      });
       toast.error("Please fix the validation errors");
       return;
     }
@@ -508,6 +499,7 @@ export function InvoicesPage() {
             setIsCreateModalOpen(open);
             if (open) {
               resetForm();
+              setSubmitted(false);
             }
           }}
         >
@@ -559,23 +551,13 @@ export function InvoicesPage() {
                     <Input
                       id="company"
                       value={companyName}
-                      onChange={(e) => {
-                        setCompanyName(e.target.value);
-                        // Don't mark as touched on change - only on blur or when submitting
-                      }}
-                      onBlur={() => {
-                        // Only mark as touched on blur if user has actually typed something
-                        // This prevents showing errors when just clicking around
-                        if (companyName.trim().length > 0) {
-                          setTouched({ ...touched, companyName: true });
-                        }
-                      }}
+                      onChange={(e) => setCompanyName(e.target.value)}
                       placeholder="Your Company Inc."
                       required
                       maxLength={100}
                       className="placeholder:text-gray-400"
                     />
-                    {touched.companyName && errors.companyName && (
+                    {submitted && errors.companyName && (
                       <div
                         style={{
                           color: "#b91c1c",
@@ -595,23 +577,13 @@ export function InvoicesPage() {
                     <Input
                       id="client"
                       value={clientName}
-                      onChange={(e) => {
-                        setClientName(e.target.value);
-                        // Don't mark as touched on change - only on blur or when submitting
-                      }}
-                      onBlur={() => {
-                        // Only mark as touched on blur if user has actually typed something
-                        // This prevents showing errors when just clicking around
-                        if (clientName.trim().length > 0) {
-                          setTouched({ ...touched, clientName: true });
-                        }
-                      }}
+                      onChange={(e) => setClientName(e.target.value)}
                       placeholder="Client Company"
                       required
                       maxLength={100}
                       className="placeholder:text-gray-400"
                     />
-                    {touched.clientName && errors.clientName && (
+                    {submitted && errors.clientName && (
                       <div
                         style={{
                           color: "#b91c1c",
@@ -682,13 +654,8 @@ export function InvoicesPage() {
                       </Label>
                       <Input
                         value={item.description}
-                        onChange={(e) => {
-                          updateLineItem(index, "description", e.target.value);
-                          if (!touched.lineItems)
-                            setTouched({ ...touched, lineItems: true });
-                        }}
-                        onBlur={() =>
-                          setTouched({ ...touched, lineItems: true })
+                        onChange={(e) =>
+                          updateLineItem(index, "description", e.target.value)
                         }
                         placeholder="Service or product name"
                         required
@@ -702,13 +669,8 @@ export function InvoicesPage() {
                         min="1"
                         step="1"
                         value={item.quantity}
-                        onChange={(e) => {
-                          updateLineItem(index, "quantity", e.target.value);
-                          if (!touched.lineItems)
-                            setTouched({ ...touched, lineItems: true });
-                        }}
-                        onBlur={() =>
-                          setTouched({ ...touched, lineItems: true })
+                        onChange={(e) =>
+                          updateLineItem(index, "quantity", e.target.value)
                         }
                         placeholder="1"
                         className="placeholder:text-gray-400"
@@ -723,13 +685,8 @@ export function InvoicesPage() {
                         min="0.01"
                         step="0.01"
                         value={item.rate}
-                        onChange={(e) => {
-                          updateLineItem(index, "rate", e.target.value);
-                          if (!touched.lineItems)
-                            setTouched({ ...touched, lineItems: true });
-                        }}
-                        onBlur={() =>
-                          setTouched({ ...touched, lineItems: true })
+                        onChange={(e) =>
+                          updateLineItem(index, "rate", e.target.value)
                         }
                         placeholder="0.00"
                       />
@@ -761,7 +718,7 @@ export function InvoicesPage() {
                     )}
                   </div>
                 ))}
-                {touched.lineItems && errors.lineItems && (
+                {submitted && errors.lineItems && (
                   <div
                     style={{
                       color: "#b91c1c",
@@ -839,6 +796,7 @@ export function InvoicesPage() {
           setIsEditModalOpen(open);
           if (!open) {
             resetForm();
+            setSubmitted(false);
           }
         }}
       >
@@ -879,22 +837,12 @@ export function InvoicesPage() {
                   <Input
                     id="edit-company"
                     value={companyName}
-                    onChange={(e) => {
-                      setCompanyName(e.target.value);
-                      // Don't mark as touched on change - only on blur or when submitting
-                    }}
-                    onBlur={() => {
-                      // Only mark as touched on blur if user has actually typed something
-                      // This prevents showing errors when just clicking around
-                      if (companyName.trim().length > 0) {
-                        setTouched({ ...touched, companyName: true });
-                      }
-                    }}
+                    onChange={(e) => setCompanyName(e.target.value)}
                     placeholder="Your Company Inc."
                     required
                     maxLength={100}
                   />
-                  {touched.companyName && errors.companyName && (
+                  {submitted && errors.companyName && (
                     <div
                       style={{
                         color: "#b91c1c",
@@ -914,22 +862,12 @@ export function InvoicesPage() {
                   <Input
                     id="edit-client"
                     value={clientName}
-                    onChange={(e) => {
-                      setClientName(e.target.value);
-                      // Don't mark as touched on change - only on blur or when submitting
-                    }}
-                    onBlur={() => {
-                      // Only mark as touched on blur if user has actually typed something
-                      // This prevents showing errors when just clicking around
-                      if (clientName.trim().length > 0) {
-                        setTouched({ ...touched, clientName: true });
-                      }
-                    }}
+                    onChange={(e) => setClientName(e.target.value)}
                     placeholder="Client Company"
                     required
                     maxLength={100}
                   />
-                  {touched.clientName && errors.clientName && (
+                  {submitted && errors.clientName && (
                     <div
                       style={{
                         color: "#b91c1c",
@@ -986,7 +924,7 @@ export function InvoicesPage() {
               </div>
             </CardHeader>
             <CardContent className={styles.items}>
-              {touched.lineItems && errors.lineItems && (
+              {submitted && errors.lineItems && (
                 <div
                   style={{
                     color: "#b91c1c",
@@ -1006,12 +944,9 @@ export function InvoicesPage() {
                     </Label>
                     <Input
                       value={item.description}
-                      onChange={(e) => {
-                        updateLineItem(index, "description", e.target.value);
-                        if (!touched.lineItems)
-                          setTouched({ ...touched, lineItems: true });
-                      }}
-                      onBlur={() => setTouched({ ...touched, lineItems: true })}
+                      onChange={(e) =>
+                        updateLineItem(index, "description", e.target.value)
+                      }
                       placeholder="Service or product name"
                       required
                     />
@@ -1023,12 +958,9 @@ export function InvoicesPage() {
                       min="1"
                       step="1"
                       value={item.quantity}
-                      onChange={(e) => {
-                        updateLineItem(index, "quantity", e.target.value);
-                        if (!touched.lineItems)
-                          setTouched({ ...touched, lineItems: true });
-                      }}
-                      onBlur={() => setTouched({ ...touched, lineItems: true })}
+                      onChange={(e) =>
+                        updateLineItem(index, "quantity", e.target.value)
+                      }
                       placeholder={item.quantity === "" ? "1" : undefined}
                     />
                   </div>
@@ -1039,12 +971,9 @@ export function InvoicesPage() {
                       min="0.01"
                       step="0.01"
                       value={item.rate}
-                      onChange={(e) => {
-                        updateLineItem(index, "rate", e.target.value);
-                        if (!touched.lineItems)
-                          setTouched({ ...touched, lineItems: true });
-                      }}
-                      onBlur={() => setTouched({ ...touched, lineItems: true })}
+                      onChange={(e) =>
+                        updateLineItem(index, "rate", e.target.value)
+                      }
                       placeholder="0.00"
                     />
                   </div>

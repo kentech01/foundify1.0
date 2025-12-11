@@ -90,15 +90,7 @@ export function AIHiringAssistant() {
   );
 
   const [errors, setErrors] = useState<Errors>({});
-  const [touched, setTouched] = useState<
-    Partial<{
-      candidateName: boolean;
-      role: boolean;
-      seniority: boolean;
-      industry: boolean;
-      interviewGoal: boolean;
-    }>
-  >({});
+  const [submitted, setSubmitted] = useState(false);
 
   const { generateInterviewQuestions, exportInterviewPdf } = useApiService();
 
@@ -143,18 +135,14 @@ export function AIHiringAssistant() {
   }, [candidateName, role, seniority, industry, interviewGoal]);
 
   useEffect(() => {
-    setErrors(validate.errs);
-  }, [validate]);
+    if (submitted) {
+      setErrors(validate.errs);
+    }
+  }, [validate, submitted]);
 
   const handleGenerateQuestions = async () => {
-    // Mark all fields as touched when trying to submit
-    setTouched({
-      candidateName: true,
-      role: true,
-      seniority: true,
-      industry: true,
-      interviewGoal: true,
-    });
+    // Mark form as submitted to show validation errors
+    setSubmitted(true);
 
     if (!validate.valid) {
       toast.error("Please fix the validation errors");
@@ -291,7 +279,7 @@ export function AIHiringAssistant() {
     setIndustry("");
     setInterviewGoal("");
     setOpenCategories([]);
-    setTouched({});
+    setSubmitted(false);
     setErrors({});
   };
 
@@ -396,17 +384,12 @@ ${i + 1}. ${q.question}
                 <Input
                   id="candidate-name"
                   value={candidateName}
-                  onChange={(e) => {
-                    setCandidateName(e.target.value);
-                    if (!touched.candidateName)
-                      setTouched({ ...touched, candidateName: true });
-                  }}
-                  onBlur={() => setTouched({ ...touched, candidateName: true })}
+                  onChange={(e) => setCandidateName(e.target.value)}
                   placeholder="e.g., Sarah Johnson"
                   maxLength={100}
                   className="placeholder:text-gray-400"
                 />
-                {touched.candidateName && errors.candidateName && (
+                {submitted && errors.candidateName && (
                   <div
                     style={{
                       color: "#b91c1c",
@@ -425,16 +408,12 @@ ${i + 1}. ${q.question}
                 <Input
                   id="role"
                   value={role}
-                  onChange={(e) => {
-                    setRole(e.target.value);
-                    if (!touched.role) setTouched({ ...touched, role: true });
-                  }}
-                  onBlur={() => setTouched({ ...touched, role: true })}
+                  onChange={(e) => setRole(e.target.value)}
                   placeholder="e.g., Senior Frontend Developer"
                   maxLength={120}
                   className="placeholder:text-gray-400"
                 />
-                {touched.role && errors.role && (
+                {submitted && errors.role && (
                   <div
                     style={{
                       color: "#b91c1c",
@@ -455,11 +434,7 @@ ${i + 1}. ${q.question}
                 </Label>
                 <Select
                   value={seniority}
-                  onValueChange={(value) => {
-                    setSeniority(value);
-                    if (!touched.seniority)
-                      setTouched({ ...touched, seniority: true });
-                  }}
+                  onValueChange={(value) => setSeniority(value)}
                 >
                   <SelectTrigger
                     id="seniority"
@@ -475,7 +450,7 @@ ${i + 1}. ${q.question}
                     <SelectItem value="Lead">Lead</SelectItem>
                   </SelectContent>
                 </Select>
-                {touched.seniority && errors.seniority && (
+                {submitted && errors.seniority && (
                   <div
                     style={{
                       color: "#b91c1c",
@@ -493,11 +468,7 @@ ${i + 1}. ${q.question}
                 </Label>
                 <Select
                   value={industry}
-                  onValueChange={(value) => {
-                    setIndustry(value);
-                    if (!touched.industry)
-                      setTouched({ ...touched, industry: true });
-                  }}
+                  onValueChange={(value) => setIndustry(value)}
                 >
                   <SelectTrigger
                     id="industry"
@@ -514,7 +485,7 @@ ${i + 1}. ${q.question}
                     <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
-                {touched.industry && errors.industry && (
+                {submitted && errors.industry && (
                   <div
                     style={{
                       color: "#b91c1c",
@@ -535,18 +506,13 @@ ${i + 1}. ${q.question}
               <Textarea
                 id="interview-goal"
                 value={interviewGoal}
-                onChange={(e) => {
-                  setInterviewGoal(e.target.value);
-                  if (!touched.interviewGoal)
-                    setTouched({ ...touched, interviewGoal: true });
-                }}
-                onBlur={() => setTouched({ ...touched, interviewGoal: true })}
+                onChange={(e) => setInterviewGoal(e.target.value)}
                 placeholder="Example: Evaluate problem-solving and teamwork in real-world projects."
                 rows={3}
                 maxLength={500}
                 className="placeholder:text-gray-400"
               />
-              {touched.interviewGoal && errors.interviewGoal && (
+              {submitted && errors.interviewGoal && (
                 <div
                   style={{
                     color: "#b91c1c",
