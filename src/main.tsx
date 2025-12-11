@@ -3,6 +3,7 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App.tsx";
 import { AppProvider } from "./context/AppContext";
 import { AuthContextProvider } from "./context/AuthContext";
+import { PremiumModalProvider } from "./context/PremiumModalContext";
 import "./styles/globals.css";
 import { RecoilRoot } from "recoil";
 
@@ -11,7 +12,9 @@ createRoot(document.getElementById("root")!).render(
     <RecoilRoot>
       <AuthContextProvider>
         <AppProvider>
-          <App />
+          <PremiumModalProvider>
+            <App />
+          </PremiumModalProvider>
         </AppProvider>
       </AuthContextProvider>
     </RecoilRoot>

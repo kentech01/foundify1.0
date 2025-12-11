@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback } from "react";
 import useAxios from "../hooks/useAxios";
-import { log } from "util";
-import { data } from "react-router-dom";
-export const API_BASE_URL =
-  "https://foundify-api-production.up.railway.app/api/v1/";
+export const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || "";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -345,6 +342,30 @@ interface ContractEditResponse {
   message?: string;
 }
 
+interface ContractListResponse {
+  success: boolean;
+  data: Array<{
+    id: string;
+    firebase_uid: string;
+    user_id?: string;
+    template_id: string;
+    template_name: string;
+    data: Record<string, string>;
+    custom_content?: string;
+    content: string;
+    status: string;
+    html?: string;
+    created_at: string;
+    updated_at: string;
+  }>;
+  pagination?: {
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
+  message?: string;
+}
+
 // Feedback interfaces
 interface FeedbackExportRequest {
   employeeName: string;
@@ -355,6 +376,30 @@ interface FeedbackExportRequest {
   teamCollaboration?: string;
   goalsNext6Months?: string;
   additionalNotes?: string;
+}
+
+// Subscription interfaces
+interface CreateSubscriptionCheckoutResponse {
+  success: boolean;
+  checkout_url: string;
+  checkout_id: string | number;
+}
+
+interface SubscriptionRecord {
+  id?: string;
+  user_id?: string;
+  lemonsqueezy_subscription_id?: string | null;
+  status: "inactive" | "active" | "cancelled" | string;
+  plan_type: "free" | "premium";
+  created_at?: string;
+  updated_at?: string;
+  email?: string;
+  lemonSqueezeData?: unknown;
+}
+
+interface GetSubscriptionStatusResponse {
+  success: boolean;
+  subscription: SubscriptionRecord;
 }
 
 // Add helper to surface server error messages (used below)
@@ -429,6 +474,31 @@ export const apiFetch = async (
       }
     } catch {
       // If we fail to read the body, just fall through and return the original response
+    }
+  }
+
+  // Handle 403 Forbidden errors - check if it's a premium requirement
+  if (response.status === 403) {
+    try {
+      const data = await response
+        .clone()
+        .json()
+        .catch(() => null);
+      const message =
+        data?.message || data?.error || (typeof data === "string" ? data : "");
+
+      if (
+        typeof message === "string" &&
+        (message.toLowerCase().includes("premium") ||
+          message.toLowerCase().includes("upgrade") ||
+          message.toLowerCase().includes("founder essentials"))
+      ) {
+        // Trigger premium modal
+        const { triggerPremiumModal } = await import("../hooks/useAxios");
+        triggerPremiumModal();
+      }
+    } catch {
+      // If we fail to read the body, just fall through
     }
   }
 
@@ -1092,6 +1162,37 @@ export const useApiService = () => {
     [axiosInstance]
   );
 
+  // Subscription API methods
+  const createSubscriptionCheckout =
+    useCallback(async (): Promise<CreateSubscriptionCheckoutResponse> => {
+      try {
+        const response =
+          await axiosInstance.post<CreateSubscriptionCheckoutResponse>(
+            "/subscriptions/create",
+            {}
+          );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to create checkout session"
+        );
+      }
+    }, [axiosInstance]);
+
+  const getSubscriptionStatus =
+    useCallback(async (): Promise<GetSubscriptionStatusResponse> => {
+      try {
+        const response = await axiosInstance.get<GetSubscriptionStatusResponse>(
+          "/subscriptions/status"
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to get subscription status"
+        );
+      }
+    }, [axiosInstance]);
+
   return {
     generatePitch,
     getUserStats,
@@ -1133,6 +1234,9 @@ export const useApiService = () => {
     previewContractPdf,
     // Feedback methods
     exportFeedbackPdf,
+    // Subscription methods
+    createSubscriptionCheckout,
+    getSubscriptionStatus,
   };
 };
 
@@ -1417,4 +1521,8 @@ export type {
   // Feedback types
   FeedbackExportRequest,
   ContractListResponse,
+  // Subscription types
+  CreateSubscriptionCheckoutResponse,
+  GetSubscriptionStatusResponse,
+  SubscriptionRecord,
 };

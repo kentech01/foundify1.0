@@ -1315,5 +1315,5 @@ export function ContractTemplates({
     );
   }
 
-  return null;
+  return children;
 }

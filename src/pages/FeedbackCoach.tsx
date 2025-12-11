@@ -30,6 +30,8 @@ import {
 import { useApiService } from "../services/api";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useSubscription } from "../hooks/useSubscription";
+import { PremiumUpgradeModal } from "../components/PremiumUpgradeModal";
 
 interface FeedbackForm {
   employeeName: string;

@@ -11,6 +11,21 @@ import { UserAuth } from "../context/AuthContext";
 import { API_BASE_URL } from "../services/api";
 import { getAuth } from "firebase/auth";
 
+// Global event emitter for premium modal
+let premiumModalCallback: ((featureName?: string) => void) | null = null;
+
+export const setPremiumModalCallback = (
+  callback: (featureName?: string) => void
+) => {
+  premiumModalCallback = callback;
+};
+
+export const triggerPremiumModal = (featureName?: string) => {
+  if (premiumModalCallback) {
+    premiumModalCallback(featureName);
+  }
+};
+
 const useAxios = (): AxiosInstance => {
   const { accessToken } = UserAuth();
 
@@ -93,6 +108,27 @@ const useAxios = (): AxiosInstance => {
         // Handle server errors
         if (error.response && error.response.status >= 500) {
           console.error("Server error:", error.response.status);
+        }
+
+        // Handle 403 Forbidden errors - check if it's a premium requirement
+        if (error.response?.status === 403) {
+          const data: any = error.response.data;
+          const message: string | undefined =
+            (typeof data === "string" && data) ||
+            data?.message ||
+            data?.error;
+
+          if (
+            message &&
+            (message.toLowerCase().includes("premium") ||
+              message.toLowerCase().includes("upgrade") ||
+              message.toLowerCase().includes("founder essentials"))
+          ) {
+            // Trigger premium modal
+            if (premiumModalCallback) {
+              premiumModalCallback();
+            }
+          }
         }
 
         return Promise.reject(error);
