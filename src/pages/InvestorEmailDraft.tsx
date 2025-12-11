@@ -67,15 +67,7 @@ export function InvestorEmailDraft() {
   });
 
   const [errors, setErrors] = useState<Errors>({});
-  const [touched, setTouched] = useState<
-    Partial<{
-      yourName: boolean;
-      companyName: boolean;
-      investorName: boolean;
-      valueProposition: boolean;
-      keyTraction: boolean;
-    }>
-  >({});
+  const [submitted, setSubmitted] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
@@ -141,7 +133,9 @@ export function InvestorEmailDraft() {
       }
     } else if (selectedTemplate === "meeting_followup") {
       // For meeting follow-up, whatTalkedAbout is the main field
-      const hasContent = formData.whatTalkedAbout.trim().length > 0 || formData.valueProp.trim().length > 0;
+      const hasContent =
+        formData.whatTalkedAbout.trim().length > 0 ||
+        formData.valueProp.trim().length > 0;
       if (!hasContent) {
         errs.valueProposition = "Please provide what you talked about";
       }
@@ -159,29 +153,33 @@ export function InvestorEmailDraft() {
   }, [selectedTemplate, formData]);
 
   useEffect(() => {
-    setErrors(validate.errs);
-  }, [validate]);
+    if (submitted) {
+      setErrors(validate.errs);
+    }
+  }, [validate, submitted]);
 
   const generateEmail = async () => {
+    setSubmitted(true);
     if (!validate.valid) return;
     try {
       setGenerating(true);
-      
+
       // Map fields based on template type
       let valueProposition = "";
       let keyTraction = "";
-      
+
       if (selectedTemplate === "cold_outreach") {
         valueProposition = formData.valueProp.trim();
         keyTraction = formData.traction.trim();
       } else if (selectedTemplate === "meeting_followup") {
-        valueProposition = formData.whatTalkedAbout.trim() || formData.valueProp.trim();
+        valueProposition =
+          formData.whatTalkedAbout.trim() || formData.valueProp.trim();
         keyTraction = formData.updatedMetric.trim() || formData.traction.trim();
       } else if (selectedTemplate === "warm_introduction") {
         valueProposition = formData.valueProp.trim();
         keyTraction = formData.traction.trim();
       }
-      
+
       const payload = {
         template: selectedTemplate,
         yourName: formData.name.trim(),
@@ -238,14 +236,11 @@ export function InvestorEmailDraft() {
             value: formData.investor,
             onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
               setFormData({ ...formData, investor: e.target.value });
-              if (!touched.investorName)
-                setTouched({ ...touched, investorName: true });
             },
-            onBlur: () => setTouched({ ...touched, investorName: true }),
             placeholder: "e.g., Alex Johnson",
             required: true,
             error: errors.investorName,
-            touched: touched.investorName,
+            submitted: submitted,
           },
           {
             id: "valueProp",
@@ -254,14 +249,11 @@ export function InvestorEmailDraft() {
             value: formData.valueProp,
             onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
               setFormData({ ...formData, valueProp: e.target.value });
-              if (!touched.valueProposition)
-                setTouched({ ...touched, valueProposition: true });
             },
-            onBlur: () => setTouched({ ...touched, valueProposition: true }),
             placeholder: "e.g., AI-powered project management for remote teams",
             required: true,
             error: errors.valueProposition,
-            touched: touched.valueProposition,
+            submitted: submitted,
           },
           {
             id: "traction",
@@ -270,14 +262,11 @@ export function InvestorEmailDraft() {
             value: formData.traction,
             onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
               setFormData({ ...formData, traction: e.target.value });
-              if (!touched.keyTraction)
-                setTouched({ ...touched, keyTraction: true });
             },
-            onBlur: () => setTouched({ ...touched, keyTraction: true }),
             placeholder: "e.g., $50K MRR, 1000+ users",
             required: true,
             error: errors.keyTraction,
-            touched: touched.keyTraction,
+            submitted: submitted,
           },
         ],
         optionalFields: [
@@ -311,14 +300,11 @@ export function InvestorEmailDraft() {
             value: formData.investor,
             onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
               setFormData({ ...formData, investor: e.target.value });
-              if (!touched.investorName)
-                setTouched({ ...touched, investorName: true });
             },
-            onBlur: () => setTouched({ ...touched, investorName: true }),
             placeholder: "e.g., Alex Johnson",
             required: true,
             error: errors.investorName,
-            touched: touched.investorName,
+            submitted: submitted,
           },
           {
             id: "whereMet",
@@ -337,11 +323,9 @@ export function InvestorEmailDraft() {
             value: formData.whatTalkedAbout,
             onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => {
               setFormData({ ...formData, whatTalkedAbout: e.target.value });
-              if (!touched.valueProposition)
-                setTouched({ ...touched, valueProposition: true });
             },
-            onBlur: () => setTouched({ ...touched, valueProposition: true }),
-            placeholder: "e.g., We discussed our go-to-market strategy and customer acquisition costs",
+            placeholder:
+              "e.g., We discussed our go-to-market strategy and customer acquisition costs",
             required: false,
             isTextarea: true,
           },
@@ -363,7 +347,8 @@ export function InvestorEmailDraft() {
             value: formData.nextStep,
             onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
               setFormData({ ...formData, nextStep: e.target.value }),
-            placeholder: "e.g., Would you be open to a partner meeting next week?",
+            placeholder:
+              "e.g., Would you be open to a partner meeting next week?",
           },
         ],
       };
@@ -377,14 +362,11 @@ export function InvestorEmailDraft() {
             value: formData.investor,
             onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
               setFormData({ ...formData, investor: e.target.value });
-              if (!touched.investorName)
-                setTouched({ ...touched, investorName: true });
             },
-            onBlur: () => setTouched({ ...touched, investorName: true }),
             placeholder: "e.g., Alex Johnson",
             required: true,
             error: errors.investorName,
-            touched: touched.investorName,
+            submitted: submitted,
           },
           {
             id: "whoIntroduced",
@@ -403,14 +385,11 @@ export function InvestorEmailDraft() {
             value: formData.valueProp,
             onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
               setFormData({ ...formData, valueProp: e.target.value });
-              if (!touched.valueProposition)
-                setTouched({ ...touched, valueProposition: true });
             },
-            onBlur: () => setTouched({ ...touched, valueProposition: true }),
             placeholder: "e.g., AI-powered project management for remote teams",
             required: true,
             error: errors.valueProposition,
-            touched: touched.valueProposition,
+            submitted: submitted,
           },
         ],
         optionalFields: [
@@ -430,7 +409,8 @@ export function InvestorEmailDraft() {
             value: formData.whyThisInvestor,
             onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) =>
               setFormData({ ...formData, whyThisInvestor: e.target.value }),
-            placeholder: "e.g., I noticed your investment in Shopify and our product serves a similar market",
+            placeholder:
+              "e.g., I noticed your investment in Shopify and our product serves a similar market",
             isTextarea: true,
           },
         ],
@@ -513,23 +493,18 @@ export function InvestorEmailDraft() {
                   <Input
                     id="name"
                     value={formData.name}
-                    onChange={(e) => {
-                      setFormData({ ...formData, name: e.target.value });
-                      if (!touched.yourName)
-                        setTouched({ ...touched, yourName: true });
-                    }}
-                    onBlur={() => setTouched({ ...touched, yourName: true })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     placeholder="e.g., John Smith"
                     maxLength={100}
                     className="placeholder:text-gray-400"
                   />
-                  {touched.yourName &&
-                    formData.name.trim().length > 0 &&
-                    errors.yourName && (
-                      <div className="text-red-700 text-sm mt-1.5">
-                        {errors.yourName}
-                      </div>
-                    )}
+                  {submitted && errors.yourName && (
+                    <div className="text-red-700 text-sm mt-1.5">
+                      {errors.yourName}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="company" className="text-sm font-medium">
@@ -541,25 +516,18 @@ export function InvestorEmailDraft() {
                   <Input
                     id="company"
                     value={formData.company}
-                    onChange={(e) => {
-                      setFormData({ ...formData, company: e.target.value });
-                      if (!touched.companyName)
-                        setTouched({ ...touched, companyName: true });
-                    }}
-                    onBlur={() =>
-                      setTouched({ ...touched, companyName: true })
+                    onChange={(e) =>
+                      setFormData({ ...formData, company: e.target.value })
                     }
                     placeholder="e.g., TechStart Inc."
                     maxLength={120}
                     className="placeholder:text-gray-400"
                   />
-                  {touched.companyName &&
-                    formData.company.trim().length > 0 &&
-                    errors.companyName && (
-                      <div className="text-red-700 text-sm mt-1.5">
-                        {errors.companyName}
-                      </div>
-                    )}
+                  {submitted && errors.companyName && (
+                    <div className="text-red-700 text-sm mt-1.5">
+                      {errors.companyName}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -583,7 +551,6 @@ export function InvestorEmailDraft() {
                         id={field.id}
                         value={field.value}
                         onChange={field.onChange as any}
-                        onBlur={(field as any).onBlur}
                         placeholder={field.placeholder}
                         className="placeholder:text-gray-400 min-h-[100px]"
                         rows={4}
@@ -593,19 +560,16 @@ export function InvestorEmailDraft() {
                         id={field.id}
                         value={field.value}
                         onChange={field.onChange as any}
-                        onBlur={(field as any).onBlur}
                         placeholder={field.placeholder}
                         className="placeholder:text-gray-400"
                         maxLength={280}
                       />
                     )}
-                    {field.touched &&
-                      field.value.trim().length > 0 &&
-                      field.error && (
-                        <div className="text-red-700 text-sm mt-1.5">
-                          {field.error}
-                        </div>
-                      )}
+                    {(field as any).submitted && field.error && (
+                      <div className="text-red-700 text-sm mt-1.5">
+                        {field.error}
+                      </div>
+                    )}
                   </div>
                 ))}
 
@@ -666,7 +630,7 @@ export function InvestorEmailDraft() {
             <div className="flex justify-center">
               <Button
                 onClick={generateEmail}
-                disabled={generating || !validate.valid}
+                disabled={generating}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-md transition-all duration-200"
                 size="lg"
               >
@@ -728,10 +692,16 @@ export function InvestorEmailDraft() {
                   Pro Tips
                 </h3>
                 <ul className="text-sm text-gray-700 space-y-1">
-                  <li>• Research the investor's portfolio before reaching out</li>
-                  <li>• Keep emails under 150 words for better response rates</li>
+                  <li>
+                    • Research the investor's portfolio before reaching out
+                  </li>
+                  <li>
+                    • Keep emails under 150 words for better response rates
+                  </li>
                   <li>• Always include specific metrics that show traction</li>
-                  <li>• Follow up politely in 1-2 weeks if you don't hear back</li>
+                  <li>
+                    • Follow up politely in 1-2 weeks if you don't hear back
+                  </li>
                 </ul>
               </div>
             </div>

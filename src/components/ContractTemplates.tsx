@@ -106,7 +106,7 @@ export function ContractTemplates({
   const [generatedContractId, setGeneratedContractId] = useState<string>(
     editMode?.contractId || ""
   );
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [language, setLanguage] = useState<Language>(initialLanguage);
 
@@ -122,7 +122,7 @@ export function ContractTemplates({
       // Also set the editable contract
       setEditableContract(editMode.contractText);
       // Reset validation state when entering edit mode
-      setTouched({});
+      setSubmitted(false);
       setErrors({});
     }
   }, [editMode, selectedTemplate]);
@@ -162,7 +162,7 @@ export function ContractTemplates({
     });
     setFormData(initialData);
     // Reset validation state
-    setTouched({});
+    setSubmitted(false);
     setErrors({});
   };
 
@@ -612,7 +612,7 @@ export function ContractTemplates({
       setEditablePreview("");
       setGeneratedContractId("");
       // Reset validation state
-      setTouched({});
+      setSubmitted(false);
       setErrors({});
 
       // Call success callback if provided
@@ -639,10 +639,6 @@ export function ContractTemplates({
 
   const updateFormData = (fieldId: string, value: string) => {
     setFormData({ ...formData, [fieldId]: value });
-    // Mark field as touched when user starts typing
-    if (!touched[fieldId]) {
-      setTouched({ ...touched, [fieldId]: true });
-    }
   };
 
   // Validation logic similar to InvoicesPage - validates ALL fields
@@ -692,8 +688,10 @@ export function ContractTemplates({
   }, [formData, selectedTemplate]);
 
   useEffect(() => {
-    setErrors(validate.errs);
-  }, [validate]);
+    if (submitted) {
+      setErrors(validate.errs);
+    }
+  }, [validate, submitted]);
 
   // Render template selection
   if (step === "select") {
@@ -1042,9 +1040,6 @@ export function ContractTemplates({
                       id={field.id}
                       value={formData[field.id] || ""}
                       onChange={(e) => updateFormData(field.id, e.target.value)}
-                      onBlur={() =>
-                        setTouched({ ...touched, [field.id]: true })
-                      }
                       placeholder={
                         language === "en"
                           ? field.placeholder
@@ -1059,9 +1054,6 @@ export function ContractTemplates({
                       type={field.type}
                       value={formData[field.id] || ""}
                       onChange={(e) => updateFormData(field.id, e.target.value)}
-                      onBlur={() =>
-                        setTouched({ ...touched, [field.id]: true })
-                      }
                       placeholder={
                         language === "en"
                           ? field.placeholder
@@ -1070,7 +1062,7 @@ export function ContractTemplates({
                       className="w-full placeholder:text-gray-400"
                     />
                   )}
-                  {touched[field.id] && errors[field.id] && (
+                  {submitted && errors[field.id] && (
                     <div
                       style={{
                         color: "#b91c1c",
@@ -1090,14 +1082,7 @@ export function ContractTemplates({
         <div className="flex items-center justify-center gap-4">
           <Button
             onClick={() => {
-              // Mark all fields as touched when trying to submit
-              const allFields = selectedTemplate.fields.map((f) => f.id);
-              const newTouched: Record<string, boolean> = { ...touched };
-              allFields.forEach((fieldId) => {
-                newTouched[fieldId] = true;
-              });
-              setTouched(newTouched);
-
+              setSubmitted(true);
               if (validate.valid) {
                 handleGenerateContract();
               } else {
@@ -1186,9 +1171,6 @@ export function ContractTemplates({
                       id={field.id}
                       value={formData[field.id] || ""}
                       onChange={(e) => updateFormData(field.id, e.target.value)}
-                      onBlur={() =>
-                        setTouched({ ...touched, [field.id]: true })
-                      }
                       placeholder={
                         language === "en"
                           ? field.placeholder
@@ -1203,9 +1185,6 @@ export function ContractTemplates({
                       type={field.type}
                       value={formData[field.id] || ""}
                       onChange={(e) => updateFormData(field.id, e.target.value)}
-                      onBlur={() =>
-                        setTouched({ ...touched, [field.id]: true })
-                      }
                       placeholder={
                         language === "en"
                           ? field.placeholder
@@ -1214,7 +1193,7 @@ export function ContractTemplates({
                       className="w-full placeholder:text-gray-400"
                     />
                   )}
-                  {touched[field.id] && errors[field.id] && (
+                  {submitted && errors[field.id] && (
                     <div
                       style={{
                         color: "#b91c1c",
@@ -1282,14 +1261,7 @@ export function ContractTemplates({
             </Button>
             <Button
               onClick={() => {
-                // Mark all fields as touched when trying to submit
-                const allFields = selectedTemplate.fields.map((f) => f.id);
-                const newTouched: Record<string, boolean> = { ...touched };
-                allFields.forEach((fieldId) => {
-                  newTouched[fieldId] = true;
-                });
-                setTouched(newTouched);
-
+                setSubmitted(true);
                 if (validate.valid) {
                   handleGenerateContract();
                 } else {

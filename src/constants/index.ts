@@ -191,7 +191,7 @@ Kjo Marrëveshje do të rregullohet dhe interpretohet në përputhje me ligjet e
     id: "founderAgreement",
     title: {
       en: "Founder Agreement",
-      alb: "Marrëveshje Themeltar",
+      alb: "Marrëveshja e Partnerëve",
     },
     description: {
       en: "Define roles and equity splits",
@@ -199,7 +199,7 @@ Kjo Marrëveshje do të rregullohet dhe interpretohet në përputhje me ligjet e
     },
     category: {
       en: "Founding",
-      alb: "Themelim",
+      alb: "Krijimi i Kompanisë",
     },
     downloads: 189,
     isPremium: false,
