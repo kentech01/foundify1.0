@@ -1259,7 +1259,27 @@ class ApiService {
     const response = await apiFetch(`${API_BASE_URL}${endpoint}`, options);
 
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
+      // Try to surface server-provided error messages where possible
+      let message = "Request failed";
+      try {
+        const data = await response.json().catch(() => null);
+        const extractedMessage =
+          (typeof data === "string" && data) ||
+          data?.message ||
+          data?.error;
+
+        if (extractedMessage) {
+          message = extractedMessage;
+        }
+      } catch {
+        // Ignore JSON parsing issues and fall back to generic message
+      }
+
+      if (response.status) {
+        message = `${response.status} ${message}`;
+      }
+
+      throw new Error(message);
     }
 
     return await response.json();
