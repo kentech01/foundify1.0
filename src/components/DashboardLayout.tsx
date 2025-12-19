@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
-import { Clock } from "lucide-react";
-import dayjs from "dayjs";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import {
   DropdownMenu,
@@ -25,6 +23,7 @@ import {
   Users,
   Menu,
   X,
+  Sparkles,
 } from "lucide-react";
 import { UserAuth } from "../context/AuthContext";
 import SignInModal from "./signIn/SignInModal";
@@ -43,7 +42,6 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [isEssentialsOpen, setIsEssentialsOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const diff = dayjs("2025-11-11").diff(dayjs(), "day");
 
   const navItems = [
     {
@@ -160,7 +158,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2 flex flex-col">
+        <nav className="flex-1 p-4 space-y-2 flex flex-col overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
 
@@ -242,15 +240,19 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
               </div>
             );
           })}
-          <div className="mt-auto flex justify-center items-center ">
-            <div className="w-full rounded-2xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] py-1 flex items-center justify-center gap-2">
-              <Clock size={18} color="white" />
-              <h1 className="text-center text-[12px] py-1 text-white">
-                {diff + 30} Days Remaining — Free
-              </h1>
+        </nav>
+
+        {/* Premium Badge - Bottom of Sidebar */}
+        {isPremium && (
+          <div className="p-4 border-t border-gray-200">
+            <div className="w-full rounded-xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] py-2.5 px-4 flex items-center justify-center gap-2 shadow-md">
+              <Sparkles size={16} color="white" />
+              <span className="text-sm font-semibold text-white">
+                Premium
+              </span>
             </div>
           </div>
-        </nav>
+        )}
       </aside>
 
       {/* Main Content */}

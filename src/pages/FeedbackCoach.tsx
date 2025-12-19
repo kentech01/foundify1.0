@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -30,6 +30,8 @@ import {
 import { useApiService } from "../services/api";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useSubscription } from "../hooks/useSubscription";
+import { PremiumUpgradeModal } from "../components/PremiumUpgradeModal";
 
 interface FeedbackForm {
   employeeName: string;
@@ -64,9 +66,17 @@ const cycles = [
   "Project Review",
 ];
 
+type Errors = Partial<{
+  employeeName: string;
+  employeeRole: string;
+  feedbackCycle: string;
+}>;
+
 export function FeedbackCoach() {
   const { exportFeedbackPdf } = useApiService();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors] = useState<Errors>({});
   const [formData, setFormData] = useState<FeedbackForm>({
     employeeName: "",
     employeeRole: "",
@@ -82,13 +92,42 @@ export function FeedbackCoach() {
     setFormData({ ...formData, [field]: value });
   };
 
+  const validate = useMemo(() => {
+    const trimmed = {
+      employeeName: formData.employeeName.trim(),
+      employeeRole: formData.employeeRole.trim(),
+      feedbackCycle: formData.feedbackCycle.trim(),
+    };
+
+    const errs: Errors = {};
+
+    if (!trimmed.employeeName || trimmed.employeeName.length < 2) {
+      errs.employeeName = "This field is required (minimum 2 characters)";
+    } else if (trimmed.employeeName.length > 100) {
+      errs.employeeName = "Maximum 100 characters allowed";
+    }
+
+    if (!trimmed.employeeRole) {
+      errs.employeeRole = "Please select a role";
+    }
+
+    if (!trimmed.feedbackCycle) {
+      errs.feedbackCycle = "Please select a feedback cycle";
+    }
+
+    return { trimmed, errs, valid: Object.keys(errs).length === 0 };
+  }, [formData]);
+
+  useEffect(() => {
+    if (submitted) {
+      setErrors(validate.errs);
+    }
+  }, [validate, submitted]);
+
   const generatePDF = async () => {
-    if (
-      !formData.employeeName ||
-      !formData.employeeRole ||
-      !formData.feedbackCycle
-    ) {
-      toast.error("Please fill in all required fields");
+    setSubmitted(true);
+    if (!validate.valid) {
+      toast.error("Please fix the validation errors");
       return;
     }
 
@@ -131,6 +170,8 @@ export function FeedbackCoach() {
         goals: "",
         additionalNotes: "",
       });
+      setSubmitted(false);
+      setErrors({});
     } catch (error: any) {
       console.error("Error generating feedback PDF:", error);
       toast.error(error.message || "Failed to generate feedback report");
@@ -139,13 +180,7 @@ export function FeedbackCoach() {
     }
   };
 
-  const isFormValid =
-    formData.employeeName && formData.employeeRole && formData.feedbackCycle;
-
-  // Enable actions only when every field has at least one word
-  const hasAtLeastOneWord = (value: string) => /\b\w+\b/.test(value.trim());
-  const allFieldsHaveAtLeastOneWord =
-    Object.values(formData).every(hasAtLeastOneWord);
+  const isFormValid = validate.valid;
 
   return (
     <div className="p-8">
@@ -182,7 +217,19 @@ export function FeedbackCoach() {
                   onChange={(e) => updateField("employeeName", e.target.value)}
                   placeholder="John Smith"
                   className="placeholder:text-gray-400"
+                  maxLength={100}
                 />
+                {submitted && errors.employeeName && (
+                  <div
+                    style={{
+                      color: "#b91c1c",
+                      fontSize: "0.8rem",
+                      marginTop: "0.375rem",
+                    }}
+                  >
+                    {errors.employeeName}
+                  </div>
+                )}
               </div>
               <div>
                 <Label className="mb-2" htmlFor="employee-role">
@@ -203,6 +250,17 @@ export function FeedbackCoach() {
                     ))}
                   </SelectContent>
                 </Select>
+                {submitted && errors.employeeRole && (
+                  <div
+                    style={{
+                      color: "#b91c1c",
+                      fontSize: "0.8rem",
+                      marginTop: "0.375rem",
+                    }}
+                  >
+                    {errors.employeeRole}
+                  </div>
+                )}
               </div>
             </div>
             <div>
@@ -224,6 +282,17 @@ export function FeedbackCoach() {
                   ))}
                 </SelectContent>
               </Select>
+              {submitted && errors.feedbackCycle && (
+                <div
+                  style={{
+                    color: "#b91c1c",
+                    fontSize: "0.8rem",
+                    marginTop: "0.375rem",
+                  }}
+                >
+                  {errors.feedbackCycle}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -344,7 +413,7 @@ Examples:
             <div className="text-center">
               <Button
                 onClick={generatePDF}
-                disabled={!allFieldsHaveAtLeastOneWord || isGenerating}
+                disabled={isGenerating}
                 className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110"
               >
                 {isGenerating ? (
