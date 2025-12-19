@@ -27,20 +27,27 @@ export interface GetSubscriptionStatusResponse {
 export const useSubscriptionService = () => {
   const axiosInstance = useAxios();
 
-  const createSubscriptionCheckout = async (): Promise<CreateSubscriptionCheckoutResponse> => {
-    const response = await axiosInstance.post<CreateSubscriptionCheckoutResponse>(
-      "/subscriptions/create",
-      {}
-    );
+  const createSubscriptionCheckout = async (
+    billingPeriod: "monthly" | "yearly",
+    email?: string,
+    name?: string
+  ): Promise<CreateSubscriptionCheckoutResponse> => {
+    console.log("Sending checkout request with billingPeriod:", billingPeriod);
+    const response =
+      await axiosInstance.post<CreateSubscriptionCheckoutResponse>(
+        "/subscriptions/create",
+        { billingPeriod, email, name }
+      );
     return response.data;
   };
 
-  const getSubscriptionStatus = async (): Promise<GetSubscriptionStatusResponse> => {
-    const response = await axiosInstance.get<GetSubscriptionStatusResponse>(
-      "/subscriptions/status"
-    );
-    return response.data;
-  };
+  const getSubscriptionStatus =
+    async (): Promise<GetSubscriptionStatusResponse> => {
+      const response = await axiosInstance.get<GetSubscriptionStatusResponse>(
+        "/subscriptions/status"
+      );
+      return response.data;
+    };
 
   return {
     createSubscriptionCheckout,
@@ -50,12 +57,19 @@ export const useSubscriptionService = () => {
 
 // Non-hook version for use outside React components
 export const subscriptionsService = {
-  async createSubscriptionCheckout(): Promise<CreateSubscriptionCheckoutResponse> {
+  async createSubscriptionCheckout(
+    billingPeriod: "monthly" | "yearly" = "monthly",
+    email?: string,
+    name?: string
+  ): Promise<CreateSubscriptionCheckoutResponse> {
     const { apiFetch } = await import("./api");
     const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || "";
     const response = await apiFetch(`${API_BASE_URL}subscriptions/create`, {
       method: "POST",
+      body: JSON.stringify({ billingPeriod, email, name }),
     });
+
+    console.log("response subscriptionCreate", response);
     if (!response.ok) {
       throw new Error("Failed to create checkout session");
     }
@@ -72,4 +86,3 @@ export const subscriptionsService = {
     return response.json();
   },
 };
-

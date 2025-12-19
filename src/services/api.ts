@@ -54,6 +54,7 @@ interface UserProfile {
   displayName: string;
   photoURL: string;
   disabled: boolean;
+  plan?: string; // "basic" | "premium" | etc.
   customClaims: Record<string, any>;
   metadata: {
     creationTime: string;
@@ -629,7 +630,8 @@ export const useApiService = () => {
 
   const getCurrentUserProfile = useCallback(async (): Promise<UserProfile> => {
     const response = await axiosInstance.get("/users/profile");
-    return response.data;
+    // API returns { success: true, profile: {...} }
+    return response.data.profile || response.data;
   }, [axiosInstance]);
 
   const getLandingPageHtml = useCallback(
@@ -1163,13 +1165,17 @@ export const useApiService = () => {
   );
 
   // Subscription API methods
-  const createSubscriptionCheckout =
-    useCallback(async (): Promise<CreateSubscriptionCheckoutResponse> => {
+  const createSubscriptionCheckout = useCallback(
+    async (
+      billingPeriod: "monthly" | "yearly",
+      email?: string,
+      name?: string
+    ): Promise<CreateSubscriptionCheckoutResponse> => {
       try {
         const response =
           await axiosInstance.post<CreateSubscriptionCheckoutResponse>(
             "/subscriptions/create",
-            {}
+            { billingPeriod, email, name }
           );
         return response.data;
       } catch (error: any) {
@@ -1177,7 +1183,9 @@ export const useApiService = () => {
           error.response?.data?.message || "Failed to create checkout session"
         );
       }
-    }, [axiosInstance]);
+    },
+    [axiosInstance]
+  );
 
   const getSubscriptionStatus =
     useCallback(async (): Promise<GetSubscriptionStatusResponse> => {
@@ -1264,9 +1272,7 @@ class ApiService {
       try {
         const data = await response.json().catch(() => null);
         const extractedMessage =
-          (typeof data === "string" && data) ||
-          data?.message ||
-          data?.error;
+          (typeof data === "string" && data) || data?.message || data?.error;
 
         if (extractedMessage) {
           message = extractedMessage;

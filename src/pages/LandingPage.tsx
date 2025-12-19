@@ -9,9 +9,11 @@ import SignInModal from "../components/signIn/SignInModal";
 import React from "react";
 import { PricingModern } from "../components/landingpage/PricingModern";
 import { LandingHeader } from "../components/landingpage/LandingHeader";
+import { UserAuth } from "../context/AuthContext";
 
 export function LandingPage() {
   const navigate = useNavigate();
+  const { user } = UserAuth();
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [isHandlingStart, setIsHandlingStart] = useState(false);
 
@@ -25,6 +27,18 @@ export function LandingPage() {
     navigate("/builder");
   };
 
+  const handleUpgrade = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (user) {
+      // User is logged in, navigate to dashboard
+      navigate("/dashboard");
+    } else {
+      // User is not logged in, open sign-in modal
+      setIsSignInModalOpen(true);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <LandingHeader
@@ -34,7 +48,7 @@ export function LandingPage() {
       <HeroModern onStart={handleStartPitch} />
       <WhatYouGet />
       <BenefitsModern />
-      <PricingModern onStart={handleStartPitch} />
+      <PricingModern onStart={handleStartPitch} onUpgrade={handleUpgrade} />
       <CTASection onStart={handleStartPitch} />
       <Footer />
       {/* Sign In Modal - only for Header sign in button */}

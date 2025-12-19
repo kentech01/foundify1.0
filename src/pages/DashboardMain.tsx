@@ -12,12 +12,74 @@ import React from "react";
 import { FeedbackCoach } from "./FeedbackCoach";
 import { InvestorEmailDraft } from "./InvestorEmailDraft";
 import { AIHiringAssistant } from "./AIHiringAssistant";
+import { useSubscriptionService } from "../services/subscriptionsService";
+import { toast } from "sonner";
+import { useSubscription } from "../hooks/useSubscription";
+import { useCurrentUser } from "../hooks/useCurrentUser";
 
 export function DashboardMain() {
   const navigate = useNavigate();
-  const { isPremium, pitches } = useApp();
+  const { isPremium, pitches, setIsPremium } = useApp();
   const { user, loading } = UserAuth();
+  const { currentUser } = useCurrentUser();
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const { createSubscriptionCheckout } = useSubscriptionService();
+  const { hasPremium } = useSubscription();
+
+  // Function to close all open modals/popups
+  const closeAllModals = () => {
+    // Close all dialog overlays
+    const allOverlays = document.querySelectorAll('[data-slot="dialog-overlay"]');
+    allOverlays.forEach((overlay) => {
+      const dialog = overlay.querySelector('[role="dialog"]');
+      if (dialog) {
+        // Find and click the close button
+        const closeButton =
+          dialog.querySelector('[data-slot="dialog-close"]') ||
+          dialog.querySelector('button[aria-label="Close"]') ||
+          dialog.querySelector('[data-state]');
+        if (closeButton) {
+          (closeButton as HTMLElement).click();
+        }
+      }
+    });
+
+    // Also try to close any modals by setting their open state
+    // This handles modals that might be controlled by state
+    const allModals = document.querySelectorAll('[role="dialog"]');
+    allModals.forEach((modal) => {
+      const closeBtn = modal.querySelector('button[aria-label="Close"]') ||
+                      modal.querySelector('[data-slot="dialog-close"]');
+      if (closeBtn) {
+        (closeBtn as HTMLElement).click();
+      }
+    });
+  };
+
+  // Handle upgrade - close all modals and open checkout in new tab
+  const handleUpgrade = async () => {
+    try {
+      // Close all open modals first
+      closeAllModals();
+
+      // Create checkout session (default to monthly)
+      const response = await createSubscriptionCheckout(
+        "monthly",
+        user?.email || undefined,
+        user?.displayName || undefined
+      );
+
+      if (response.success && response.checkout_url) {
+        // Redirect to Lemon Squeezy checkout
+        window.location.href = response.checkout_url;
+      } else {
+        toast.error("Failed to create checkout session");
+      }
+    } catch (error: any) {
+      console.error("Error creating checkout:", error);
+      toast.error(error.message || "Failed to start checkout process");
+    }
+  };
 
   // Redirect to sign in if not authenticated
   useEffect(() => {
@@ -29,6 +91,31 @@ export function DashboardMain() {
   const handleSignInSuccess = () => {
     setIsSignInModalOpen(false);
   };
+
+  // Check premium status from multiple sources:
+  // 1. Subscription status (hasPremium)
+  // 2. User profile plan field
+  // 3. Global isPremium state
+  const profileIsPremium = currentUser?.plan === "premium";
+  const effectiveIsPremium = isPremium || hasPremium || profileIsPremium;
+
+  // Keep global isPremium in sync with subscription status and profile
+  useEffect(() => {
+    if ((hasPremium || profileIsPremium) && !isPremium) {
+      setIsPremium(true);
+    }
+  }, [hasPremium, profileIsPremium, isPremium, setIsPremium]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log("Premium Status Check:", {
+      isPremium,
+      hasPremium,
+      profileIsPremium,
+      currentUserPlan: currentUser?.plan,
+      effectiveIsPremium,
+    });
+  }, [isPremium, hasPremium, profileIsPremium, currentUser?.plan, effectiveIsPremium]);
 
   // Show loading if checking authentication
   if (loading) {
@@ -82,7 +169,7 @@ export function DashboardMain() {
   }
 
   return (
-    <DashboardLayout isPremium={isPremium}>
+    <DashboardLayout isPremium={effectiveIsPremium}>
       <Routes>
         <Route index element={<Navigate to="/dashboard/pitches" replace />} />
         <Route
@@ -91,8 +178,8 @@ export function DashboardMain() {
             <PitchDashboard
               initialPitch={pitches[0]}
               onCreatePitch={() => navigate("/builder")}
-              isPremium={isPremium}
-              onUpgrade={() => navigate("/upgrade")}
+              isPremium={effectiveIsPremium}
+              onUpgrade={handleUpgrade}
             />
           }
         />
