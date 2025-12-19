@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { HeroModern } from "../components/landingpage/HeroModern";
 import { WhatYouGet } from "../components/landingpage/WhatYouGet";
@@ -13,9 +13,16 @@ import { UserAuth } from "../context/AuthContext";
 
 export function LandingPage() {
   const navigate = useNavigate();
-  const { user } = UserAuth();
+  const { user, loading } = UserAuth();
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [isHandlingStart, setIsHandlingStart] = useState(false);
+
+  // Redirect logged-in users to dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   const handleStartPitch = (e: React.MouseEvent) => {
     e.preventDefault();

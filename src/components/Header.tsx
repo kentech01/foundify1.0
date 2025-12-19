@@ -40,6 +40,14 @@ export function Header({
     }
   };
 
+  const handleLogoClick = () => {
+    if (user) {
+      navigate("/dashboard");
+    } else {
+      navigate("/");
+    }
+  };
+
   return (
     <header className="bg-white border-b border-gray-200 bg-white/95 ">
       <div className="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
@@ -51,7 +59,7 @@ export function Header({
                 src={favicon}
                 alt="Foundify"
                 className="h-9 w-auto cursor-pointer select-none"
-                onClick={() => navigate("/")}
+                onClick={handleLogoClick}
               />
             </div>
           </div>

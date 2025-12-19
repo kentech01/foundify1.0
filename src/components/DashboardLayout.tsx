@@ -143,7 +143,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
                 src={favicon}
                 alt="Foundify"
                 className="h-7 w-auto cursor-pointer select-none"
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/dashboard")}
               />
               {/* <h1 className="text-2xl font-bold text-deep-blue">Foundify</h1> */}
             </div>
