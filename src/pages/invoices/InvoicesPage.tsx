@@ -505,7 +505,7 @@ export function InvoicesPage() {
         >
           <DialogTrigger asChild>
             <Button
-              className=" bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110 "
+              className=" bg-[#252952] text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110 "
               disabled={invoicesCounter > 20}
             >
               <Plus className="mr-1 h-4 w-4" />
@@ -774,7 +774,7 @@ export function InvoicesPage() {
             <DialogFooter>
               <Button
                 onClick={handleCreateInvoice}
-                className=" bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  px-4 hover:to-deep-blue-dark text-white rounded-xl"
+                className=" bg-[#252952]  px-4 hover:to-deep-blue-dark text-white rounded-xl"
                 disabled={isGenerating}
               >
                 {isGenerating ? "Creating..." : "Create Invoice"}
@@ -1055,7 +1055,7 @@ export function InvoicesPage() {
           <DialogFooter>
             <Button
               onClick={handleUpdateInvoice}
-              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] px-6  text-white rounded-xl"
+              className="bg-[#252952] px-6  text-white rounded-xl"
               disabled={!validate.valid || isGenerating}
             >
               {isGenerating ? "Updating..." : "Update Invoice"}

@@ -191,7 +191,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                     isActive
-                      ? "bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white shadow-lg"
+                      ? "bg-[#EEF0FF] text-[rgba(37, 41, 82, 1)]"
                       : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
@@ -243,9 +243,9 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
             );
           })}
           <div className="mt-auto flex justify-center items-center ">
-            <div className="w-full rounded-2xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] py-1 flex items-center justify-center gap-2">
-              <Clock size={18} color="white" />
-              <h1 className="text-center text-[12px] py-1 text-white">
+            <div className="w-full rounded-2xl bg-[#EEF0FF] py-1 flex items-center  justify-center gap-2">
+              <Clock size={18} color="#252952" />
+              <h1 className="text-center text-[12px] py-1 text-[#252952]">
                 {diff + 30} Days Remaining — Free
               </h1>
             </div>

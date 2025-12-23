@@ -631,7 +631,7 @@ export function InvestorEmailDraft() {
               <Button
                 onClick={generateEmail}
                 disabled={generating}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-md transition-all duration-200"
+                className="bg-[#252952] hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-md transition-all duration-200"
                 size="lg"
               >
                 <Sparkles className="h-4 w-4 mr-2" />

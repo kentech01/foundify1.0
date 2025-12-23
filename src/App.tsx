@@ -14,11 +14,12 @@ import { UserAuth } from "./context/AuthContext";
 import LandingPagePreview from "./pages/LandingPagePreview";
 import React from "react";
 import Terms from "./pages/Terms";
+import { log } from "console";
 
 export default function App() {
   const { isGenerating, progress } = useApp();
   const { user } = UserAuth();
-  const apiService = useApiService();
+  const apiService = useApiService();  
 
   // Recoil state for current user
   const [currentUser, setCurrentUser] = useRecoilState(currentUserAtom);
@@ -53,7 +54,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/builder" element={<PitchBuilder />} />
-        <Route path="/dashboard/*" element={<DashboardMain />} />
+        <Route path="/dashboard/*" element={<DashboardMain username={user?.displayName ?? null} />} />
         <Route path="/upgrade" element={<UpgradePage />} />
         <Route path="/:startupName" element={<LandingPagePreview />} />
         <Route path="/terms" element={<Terms />} />
