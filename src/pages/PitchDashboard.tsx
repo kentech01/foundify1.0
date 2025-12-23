@@ -12,6 +12,7 @@ import {
   FileText,
   Globe,
   Download,
+  Rocket,
   Eye,
   TrendingUp,
   Clock,
@@ -41,6 +42,7 @@ interface PitchDashboardProps {
   initialPitch?: any;
   onCreatePitch: () => void;
   isPremium: boolean;
+  userName: string | null;
   onUpgrade: () => void;
 }
 
@@ -49,6 +51,7 @@ export function PitchDashboard({
   isPremium,
   onCreatePitch,
   onUpgrade,
+  userName,
 }: PitchDashboardProps) {
   const navigate = useNavigate();
   const apiService = useApiService();
@@ -339,13 +342,18 @@ export function PitchDashboard({
     <div className="p-8">
       <div className="flex justify-between gap-3 mb-8">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Pitch Dashboard</h2>
+          <h2 className="text-4xl font-bold text-[#252952] figtree ">
+            Hi, {userName?.split(" ")[0]}
+          </h2>
+          <p className="text-[16px] text-[#252952] font-medium mt-3 figtree">
+            Ready to start your new pitch?
+          </p>
         </div>
 
         <Button
           onClick={onCreatePitch}
           disabled={(pitches?.length || 0) > 0}
-          className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  text-white rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg disabled:hover:brightness-100"
+          className="bg-[#EEF0FF]  text-[#252952] rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg disabled:hover:brightness-100"
         >
           <Plus className="mr-2 h-4 w-4" />
           New Pitch
@@ -353,9 +361,10 @@ export function PitchDashboard({
       </div>
 
       {/* Pitches List */}
-      <div>
-        <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4">
-          Your Pitches
+      <div className="mt-20">
+        <h3 className="text-xl figtree md:text-xl font-semibold text-[#252952] mb-3 md:mb-4 flex gap-2">
+          <Rocket />
+          My Pitches
         </h3>
 
         {loading && (pitches?.length || 0) === 0 ? (
@@ -389,23 +398,18 @@ export function PitchDashboard({
                 key={pitch.id}
                 className="border-2 border-gray-100 hover:shadow-lg transition-shadow rounded-2xl"
               >
-                <CardContent className="p-4 md:p-6">
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6">
+                <CardContent className="p-4 md:p-6 bg-[#EEF0FF]">
+                  <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 md:gap-6 ">
                     {/* Pitch Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg md:text-xl font-semibold text-gray-900 truncate">
+                        <h3 className="text-lg md:text-xl font-medium text-[#252952] truncate figtree tracking-[0.002em]">
                           {pitch.startupName}
                         </h3>
                       </div>
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          {formatDate(pitch.createdAt)}
-                        </div>
-                      </div>
+
                       {pitch.preview && (
-                        <p className="text-sm text-gray-500 mt-2 line-clamp-2">
+                        <p className="text-[16px] figtree font-normal text-[#252952] mt-2 tracking-[0.002em] line-clamp-2">
                           {pitch.preview}
                         </p>
                       )}
@@ -413,15 +417,20 @@ export function PitchDashboard({
 
                     {/* Actions */}
                     <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full lg:w-auto">
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          {formatDate(pitch.createdAt)}
+                        </div>
+                      </div>
                       <Button
                         variant="outline"
                         onClick={() => handleDownload(pitch)}
-                        className="  border-2 border-gray-200 rounded-xl hover:bg-gray-50 w-full sm:w-auto"
+                        className=" hover:bg-gray-50 w-full sm:w-auto bg-transparent border-0 text-5xl"
                         disabled={loadingModal.isOpen}
                         size="lg"
                       >
-                        <Download className="mr-2 h-4 w-4" />
-                        <span className="whitespace-nowrap">Download PDF</span>
+                        <Download className="!w-[25px] !h-[25px] text-[#252952" />
                       </Button>
 
                       {pitch.hasLandingPage && (
@@ -470,16 +479,16 @@ export function PitchDashboard({
       </div>
 
       {/* Landing Page Generator */}
-      <div className="mt-8">
-        <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-4">
+      <div className="mt-12">
+        <h3 className="text-2xl md:text-xl font-semibold text-[#252952] mb-4">
           Landing Page Generator
         </h3>
         <Card className="border-2 border-gray-100">
           <CardHeader>
-            <CardTitle className="text-xl font-bold">
+            <CardTitle className="text-lg font-medium text-[#252952]">
               Upload Your Logo (Optional)
             </CardTitle>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-[#8E8E8E] font-medium">
               Upload an SVG logo to include in your premium landing page. You
               can also skip this step.
             </p>
@@ -596,14 +605,14 @@ export function PitchDashboard({
                 <div className="flex justify-center gap-3 pt-4">
                   {firstPitchHasPremiumLanding ? (
                     <Button
-                      className="px-6 bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110"
+                      className="w-[250px] pt-[16px] pb-[16px] h-[48px] text-lg bg-[#252952] text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110 tracking-[0.002em]"
                       onClick={openLandingPage}
                     >
                       View Landing Page
                     </Button>
                   ) : (
                     <Button
-                      className="px-6 bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer hover:from-premium-purple-dark hover:to-deep-blue-dark text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                      className="w-[250px] pt-[16px] pb-[16px] h-[48px] text-lg bg-[#252952] text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110 tracking-[0.002em]"
                       onClick={generateLandingPage}
                       disabled={isGeneratingLanding || !firstPitchMeta}
                     >

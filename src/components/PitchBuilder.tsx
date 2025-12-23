@@ -499,7 +499,7 @@ export function PitchBuilder() {
             <Button
               onClick={handleNext}
               disabled={!isCurrentStepValid}
-              className="px-8 py-6 rounded-xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  text-white shadow-lg"
+              className="px-8 py-6 rounded-xl bg-[#252952]  text-white shadow-lg"
             >
               {currentStep === questions.length - 1 ? "Generate Pitch" : "Next"}
               <ArrowRight className="ml-2 h-4 w-4" />
