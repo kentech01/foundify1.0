@@ -13,7 +13,12 @@ import { FeedbackCoach } from "./FeedbackCoach";
 import { InvestorEmailDraft } from "./InvestorEmailDraft";
 import { AIHiringAssistant } from "./AIHiringAssistant";
 
-export function DashboardMain() {
+interface DashboardMainProps{
+  username: string | null,
+}
+export function DashboardMain({
+  username
+}: DashboardMainProps)  {
   const navigate = useNavigate();
   const { isPremium, pitches } = useApp();
   const { user, loading } = UserAuth();
@@ -89,6 +94,7 @@ export function DashboardMain() {
           path="pitches"
           element={
             <PitchDashboard
+            userName={username}
               initialPitch={pitches[0]}
               onCreatePitch={() => navigate("/builder")}
               isPremium={isPremium}
