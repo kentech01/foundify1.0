@@ -32,8 +32,8 @@ export function LandingPage() {
         handleOpenSignInModal={() => setIsSignInModalOpen(true)}
       />
       <HeroModern onStart={handleStartPitch} />
-      <WhatYouGet />
-      <BenefitsModern />
+      <WhatYouGet onStart={handleStartPitch}/>
+      <BenefitsModern onStart={handleStartPitch}/>
       <PricingModern onStart={handleStartPitch} />
       <CTASection onStart={handleStartPitch} />
       <Footer />
