@@ -46,8 +46,8 @@ export function LandingHeader({
     setIsSignInModalOpen(false);
   };
   return (
-    <header className="bg-white bg-white/95 ">
-      <div className="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
+    <header className="absolute z-30 w-full top-0 left-0">
+      <div className="mx-auto  px-3 py-2 sm:px-6 lg:px-36">
         <div className="flex justify-between items-center h-16 ">
           {/* Logo */}
           <div className="flex items-center">
@@ -126,14 +126,15 @@ export function LandingHeader({
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button
+              <div className="flex items-center gap-7 text-xl underline figtree">
+                <a href="">View Demo</a>
+                <button
                 onClick={handleOpenSignInModal}
-                variant="outline"
-                className="flex items-center gap-2 hover:bg-gray-50 rounded-xl px-4 py-2"
+                className="flex items-center gap-2 hover:bg-[rgba(0,0,0,0.1)] rounded-xl px-8 transition py-2 border-1 rounded-lg border-[#000]"
               >
-                <LogIn className="h-4 w-4" />
-                <span>Sign In</span>
-              </Button>
+                <span className="text-lg figtree">Sign In</span>
+              </button>
+              </div>
             )}
           </div>
         </div>
