@@ -11,8 +11,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { UserAuth } from "../../context/AuthContext";
-const favicon = new URL("../../assets/herImg.svg", import.meta.url).href
-const hero = new URL("../../assets/image 2.svg", import.meta.url).href;
+const favicon = new URL("../../assets/50 1.png", import.meta.url).href
 interface HeroModernProps {
   onStart?: (e: React.MouseEvent) => void;
 }
@@ -89,13 +88,6 @@ export function HeroModern({ onStart }: HeroModernProps) {
           alt="Dashboard"
           className="relative z-10 w-full rounded-2xl"
         />
-
-        {/* Floating card */}
-        <img
-          src={hero}
-          alt="Progress"
-          className="absolute -bottom-16 -left-16 w-[320px] rounded-2xl indexi"
-        />
       </div>
     </div>
   </div>
@@ -105,7 +97,7 @@ export function HeroModern({ onStart }: HeroModernProps) {
 
       <style>{`
       .indexi{
-        z-index:999;
+        z-index:10;
       }
         @keyframes blob {
           0% {
