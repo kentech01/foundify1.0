@@ -10,6 +10,22 @@ import { useMemo } from "react";
 import { UserAuth } from "../context/AuthContext";
 import { API_BASE_URL } from "../services/api";
 import { getAuth } from "firebase/auth";
+import { toast } from "sonner";
+
+// Global event emitter for premium modal
+let premiumModalCallback: ((featureName?: string) => void) | null = null;
+
+export const setPremiumModalCallback = (
+  callback: (featureName?: string) => void
+) => {
+  premiumModalCallback = callback;
+};
+
+export const triggerPremiumModal = (featureName?: string) => {
+  if (premiumModalCallback) {
+    premiumModalCallback(featureName);
+  }
+};
 
 const useAxios = (): AxiosInstance => {
   const { accessToken } = UserAuth();
@@ -114,9 +130,34 @@ const useAxios = (): AxiosInstance => {
         }
         */
 
-        // Handle server errors
-        if (error.response && error.response.status >= 500) {
-          console.error("Server error:", error.response.status);
+        // Global error toast so backend messages are always surfaced
+        const status = error.response?.status;
+
+        // Try to extract a human-readable message from the backend payload
+        const data: any = error.response?.data;
+        const backendMessage: string | undefined =
+          (typeof data === "string" && data) || data?.message || data?.error;
+
+        if (!error.response) {
+          // Network-level error (no response at all)
+          console.error("Network error:", error.message);
+          toast.error("Network error", {
+            description:
+              error.message ||
+              "We couldn't reach the server. Please check your connection and try again.",
+          });
+        } else {
+          if (status && status >= 500) {
+            console.error("Server error:", status);
+          }
+
+          const title = status ? `Error ${status}` : "Request failed";
+          const description =
+            backendMessage ||
+            error.message ||
+            "Something went wrong. Please try again.";
+
+          toast.error(title, { description });
         }
 
         return Promise.reject(error);

@@ -25,6 +25,7 @@ import { Copy, Mail, Sparkles, ChevronUp, Info } from "lucide-react";
 import styles from "../styles/toolsComponents.module.scss";
 import { useApiService } from "../services/api";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import React from "react";
 
 type EmailTemplate = { id: string; title: string };
@@ -133,9 +134,10 @@ export function InvestorEmailDraft() {
         errs.keyTraction = "2-280 characters";
       }
     } else if (selectedTemplate === "meeting_followup") {
-      // For meeting follow-up, valueProposition is required (from whatTalkedAbout)
+      // For meeting follow-up, valueProposition is required (from whatTalkedAbout or valueProp)
       // keyTraction is optional
-      const valuePropContent = formData.whatTalkedAbout.trim();
+      const valuePropContent =
+        formData.whatTalkedAbout.trim() || formData.valueProp.trim();
       if (!valuePropContent || valuePropContent.length < 5) {
         errs.valueProposition = "Please provide what you talked about (at least 5 characters)";
       } else if (valuePropContent.length > 280) {
@@ -165,12 +167,22 @@ export function InvestorEmailDraft() {
 
   const generateEmail = async () => {
     setSubmitted(true);
-    const validationResult = validate;
-    if (!validationResult.valid) {
-      console.log("Validation failed:", validationResult.errs);
-      setErrors(validationResult.errs);
+    
+    // Validate and show errors if invalid
+    if (!validate.valid) {
+      setErrors(validate.errs);
+      console.log("Validation failed:", validate.errs);
+      
+      // Show validation error to user
+      const firstError = Object.values(validate.errs)[0];
+      if (firstError) {
+        toast.error("Please fix the form errors", {
+          description: firstError,
+        });
+      }
       return;
     }
+    
     try {
       setGenerating(true);
 
@@ -182,11 +194,12 @@ export function InvestorEmailDraft() {
         valueProposition = formData.valueProp.trim();
         keyTraction = formData.traction.trim();
       } else if (selectedTemplate === "meeting_followup") {
-        valueProposition = formData.whatTalkedAbout.trim();
+        valueProposition =
+          formData.whatTalkedAbout.trim() || formData.valueProp.trim();
         keyTraction = formData.updatedMetric.trim() || formData.traction.trim() || "";
       } else if (selectedTemplate === "warm_introduction") {
         valueProposition = formData.valueProp.trim();
-        keyTraction = formData.traction.trim();
+        keyTraction = formData.traction.trim() || "";
       }
 
       const payload = {
@@ -195,9 +208,10 @@ export function InvestorEmailDraft() {
         companyName: formData.company.trim(),
         investorName: formData.investor.trim(),
         valueProposition: valueProposition,
-        keyTraction: keyTraction,
+        ...(keyTraction && { keyTraction: keyTraction }), // Only include if not empty
       } as any;
 
+      console.log("Sending request with payload:", payload);
       const res = await generateInvestorEmail(payload);
       setEmailSubject(res.subject || "");
       setEmailBody(res.body || "");
@@ -214,7 +228,12 @@ export function InvestorEmailDraft() {
       // setSelectedTemplate("");
       // setTouched({});
     } catch (e: any) {
-      console.error(e);
+      console.error("Error generating email:", e);
+      // Show error message to user
+      const errorMessage = e?.message || e?.response?.data?.message || "Failed to generate email. Please try again.";
+      toast.error("Failed to generate email", {
+        description: errorMessage,
+      });
     } finally {
       setGenerating(false);
     }
@@ -336,7 +355,7 @@ export function InvestorEmailDraft() {
             placeholder:
               "e.g., We discussed our go-to-market strategy and customer acquisition costs",
             required: true,
-            error: errors.valueProposition,
+            error: errors.valueProposition, // This field maps to valueProposition in validation
             submitted: submitted,
             isTextarea: true,
           },
@@ -576,7 +595,7 @@ export function InvestorEmailDraft() {
                         maxLength={280}
                       />
                     )}
-                    {(field as any).submitted && field.error && (
+                    {submitted && field.error && (
                       <div className="text-red-700 text-sm mt-1.5">
                         {field.error}
                       </div>
@@ -642,7 +661,7 @@ export function InvestorEmailDraft() {
               <Button
                 onClick={generateEmail}
                 disabled={generating}
-                className="bg-[#252952] hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-md transition-all duration-200"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-md transition-all duration-200"
                 size="lg"
               >
                 <Sparkles className="h-4 w-4 mr-2" />

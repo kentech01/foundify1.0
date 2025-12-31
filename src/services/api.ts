@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback } from "react";
 import useAxios from "../hooks/useAxios";
-import { log } from "util";
-import { data } from "react-router-dom";
-export const API_BASE_URL =
-  "https://foundify-api-production.up.railway.app/api/v1/";
+export const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || "";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -57,6 +54,7 @@ interface UserProfile {
   displayName: string;
   photoURL: string;
   disabled: boolean;
+  plan?: string; // "basic" | "premium" | etc.
   customClaims: Record<string, any>;
   metadata: {
     creationTime: string;
@@ -345,6 +343,30 @@ interface ContractEditResponse {
   message?: string;
 }
 
+interface ContractListResponse {
+  success: boolean;
+  data: Array<{
+    id: string;
+    firebase_uid: string;
+    user_id?: string;
+    template_id: string;
+    template_name: string;
+    data: Record<string, string>;
+    custom_content?: string;
+    content: string;
+    status: string;
+    html?: string;
+    created_at: string;
+    updated_at: string;
+  }>;
+  pagination?: {
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
+  message?: string;
+}
+
 // Feedback interfaces
 interface FeedbackExportRequest {
   employeeName: string;
@@ -355,6 +377,30 @@ interface FeedbackExportRequest {
   teamCollaboration?: string;
   goalsNext6Months?: string;
   additionalNotes?: string;
+}
+
+// Subscription interfaces
+interface CreateSubscriptionCheckoutResponse {
+  success: boolean;
+  checkout_url: string;
+  checkout_id: string | number;
+}
+
+interface SubscriptionRecord {
+  id?: string;
+  user_id?: string;
+  lemonsqueezy_subscription_id?: string | null;
+  status: "inactive" | "active" | "cancelled" | string;
+  plan_type: "free" | "premium";
+  created_at?: string;
+  updated_at?: string;
+  email?: string;
+  lemonSqueezeData?: unknown;
+}
+
+interface GetSubscriptionStatusResponse {
+  success: boolean;
+  subscription: SubscriptionRecord;
 }
 
 // Add helper to surface server error messages (used below)
@@ -588,7 +634,8 @@ export const useApiService = () => {
 
   const getCurrentUserProfile = useCallback(async (): Promise<UserProfile> => {
     const response = await axiosInstance.get("/users/profile");
-    return response.data;
+    // API returns { success: true, profile: {...} }
+    return response.data.profile || response.data;
   }, [axiosInstance]);
 
   const getLandingPageHtml = useCallback(
@@ -639,11 +686,23 @@ export const useApiService = () => {
     async (payload: GenerateEmailRequest): Promise<GenerateEmailResponse> => {
       try {
         const response = await axiosInstance.post("/email/generate", payload);
-        return response.data;
+        // Backend returns { success: true, subject, body, template }
+        // Extract the email data from the response
+        const data = response.data;
+        return {
+          success: data.success ?? true,
+          subject: data.subject || "",
+          body: data.body || "",
+          template: data.template || payload.template,
+        };
       } catch (error: any) {
-        throw new Error(
-          error.response?.data?.message || "Failed to generate email"
-        );
+        // Extract detailed error message
+        const errorMessage =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message ||
+          "Failed to generate email";
+        throw new Error(errorMessage);
       }
     },
     [axiosInstance]
@@ -1121,6 +1180,43 @@ export const useApiService = () => {
     [axiosInstance]
   );
 
+  // Subscription API methods
+  const createSubscriptionCheckout = useCallback(
+    async (
+      billingPeriod: "monthly" | "yearly",
+      email?: string,
+      name?: string
+    ): Promise<CreateSubscriptionCheckoutResponse> => {
+      try {
+        const response =
+          await axiosInstance.post<CreateSubscriptionCheckoutResponse>(
+            "/subscriptions/create",
+            { billingPeriod, email, name }
+          );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to create checkout session"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const getSubscriptionStatus =
+    useCallback(async (): Promise<GetSubscriptionStatusResponse> => {
+      try {
+        const response = await axiosInstance.get<GetSubscriptionStatusResponse>(
+          "/subscriptions/status"
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to get subscription status"
+        );
+      }
+    }, [axiosInstance]);
+
   return {
     generatePitch,
     getUserStats,
@@ -1162,6 +1258,9 @@ export const useApiService = () => {
     previewContractPdf,
     // Feedback methods
     exportFeedbackPdf,
+    // Subscription methods
+    createSubscriptionCheckout,
+    getSubscriptionStatus,
   };
 };
 
@@ -1184,7 +1283,25 @@ class ApiService {
     const response = await apiFetch(`${API_BASE_URL}${endpoint}`, options);
 
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
+      // Try to surface server-provided error messages where possible
+      let message = "Request failed";
+      try {
+        const data = await response.json().catch(() => null);
+        const extractedMessage =
+          (typeof data === "string" && data) || data?.message || data?.error;
+
+        if (extractedMessage) {
+          message = extractedMessage;
+        }
+      } catch {
+        // Ignore JSON parsing issues and fall back to generic message
+      }
+
+      if (response.status) {
+        message = `${response.status} ${message}`;
+      }
+
+      throw new Error(message);
     }
 
     return await response.json();
@@ -1446,4 +1563,8 @@ export type {
   // Feedback types
   FeedbackExportRequest,
   ContractListResponse,
+  // Subscription types
+  CreateSubscriptionCheckoutResponse,
+  GetSubscriptionStatusResponse,
+  SubscriptionRecord,
 };
