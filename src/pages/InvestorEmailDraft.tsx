@@ -117,6 +117,7 @@ export function InvestorEmailDraft() {
 
     // Template-specific validation
     if (selectedTemplate === "cold_outreach") {
+      // Cold outreach requires both valueProposition and keyTraction
       if (
         !formData.valueProp.trim() ||
         formData.valueProp.trim().length < 5 ||
@@ -132,14 +133,17 @@ export function InvestorEmailDraft() {
         errs.keyTraction = "2-280 characters";
       }
     } else if (selectedTemplate === "meeting_followup") {
-      // For meeting follow-up, whatTalkedAbout is the main field
-      const hasContent =
-        formData.whatTalkedAbout.trim().length > 0 ||
-        formData.valueProp.trim().length > 0;
-      if (!hasContent) {
-        errs.valueProposition = "Please provide what you talked about";
+      // For meeting follow-up, valueProposition is required (from whatTalkedAbout)
+      // keyTraction is optional
+      const valuePropContent = formData.whatTalkedAbout.trim();
+      if (!valuePropContent || valuePropContent.length < 5) {
+        errs.valueProposition = "Please provide what you talked about (at least 5 characters)";
+      } else if (valuePropContent.length > 280) {
+        errs.valueProposition = "Maximum 280 characters";
       }
+      // keyTraction is optional for meeting_followup, no validation needed
     } else if (selectedTemplate === "warm_introduction") {
+      // Warm introduction requires valueProposition, keyTraction is optional
       if (
         !formData.valueProp.trim() ||
         formData.valueProp.trim().length < 5 ||
@@ -147,6 +151,7 @@ export function InvestorEmailDraft() {
       ) {
         errs.valueProposition = "5-280 characters";
       }
+      // keyTraction is optional for warm_introduction, no validation needed
     }
 
     return { errs, valid: Object.keys(errs).length === 0 };
@@ -160,7 +165,12 @@ export function InvestorEmailDraft() {
 
   const generateEmail = async () => {
     setSubmitted(true);
-    if (!validate.valid) return;
+    const validationResult = validate;
+    if (!validationResult.valid) {
+      console.log("Validation failed:", validationResult.errs);
+      setErrors(validationResult.errs);
+      return;
+    }
     try {
       setGenerating(true);
 
@@ -172,9 +182,8 @@ export function InvestorEmailDraft() {
         valueProposition = formData.valueProp.trim();
         keyTraction = formData.traction.trim();
       } else if (selectedTemplate === "meeting_followup") {
-        valueProposition =
-          formData.whatTalkedAbout.trim() || formData.valueProp.trim();
-        keyTraction = formData.updatedMetric.trim() || formData.traction.trim();
+        valueProposition = formData.whatTalkedAbout.trim();
+        keyTraction = formData.updatedMetric.trim() || formData.traction.trim() || "";
       } else if (selectedTemplate === "warm_introduction") {
         valueProposition = formData.valueProp.trim();
         keyTraction = formData.traction.trim();
@@ -326,7 +335,9 @@ export function InvestorEmailDraft() {
             },
             placeholder:
               "e.g., We discussed our go-to-market strategy and customer acquisition costs",
-            required: false,
+            required: true,
+            error: errors.valueProposition,
+            submitted: submitted,
             isTextarea: true,
           },
         ],

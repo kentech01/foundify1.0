@@ -40,7 +40,7 @@ interface GenerateEmailRequest {
   companyName: string;
   investorName: string;
   valueProposition: string;
-  keyTraction: string;
+  keyTraction?: string; // Optional for meeting_followup and warm_introduction, required for cold_outreach
 }
 
 interface GenerateEmailResponse {
@@ -431,6 +431,35 @@ export const apiFetch = async (
       // If we fail to read the body, just fall through and return the original response
     }
   }
+
+  // TEMPORARILY DISABLED: Premium check for Founder Essentials
+  // All users can access Founder Essentials for now
+  // TODO: Re-enable when premium feature is returned
+  /* Handle 403 Forbidden errors - check if it's a premium requirement
+  if (response.status === 403) {
+    try {
+      const data = await response
+        .clone()
+        .json()
+        .catch(() => null);
+      const message =
+        data?.message || data?.error || (typeof data === "string" ? data : "");
+
+      if (
+        typeof message === "string" &&
+        (message.toLowerCase().includes("premium") ||
+          message.toLowerCase().includes("upgrade") ||
+          message.toLowerCase().includes("founder essentials"))
+      ) {
+        // Trigger premium modal
+        const { triggerPremiumModal } = await import("../hooks/useAxios");
+        triggerPremiumModal();
+      }
+    } catch {
+      // If we fail to read the body, just fall through
+    }
+  }
+  */
 
   return response;
 };

@@ -55,12 +55,14 @@ const useAxios = (): AxiosInstance => {
           | undefined;
 
         // Handle 401 Unauthorized errors with possible token refresh
-        if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+        if (
+          error.response?.status === 401 &&
+          originalRequest &&
+          !originalRequest._retry
+        ) {
           const data: any = error.response.data;
           const message: string | undefined =
-            (typeof data === "string" && data) ||
-            data?.message ||
-            data?.error;
+            (typeof data === "string" && data) || data?.message || data?.error;
 
           if (
             message &&
@@ -76,7 +78,9 @@ const useAxios = (): AxiosInstance => {
                 const newToken = await user.getIdToken(true); // force refresh
                 originalRequest._retry = true;
                 originalRequest.headers = originalRequest.headers || {};
-                (originalRequest.headers as any).Authorization = `Bearer ${newToken}`;
+                (
+                  originalRequest.headers as any
+                ).Authorization = `Bearer ${newToken}`;
                 return instance(originalRequest);
               } catch (refreshError) {
                 console.error("Failed to refresh auth token", refreshError);
@@ -85,10 +89,30 @@ const useAxios = (): AxiosInstance => {
           }
         }
 
-        // Handle network errors
-        if (!error.response) {
-          console.error("Network error:", error.message);
+        // TEMPORARILY DISABLED: Premium check for Founder Essentials
+        // All users can access Founder Essentials for now
+        // TODO: Re-enable when premium feature is returned
+        /* Handle 403 Forbidden errors - check if it's a premium requirement
+        if (error.response?.status === 403) {
+          const data: any = error.response.data;
+          const message: string | undefined =
+            (typeof data === "string" && data) ||
+            data?.message ||
+            data?.error;
+
+          if (
+            message &&
+            (message.toLowerCase().includes("premium") ||
+              message.toLowerCase().includes("upgrade") ||
+              message.toLowerCase().includes("founder essentials"))
+          ) {
+            // Trigger premium modal
+            if (premiumModalCallback) {
+              premiumModalCallback();
+            }
+          }
         }
+        */
 
         // Handle server errors
         if (error.response && error.response.status >= 500) {
