@@ -329,29 +329,30 @@ export function Dashboard({
             </CardContent>
           </Card>
         ) : (
-          <Card className="mt-8 border-2 border-green-200 bg-gradient-to-br from-green-50 to-white">
-            <CardContent className="p-8">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-green-500 flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-xl font-bold text-gray-900">
-                      Premium Active
-                    </h3>
-                    <Badge className="bg-green-500 text-white hover:bg-green-600">
-                      ✓ Premium
-                    </Badge>
-                  </div>
-                  <p className="text-gray-600">
-                    You have full access to all premium features, AI assistance,
-                    and founder tools
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          // <Card className="mt-8 border-2 border-green-200 bg-gradient-to-br from-green-50 to-white">
+          //   <CardContent className="p-8">
+          //     <div className="flex items-center gap-4">
+          //       <div className="w-12 h-12 rounded-xl bg-green-500 flex items-center justify-center flex-shrink-0">
+          //         <Sparkles className="h-6 w-6 text-white" />
+          //       </div>
+          //       <div>
+          //         <div className="flex items-center gap-3 mb-2">
+          //           <h3 className="text-xl font-bold text-gray-900">
+          //             Premium Active
+          //           </h3>
+          //           <Badge className="bg-green-500 text-white hover:bg-green-600">
+          //             ✓ Premium
+          //           </Badge>
+          //         </div>
+          //         <p className="text-gray-600">
+          //           You have full access to all premium features, AI assistance,
+          //           and founder tools
+          //         </p>
+          //       </div>
+          //     </div>
+          //   </CardContent>
+          // </Card>
+          <div></div>
         )}
       </div>
 

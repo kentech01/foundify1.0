@@ -8,6 +8,22 @@ import {
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Input } from "../components/ui/input";
+import { Textarea } from "../components/ui/textarea";
+import { Label } from "../components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
 import {
   FileText,
   Globe,
@@ -25,6 +41,22 @@ import {
   X,
   FileCheck,
   Loader2,
+  Building2,
+  Target,
+  Palette,
+  Edit,
+  CheckCircle2,
+  Mail,
+  Receipt,
+  Users,
+  QrCode,
+  Copy,
+  Zap,
+  ArrowRight,
+  BarChart3,
+  RefreshCw,
+  Check,
+  AlertCircle,
 } from "lucide-react";
 import { LoadingModal } from "../components/LoadingModal";
 import { toast } from "sonner";
@@ -80,6 +112,103 @@ export function PitchDashboard({
   const [isGeneratingLanding, setIsGeneratingLanding] = useState(false);
   const [showLandingLoading, setShowLandingLoading] = useState(false);
   const [landingProgress, setLandingProgress] = useState(0);
+
+  // Company profile state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editStep, setEditStep] = useState(0);
+
+  // Get company data from first pitch
+  const companyData = firstPitchMeta
+    ? {
+        companyName: firstPitchMeta.startupName || "",
+        oneLiner: firstPitchMeta.preview || "",
+        problem: "",
+        value: "",
+        status: "",
+        brandColor: "#252952",
+        industry: "",
+        teamSize: "",
+      }
+    : null;
+
+  const [editedData, setEditedData] = useState(
+    companyData || {
+      companyName: "",
+      oneLiner: "",
+      problem: "",
+      value: "",
+      status: "",
+      brandColor: "#252952",
+      industry: "",
+      teamSize: "",
+    }
+  );
+
+  const isProfileComplete = companyData?.companyName && companyData?.oneLiner;
+
+  // Update editedData when companyData changes
+  useEffect(() => {
+    if (companyData) {
+      setEditedData(companyData);
+    }
+  }, [firstPitchMeta]);
+
+  const INDUSTRIES = [
+    "AI/ML",
+    "SaaS",
+    "Fintech",
+    "Healthcare",
+    "E-commerce",
+    "Education",
+    "Enterprise Software",
+    "Consumer",
+    "B2B",
+    "Other",
+  ];
+
+  const TEAM_SIZES = ["Just me", "2-5", "6-10", "11-25", "26-50", "50+"];
+
+  const BRAND_COLORS = [
+    { name: "Navy Blue", value: "#252952" },
+    { name: "Ocean Blue", value: "#4A90E2" },
+    { name: "Purple", value: "#8B5CF6" },
+    { name: "Emerald", value: "#10B981" },
+    { name: "Rose", value: "#F43F5E" },
+    { name: "Amber", value: "#F59E0B" },
+    { name: "Slate", value: "#475569" },
+    { name: "Teal", value: "#14B8A6" },
+  ];
+
+  const editSteps = [
+    { id: "basics", label: "Company Basics", icon: Building2 },
+    { id: "problem", label: "Problem & Value", icon: Target },
+    { id: "credibility", label: "Credibility", icon: TrendingUp },
+    { id: "brand", label: "Brand", icon: Palette },
+  ];
+
+  const handleSaveEdit = () => {
+    // TODO: Save edited data to API
+    setIsEditing(false);
+    setEditStep(0);
+    toast.success("Company profile updated successfully!");
+  };
+
+  const handleCancelEdit = () => {
+    setEditedData(
+      companyData || {
+        companyName: "",
+        oneLiner: "",
+        problem: "",
+        value: "",
+        status: "",
+        brandColor: "#252952",
+        industry: "",
+        teamSize: "",
+      }
+    );
+    setIsEditing(false);
+    setEditStep(0);
+  };
 
   // Load pitches with pagination
   const loadPitches = useCallback(
@@ -262,24 +391,59 @@ export function PitchDashboard({
 
   const handleDownload = (pitch: PitchHistoryItem) => {
     try {
-      const container = document.createElement("div");
-      container.innerHTML = pitch.pitchContent;
+      // Add classes to body and html to lock layout during PDF generation
+      document.body.classList.add("pdf-generating");
+      document.documentElement.classList.add("pdf-generating");
+
+      // Create hidden container for PDF content
+      const hiddenContainer = document.createElement("div");
+      hiddenContainer.id = "pdf-temp-container";
+      hiddenContainer.style.position = "absolute";
+      hiddenContainer.style.left = "-9999px";
+      hiddenContainer.style.width = "210mm";
+      hiddenContainer.innerHTML = pitch.pitchContent;
+      document.body.appendChild(hiddenContainer);
 
       const opt = {
         margin: 0.5,
         filename: `${pitch.startupName}_Pitch.pdf`,
-        image: { type: "jpeg", quality: 0.98 },
+        image: { type: "jpeg" as const, quality: 0.98 },
         html2canvas: { scale: 2 },
-        jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+        jsPDF: {
+          unit: "in",
+          format: "letter",
+          orientation: "portrait" as const,
+        },
       };
 
-      html2pdf().set(opt).from(container).save();
+      html2pdf()
+        .set(opt)
+        .from(hiddenContainer)
+        .save()
+        .then(() => {
+          // Cleanup
+          if (document.body.contains(hiddenContainer)) {
+            document.body.removeChild(hiddenContainer);
+          }
+          document.body.classList.remove("pdf-generating");
+          document.documentElement.classList.remove("pdf-generating");
+        })
+        .catch((error: any) => {
+          // Cleanup on error
+          if (document.body.contains(hiddenContainer)) {
+            document.body.removeChild(hiddenContainer);
+          }
+          document.body.classList.remove("pdf-generating");
+          document.documentElement.classList.remove("pdf-generating");
+          throw error;
+        });
 
       toast.success("PDF Downloaded!", {
         description: "Your pitch deck PDF has been downloaded successfully.",
       });
     } catch (error: any) {
       console.error("Failed to download PDF:", error);
+      document.body.classList.remove("pdf-generating");
       toast.error("Failed to download PDF", {
         description: error.message || "Please try again later.",
       });
@@ -335,25 +499,362 @@ export function PitchDashboard({
     });
   };
 
-  return (
-    <div className="p-8">
-      <div className="flex justify-between gap-3 mb-8">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900">Pitch Dashboard</h2>
-        </div>
+  const handleCopyUrl = () => {
+    if (firstPitchMeta?.startupName) {
+      const url = `${window.location.origin}/${firstPitchMeta.startupName
+        .toLowerCase()
+        .replace(/\s+/g, "-")}`;
+      navigator.clipboard.writeText(url);
+      toast.success("Landing page URL copied!");
+    }
+  };
 
-        <Button
-          onClick={onCreatePitch}
-          disabled={(pitches?.length || 0) > 0}
-          className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  text-white rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg disabled:hover:brightness-100"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          New Pitch
-        </Button>
+  const handleRegenerate = () => {
+    loadPitches(1);
+    toast.success("Pitch assets regenerated!");
+  };
+
+  return (
+    <div className="p-8 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold text-[#252952] mb-2">
+          Company Dashboard
+        </h1>
+        <p className="text-gray-600 text-lg">Your company's central brain</p>
       </div>
 
-      {/* Pitches List */}
-      <div>
+      <div className="grid gap-6">
+        {/* Company Profile Card - Primary */}
+        {companyData ? (
+          <Card className="border-2 border-gray-200 rounded-[24px] overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+            {/* Brand accent bar */}
+            <div
+              className="h-2"
+              style={{
+                background: `linear-gradient(90deg, ${companyData.brandColor} 0%, ${companyData.brandColor}80 100%)`,
+              }}
+            />
+
+            <CardContent className="p-8">
+              <div className="flex items-start justify-between mb-6">
+                <div className="flex items-start gap-6 flex-1">
+                  {/* Logo/Icon */}
+                  <div
+                    className="w-20 h-20 rounded-[20px] flex items-center justify-center flex-shrink-0 shadow-lg"
+                    style={{
+                      background: `linear-gradient(135deg, ${companyData.brandColor} 0%, ${companyData.brandColor}dd 100%)`,
+                    }}
+                  >
+                    <Building2 className="w-10 h-10 text-white" />
+                  </div>
+
+                  {/* Company Info */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <h2 className="text-3xl font-bold text-[#252952]">
+                        {companyData.companyName}
+                      </h2>
+                      <Badge
+                        className={`border-0 ${
+                          isProfileComplete
+                            ? "bg-green-100 text-green-700"
+                            : "bg-amber-100 text-amber-700"
+                        }`}
+                      >
+                        {isProfileComplete ? (
+                          <>
+                            <CheckCircle2 className="w-3 h-3 mr-1" />
+                            Complete
+                          </>
+                        ) : (
+                          <>
+                            <AlertCircle className="w-3 h-3 mr-1" />
+                            Needs Info
+                          </>
+                        )}
+                      </Badge>
+                    </div>
+
+                    <p className="text-gray-700 text-lg mb-4 leading-relaxed">
+                      {companyData.oneLiner}
+                    </p>
+
+                    <div className="flex items-center gap-4 text-sm">
+                      {companyData.industry && (
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full">
+                          <BarChart3 className="w-4 h-4 text-gray-600" />
+                          <span className="text-gray-700 font-medium">
+                            {companyData.industry}
+                          </span>
+                        </div>
+                      )}
+                      {companyData.status && (
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-full">
+                          <TrendingUp className="w-4 h-4 text-blue-600" />
+                          <span className="text-blue-700 font-medium">
+                            {companyData.status}
+                          </span>
+                        </div>
+                      )}
+                      {companyData.teamSize && (
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-full">
+                          <Users className="w-4 h-4 text-purple-600" />
+                          <span className="text-purple-700 font-medium">
+                            {companyData.teamSize} people
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Edit Button */}
+                <Button
+                  onClick={() => {
+                    if (companyData) {
+                      setEditedData(companyData);
+                    }
+                    setIsEditing(true);
+                    setEditStep(0);
+                  }}
+                  className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[12px] shadow-lg hover:shadow-xl transition-all"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Company Info
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="border-2 border-gray-200 rounded-[24px] overflow-hidden shadow-lg">
+            <CardContent className="p-8 text-center">
+              <Building2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                No Company Profile
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Create your first pitch to set up your company profile
+              </p>
+              <Button
+                onClick={() => navigate("/builder")}
+                className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[12px]"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Your First Pitch
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Pitch Assets - Merged Output Card */}
+        {companyData && (
+          <Card className="border-2 border-gray-200 rounded-[24px] overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+            <CardContent className="p-8">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-2xl font-bold text-[#252952] mb-1">
+                    Pitch Assets
+                  </h3>
+                  <p className="text-gray-600">
+                    Auto-generated from your company profile
+                  </p>
+                </div>
+                <Button
+                  onClick={handleRegenerate}
+                  variant="outline"
+                  className="border-2 border-gray-200 hover:border-[#252952] rounded-[12px]"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Regenerate
+                </Button>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4" id="pitch-assets">
+                {/* Pitch Deck */}
+                {pitches && pitches.length > 0 && (
+                  <div className="p-6 rounded-[16px] border-2 border-gray-200 bg-gradient-to-br from-white to-gray-50 hover:border-[#252952] transition-all cursor-pointer group">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-[12px] bg-gradient-to-br from-[#252952] to-[#4A90E2] flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-[#252952] mb-1">
+                          Pitch Deck
+                        </h4>
+                        <p className="text-sm text-gray-600 mb-3">
+                          Professional presentation
+                        </p>
+                        <div className="flex gap-2">
+                          {/* <Button
+                            size="sm"
+                            className="bg-[#eef0ff] text-[#252952] hover:bg-[#252952] hover:text-white rounded-[8px]"
+                            onClick={() => {
+                              const pitch = pitches[0];
+                              if (pitch) {
+                                // Open pitch in a new window/modal
+                                const newWindow = window.open();
+                                if (newWindow) {
+                                  newWindow.document.write(pitch.pitchContent);
+                                }
+                              }
+                            }}
+                          >
+                            <Eye className="w-3 h-3 mr-1" />
+                            View
+                          </Button> */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-2 border-gray-200 rounded-[8px]"
+                            onClick={() =>
+                              pitches[0] && handleDownload(pitches[0])
+                            }
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            PDF
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Landing Page */}
+                {firstPitchMeta && (
+                  <div className="p-6 rounded-[16px] border-2 border-gray-200 bg-gradient-to-br from-white to-blue-50 hover:border-[#4A90E2] transition-all cursor-pointer group">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-[12px] bg-gradient-to-br from-[#4A90E2] to-[#7DD3FC] flex items-center justify-center flex-shrink-0">
+                        <Globe className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-[#252952] mb-1">
+                          Live Landing Page
+                        </h4>
+                        {firstPitchHasPremiumLanding ? (
+                          <>
+                            <p className="text-sm text-gray-600 mb-3">
+                              foundify.app/
+                              {firstPitchMeta.startupName
+                                ?.toLowerCase()
+                                .replace(/\s+/g, "-") || "your-company"}
+                            </p>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                className="bg-[#4A90E2] hover:bg-[#357ABD] text-white rounded-[8px]"
+                                onClick={openLandingPage}
+                              >
+                                <ExternalLink className="w-3 h-3 mr-1" />
+                                Open
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-2 border-gray-200 rounded-[8px]"
+                                onClick={handleCopyUrl}
+                              >
+                                <Copy className="w-3 h-3 mr-1" />
+                                Copy
+                              </Button>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm text-gray-600 mb-3">
+                              Generate your landing page
+                            </p>
+                            <Button
+                              size="sm"
+                              className="bg-[#4A90E2] hover:bg-[#357ABD] text-white rounded-[8px]"
+                              onClick={generateLandingPage}
+                              disabled={isGeneratingLanding}
+                            >
+                              {isGeneratingLanding ? (
+                                <>
+                                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                  Generating...
+                                </>
+                              ) : (
+                                <>
+                                  <Sparkles className="w-3 h-3 mr-1" />
+                                  Generate Landing Page
+                                </>
+                              )}
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Powers All Your Tools */}
+        {companyData && (
+          <Card className="border-2 border-gray-200 rounded-[20px] bg-gradient-to-br from-[#f8faff] to-white overflow-hidden">
+            <CardContent className="p-8">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-[12px] bg-gradient-to-br from-[#252952] to-[#4A90E2] flex items-center justify-center flex-shrink-0 shadow-md">
+                  <Zap className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-[#252952] mb-1">
+                    Powers All Your Tools
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    This information automatically powers all your Foundify
+                    tools
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[
+                  { icon: FileText, label: "Pitch Deck", color: "#252952" },
+                  { icon: Globe, label: "Landing Page", color: "#4A90E2" },
+                  { icon: Mail, label: "Email Templates", color: "#8B5CF6" },
+                  { icon: FileCheck, label: "Contracts", color: "#10B981" },
+                  { icon: Receipt, label: "Invoices", color: "#F59E0B" },
+                  { icon: Users, label: "Team Records", color: "#F43F5E" },
+                  { icon: QrCode, label: "QR Card", color: "#14B8A6" },
+                  { icon: Sparkles, label: "All Tools", color: "#475569" },
+                ].map((tool) => {
+                  const Icon = tool.icon;
+                  return (
+                    <div
+                      key={tool.label}
+                      className="flex items-center gap-2 p-3 rounded-[10px] bg-white border border-gray-200"
+                    >
+                      <div
+                        className="w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: `${tool.color}15` }}
+                      >
+                        <Icon
+                          className="w-4 h-4"
+                          style={{ color: tool.color }}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-semibold text-[#252952] truncate">
+                          {tool.label}
+                        </div>
+                        <CheckCircle2 className="w-3 h-3 text-green-500 mt-0.5" />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Original Pitches List Section (Hidden but kept for functionality) */}
+      <div className="hidden">
         <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4">
           Your Pitches
         </h3>
@@ -469,8 +970,369 @@ export function PitchDashboard({
         )}
       </div>
 
-      {/* Landing Page Generator */}
-      <div className="mt-8">
+      {/* Edit Modal with 4 Steps */}
+      <Dialog open={isEditing} onOpenChange={setIsEditing}>
+        <DialogContent className="max-w-4xl h-auto max-h-[90vh] rounded-[32px] p-0 flex flex-col">
+          <div className="sticky top-0 bg-white z-10 border-b border-gray-200 p-6 flex-shrink-0">
+            <DialogHeader>
+              <DialogTitle className="text-3xl text-[#252952] flex items-center gap-3">
+                <Edit className="w-7 h-7" />
+                Edit Company Info
+              </DialogTitle>
+              <DialogDescription>
+                Update your company information — changes apply everywhere
+                automatically
+              </DialogDescription>
+            </DialogHeader>
+
+            {/* Step tabs */}
+            <div className="flex gap-2 mt-6">
+              {editSteps.map((step, index) => {
+                const StepIcon = step.icon;
+                return (
+                  <button
+                    key={step.id}
+                    onClick={() => setEditStep(index)}
+                    className={`flex-1 p-3 rounded-[12px] border-2 transition-all ${
+                      editStep === index
+                        ? "border-[#252952] bg-[#f8faff]"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 justify-center">
+                      <StepIcon
+                        className={`w-4 h-4 ${
+                          editStep === index
+                            ? "text-[#252952]"
+                            : "text-gray-400"
+                        }`}
+                      />
+                      <span
+                        className={`text-sm font-semibold ${
+                          editStep === index
+                            ? "text-[#252952]"
+                            : "text-gray-600"
+                        }`}
+                      >
+                        {step.label}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="p-6 flex-1 overflow-y-auto">
+            {/* Step 1: Company Basics */}
+            {editStep === 0 && (
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold text-[#252952]">
+                    Company / Startup Name *
+                  </Label>
+                  <Input
+                    value={editedData.companyName}
+                    onChange={(e) =>
+                      setEditedData({
+                        ...editedData,
+                        companyName: e.target.value,
+                      })
+                    }
+                    className="h-14 text-lg border-2 border-gray-200 rounded-[12px] focus:border-[#252952]"
+                    placeholder="Enter your company name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold text-[#252952]">
+                    What does your company do? *
+                  </Label>
+                  <Textarea
+                    value={editedData.oneLiner}
+                    onChange={(e) =>
+                      setEditedData({ ...editedData, oneLiner: e.target.value })
+                    }
+                    className="min-h-[100px] text-base border-2 border-gray-200 rounded-[12px] resize-none focus:border-[#252952]"
+                    placeholder="One clear sentence that explains your company"
+                  />
+                  <p className="text-sm text-gray-500">
+                    Keep it simple and clear — this appears everywhere
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold text-[#252952]">
+                    Industry
+                  </Label>
+                  <Select
+                    value={editedData.industry}
+                    onValueChange={(value) =>
+                      setEditedData({ ...editedData, industry: value })
+                    }
+                  >
+                    <SelectTrigger className="h-14 text-base border-2 border-gray-200 rounded-[12px]">
+                      <SelectValue placeholder="Select your industry" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {INDUSTRIES.map((industry) => (
+                        <SelectItem key={industry} value={industry}>
+                          {industry}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Problem & Value */}
+            {editStep === 1 && (
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold text-[#252952]">
+                    What problem do you solve? *
+                  </Label>
+                  <Textarea
+                    value={editedData.problem}
+                    onChange={(e) =>
+                      setEditedData({ ...editedData, problem: e.target.value })
+                    }
+                    className="min-h-[140px] text-base border-2 border-gray-200 rounded-[12px] resize-none focus:border-[#252952]"
+                    placeholder="Describe the problem your company addresses..."
+                  />
+                  <p className="text-sm text-gray-500">
+                    Write it as if you're explaining to a smart friend
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold text-[#252952]">
+                    How do you solve it? *
+                  </Label>
+                  <Textarea
+                    value={editedData.value}
+                    onChange={(e) =>
+                      setEditedData({ ...editedData, value: e.target.value })
+                    }
+                    className="min-h-[140px] text-base border-2 border-gray-200 rounded-[12px] resize-none focus:border-[#252952]"
+                    placeholder="Explain the value you create and how you help..."
+                  />
+                  <p className="text-sm text-gray-500">
+                    Focus on benefits and outcomes you deliver
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Credibility */}
+            {editStep === 2 && (
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold text-[#252952] flex items-center gap-2">
+                    Traction
+                    <Badge className="bg-gray-100 text-gray-600 border-0 text-xs">
+                      Optional
+                    </Badge>
+                  </Label>
+                  <Input
+                    value={editedData.status}
+                    onChange={(e) =>
+                      setEditedData({ ...editedData, status: e.target.value })
+                    }
+                    className="h-14 text-base border-2 border-gray-200 rounded-[12px] focus:border-[#252952]"
+                    placeholder='e.g., "$50K MRR", "500+ customers", "Early stage"'
+                  />
+                  <p className="text-sm text-gray-500">
+                    Share your current metrics or stage
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold text-[#252952]">
+                    Team Size
+                  </Label>
+                  <Select
+                    value={editedData.teamSize}
+                    onValueChange={(value) =>
+                      setEditedData({ ...editedData, teamSize: value })
+                    }
+                  >
+                    <SelectTrigger className="h-14 text-base border-2 border-gray-200 rounded-[12px]">
+                      <SelectValue placeholder="Select team size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TEAM_SIZES.map((size) => (
+                        <SelectItem key={size} value={size}>
+                          {size}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Brand */}
+            {editStep === 3 && (
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold text-[#252952]">
+                    Upload Logo
+                  </Label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-[16px] p-12 text-center hover:border-[#4A90E2] transition-all cursor-pointer bg-gradient-to-br from-white to-gray-50">
+                    <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-base text-gray-600 mb-2">
+                      Click to upload or drag and drop
+                    </p>
+                    <p className="text-sm text-gray-500">SVG, PNG (max. 2MB)</p>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200"></div>
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-white px-4 text-sm text-gray-500 font-medium">
+                      or
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <Label className="text-base font-semibold text-[#252952]">
+                    Choose Brand Color
+                  </Label>
+                  <div className="grid grid-cols-4 gap-3">
+                    {BRAND_COLORS.map((color) => (
+                      <button
+                        key={color.value}
+                        onClick={() =>
+                          setEditedData({
+                            ...editedData,
+                            brandColor: color.value,
+                          })
+                        }
+                        className={`relative h-24 rounded-[16px] transition-all hover:scale-105 ${
+                          editedData.brandColor === color.value
+                            ? "ring-4 ring-[#252952] ring-offset-2"
+                            : "ring-2 ring-gray-200 hover:ring-gray-300"
+                        }`}
+                        style={{ backgroundColor: color.value }}
+                      >
+                        {editedData.brandColor === color.value && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-white shadow-2xl flex items-center justify-center">
+                              <Check className="w-6 h-6 text-[#252952]" />
+                            </div>
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Selected:{" "}
+                    <span className="font-semibold text-[#252952]">
+                      {
+                        BRAND_COLORS.find(
+                          (c) => c.value === editedData.brandColor
+                        )?.name
+                      }
+                    </span>
+                  </p>
+                </div>
+
+                {/* Preview */}
+                <div className="mt-8 p-6 rounded-[16px] bg-gradient-to-br from-gray-50 to-white border-2 border-gray-200">
+                  <h4 className="text-sm font-semibold text-[#252952] mb-4">
+                    Preview
+                  </h4>
+                  <div className="space-y-3">
+                    <div
+                      className="h-14 rounded-[12px] flex items-center justify-center font-semibold text-white shadow-lg transition-all hover:shadow-xl"
+                      style={{ backgroundColor: editedData.brandColor }}
+                    >
+                      Primary Button
+                    </div>
+                    <div
+                      className="h-24 rounded-[16px] p-4 border-2 transition-all"
+                      style={{
+                        backgroundColor: `${editedData.brandColor}10`,
+                        borderColor: `${editedData.brandColor}40`,
+                      }}
+                    >
+                      <div className="text-xs font-semibold text-gray-500 mb-2">
+                        Company Card
+                      </div>
+                      <div
+                        className="font-bold text-lg"
+                        style={{ color: editedData.brandColor }}
+                      >
+                        {editedData.companyName || "Your Company"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Navigation */}
+          <div className="bg-white border-t border-gray-200 p-6 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <Button
+                variant="outline"
+                onClick={() =>
+                  editStep > 0 ? setEditStep(editStep - 1) : handleCancelEdit()
+                }
+                className="border-2 border-gray-200 hover:border-gray-300 rounded-[12px] px-6"
+              >
+                {editStep === 0 ? "Cancel" : "Back"}
+              </Button>
+
+              <div className="flex items-center gap-2">
+                {editSteps.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`h-2 rounded-full transition-all ${
+                      index === editStep
+                        ? "w-8 bg-[#252952]"
+                        : "w-2 bg-gray-300"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <Button
+                onClick={() => {
+                  if (editStep < editSteps.length - 1) {
+                    setEditStep(editStep + 1);
+                  } else {
+                    handleSaveEdit();
+                  }
+                }}
+                className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[12px] shadow-lg px-8"
+              >
+                {editStep === editSteps.length - 1 ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </>
+                ) : (
+                  <>
+                    Continue
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Landing Page Generator - Hidden */}
+      <div className="hidden mt-8">
         <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-4">
           Landing Page Generator
         </h3>
@@ -625,7 +1487,7 @@ export function PitchDashboard({
       </div>
 
       {/* Premium Status */}
-      {isPremium && (
+      {/* {isPremium && (
         <Card className="mt-6 md:mt-8 border-2 border-green-200 bg-gradient-to-br from-green-50 to-white rounded-2xl">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 md:gap-4">
@@ -649,7 +1511,7 @@ export function PitchDashboard({
             </div>
           </CardContent>
         </Card>
-      )}
+      )} */}
 
       <LoadingModal
         isOpen={loadingModal.isOpen}

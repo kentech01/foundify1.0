@@ -246,3 +246,31 @@
 button {
   cursor: pointer;
 }
+
+/* Lock layout during PDF generation to prevent sidebar movement */
+body.pdf-generating {
+  overflow: hidden !important;
+  position: relative !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html.pdf-generating {
+  overflow: hidden !important;
+  width: 100vw !important;
+  height: 100vh !important;
+}
+
+/* Lock the main layout container - target the flex container from DashboardLayout */
+body.pdf-generating > div.flex.h-screen {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+  transform: translateZ(0) !important; /* Force GPU acceleration and layout isolation */
+  will-change: auto !important;
+}

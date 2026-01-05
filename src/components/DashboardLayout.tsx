@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "./ui/sheet";
 import {
   LayoutDashboard,
   Wrench,
@@ -16,19 +17,23 @@ import {
   ChevronDown,
   ChevronRight,
   LogIn,
-  DollarSign,
+  FileText,
   FileCheck,
   MessageSquare,
   Mail,
   Users,
   Menu,
   X,
-  Sparkles,
+  Home,
+  Settings,
+  QrCode,
+  Globe,
+  User,
+  Plus,
 } from "lucide-react";
 import { UserAuth } from "../context/AuthContext";
 import SignInModal from "./signIn/SignInModal";
 import React from "react";
-const favicon = new URL("../assets/FOUNDIFY-LOGO.svg", import.meta.url).href;
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -40,8 +45,8 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
   const location = useLocation();
   const { user, logOut, loading } = UserAuth();
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-  const [isEssentialsOpen, setIsEssentialsOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isEssentialsOpen, setIsEssentialsOpen] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
     {
@@ -63,7 +68,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
     {
       path: "/dashboard/invoices",
       label: "Invoice Generator",
-      icon: DollarSign,
+      icon: FileText,
     },
     {
       path: "/dashboard/contracts",
@@ -72,19 +77,29 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
     },
     {
       path: "/dashboard/feedbackCoach",
-      label: "360° Feedback Generator",
+      label: "Team Insights",
       icon: MessageSquare,
     },
     {
       path: "/dashboard/investor-email-draft",
-      label: "Investor Email Draft",
+      label: "Email Templates",
       icon: Mail,
+    },
+    {
+      path: "/dashboard/qr-card",
+      label: "QR Visit Card",
+      icon: QrCode,
     },
     {
       path: "/dashboard/ai-hiring-assistant",
       label: "AI Hiring Assistant",
       icon: Users,
     },
+    // {
+    //   path: "/dashboard/landing-page-generator",
+    //   label: "Landing Page Generator",
+    //   icon: Globe,
+    // },
   ];
 
   const currentPath = location.pathname;
@@ -97,7 +112,8 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
       "/dashboard/feedbackCoach",
       "/dashboard/investor-email-draft",
       "/dashboard/ai-hiring-assistant",
-      // "/dashboard/landing-page-generator",
+      "/dashboard/qr-card",
+      "/dashboard/landing-page-generator",
     ];
 
     if (essentialsPages.some((page) => currentPath.startsWith(page))) {
@@ -119,202 +135,252 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
     setIsSignInModalOpen(false);
   };
 
-  return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Mobile Overlay */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 z-40 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
+  const essentialsPages = [
+    "/dashboard/invoices",
+    "/dashboard/contracts",
+    "/dashboard/feedbackCoach",
+    "/dashboard/investor-email-draft",
+    "/dashboard/ai-hiring-assistant",
+    "/dashboard/qr-card",
+    "/dashboard/landing-page-generator",
+  ];
 
-      {/* Sidebar */}
-      <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-74 bg-white border-r border-gray-200 flex flex-col transform transition-transform duration-300 ease-in-out ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        }`}
-      >
-        {/* Logo */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="flex-1 pt-1">
-              <img
-                src={favicon}
-                alt="Foundify"
-                className="h-7 w-auto cursor-pointer select-none"
-                onClick={() => navigate("/")}
-              />
-              {/* <h1 className="text-2xl font-bold text-deep-blue">Foundify</h1> */}
-            </div>
-            {/* Close button for mobile */}
-            <button
-              onClick={() => setIsSidebarOpen(false)}
-              className="lg:hidden p-1 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X className="h-5 w-5 text-gray-600" />
-            </button>
+  const isFounderEssentialsActive = essentialsPages.some((page) =>
+    currentPath.startsWith(page)
+  );
+
+  const SidebarContent = () => (
+    <>
+      {/* Logo */}
+      <div className="p-6 border-b border-white/10">
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold text-white">foundify</h1>
           </div>
         </div>
+      </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2 flex flex-col overflow-y-auto">
-          {navItems.map((item) => {
-            const Icon = item.icon;
+      {/* Navigation */}
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+        {/* Pitch Dashboard */}
+        <button
+          onClick={() => {
+            navigate("/dashboard/pitches");
+            setIsMobileMenuOpen(false);
+          }}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-[10px] transition-all duration-200 ${
+            currentPath.startsWith("/dashboard/pitches")
+              ? "bg-gradient-to-r from-[#4A90E2] to-[#7DD3FC] text-white shadow-lg"
+              : "text-white/70 hover:bg-white/10 hover:text-white"
+          }`}
+        >
+          <LayoutDashboard className="h-5 w-5 flex-shrink-0" />
+          <span className="flex-1 text-left font-semibold text-sm">
+            Pitch Dashboard
+          </span>
+        </button>
 
-            // Check if this is an essentials-related page
-            const essentialsPages = [
-              "/dashboard/invoices",
-              "/dashboard/contracts",
-              "/dashboard/feedbackCoach",
-              "/dashboard/investor-email-draft",
-              "/dashboard/ai-hiring-assistant",
-              // "/dashboard/landing-page-generator",
-            ];
+        {/* Founder Essentials - Collapsible */}
+        <div className="space-y-1">
+          <button
+            onClick={() => setIsEssentialsOpen(!isEssentialsOpen)}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-[10px] transition-all duration-200 ${
+              isFounderEssentialsActive
+                ? "bg-white/10 text-white"
+                : "text-white/70 hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            <Wrench className="h-5 w-5 flex-shrink-0" />
+            <span className="flex-1 text-left font-semibold text-sm">
+              Founder Essentials
+            </span>
+            <ChevronRight
+              className={`h-4 w-4 transition-transform duration-200 ${
+                isEssentialsOpen ? "rotate-90" : ""
+              }`}
+            />
+          </button>
 
-            const isActive = item.hasSubMenu
-              ? essentialsPages.some((page) => currentPath.startsWith(page))
-              : item.path && currentPath.startsWith(item.path);
-
-            return (
-              <div key={item.label}>
-                <button
-                  onClick={() => {
-                    if (item.hasSubMenu) {
-                      setIsEssentialsOpen(!isEssentialsOpen);
-                    } else {
-                      navigate(item.path);
-                      setIsSidebarOpen(false); // Close sidebar on mobile after navigation
-                    }
-                  }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                    isActive
-                      ? "bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white shadow-lg"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  <Icon className="h-5 w-5 flex-shrink-0" />
-                  <span className="flex-1 text-left font-medium">
-                    {item.label}
-                  </span>
-                  {item.hasSubMenu && (
-                    <ChevronRight
-                      className={`h-4 w-4 transition-transform duration-200 ${
-                        isEssentialsOpen ? "rotate-90" : ""
-                      }`}
-                    />
-                  )}
-                </button>
-
-                {/* Sub-menu items */}
-                {item.hasSubMenu && isEssentialsOpen && (
-                  <div className="mt-3 space-y-1">
-                    {essentialsSubItems.map((subItem) => {
-                      const SubIcon = subItem.icon;
-                      const isSubItemActive = currentPath.startsWith(
-                        subItem.path
-                      );
-
-                      return (
-                        <button
-                          key={subItem.path}
-                          onClick={() => {
-                            navigate(subItem.path);
-                            setIsSidebarOpen(false); // Close sidebar on mobile after navigation
-                          }}
-                          className={`w-full flex items-center gap-3 px-4 py-3  rounded-xl transition-all duration-200 ${
-                            isSubItemActive
-                              ? "bg-blue-50 text-blue-800 font-medium"
-                              : "text-gray-600 hover:bg-gray-50"
-                          }`}
-                        >
-                          <SubIcon className="h-4 w-4 flex-shrink-0" />
-                          <span className="flex-1 text-left text-sm">
-                            {subItem.label}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </nav>
-
-        {/* Premium Badge - Bottom of Sidebar */}
-        {isPremium && (
-          <div className="p-4 border-t border-gray-200">
-            <div className="w-full rounded-xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] py-2.5 px-4 flex items-center justify-center gap-2 shadow-md">
-              <Sparkles size={16} color="white" />
-              <span className="text-sm font-semibold text-white">
-                Premium
-              </span>
+          {/* Sub-items */}
+          {isEssentialsOpen && (
+            <div className="ml-2 space-y-1 mt-1">
+              {essentialsSubItems.map((subItem) => {
+                const Icon = subItem.icon;
+                const isSubItemActive = currentPath.startsWith(subItem.path);
+                return (
+                  <button
+                    key={subItem.path}
+                    onClick={() => {
+                      navigate(subItem.path);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-[8px] transition-all duration-200 ${
+                      isSubItemActive
+                        ? "bg-white/20 text-white font-medium"
+                        : "text-white/60 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 flex-shrink-0" />
+                    <span className="flex-1 text-left text-sm">
+                      {subItem.label}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-          </div>
-        )}
+          )}
+        </div>
+      </nav>
+
+      {/* Bottom Section */}
+      <div className="p-4 border-t border-white/10 space-y-2">
+        <button
+          onClick={() => {
+            navigate("/");
+            setIsMobileMenuOpen(false);
+          }}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-[10px] text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200"
+        >
+          <Home className="h-5 w-5" />
+          <span className="text-sm">Back to Home</span>
+        </button>
+        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-[10px] text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200">
+          <Settings className="h-5 w-5" />
+          <span className="text-sm">Settings</span>
+        </button>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="flex h-screen bg-[#f8fafc]">
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex w-64 bg-gradient-to-b from-[#252952] to-[#4A90E2] flex-col">
+        <SidebarContent />
       </aside>
+
+      {/* Mobile Menu Sheet */}
+      <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+        <SheetContent
+          side="left"
+          className="w-64 p-0 bg-gradient-to-b from-[#252952] to-[#4A90E2]"
+        >
+          <div className="flex flex-col h-full">
+            <SidebarContent />
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <header className="bg-white border-b border-gray-200 px-4 lg:px-8 py-5">
+        <header className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4 flex-1">
-              {/* Hamburger Menu Button for Mobile/Tablet */}
-              <button
-                onClick={() => setIsSidebarOpen(true)}
-                className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <Menu className="h-6 w-6 text-gray-600" />
-              </button>
-              {/* <h2 className="text-xl lg:text-2xl font-bold text-gray-900">
-                {currentTitle}
-              </h2> */}
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <Menu className="h-6 w-6 text-gray-700" />
+            </button>
+
+            {/* Page Title */}
+            <div className="flex-1 lg:ml-0 ml-4">
+              {currentPath.startsWith("/dashboard/pitches") && (
+                <h2 className="text-xl lg:text-2xl font-bold text-[#252952]">
+                  Company Dashboard
+                </h2>
+              )}
+              {currentPath.startsWith("/dashboard/invoices") && (
+                <h2 className="text-xl lg:text-2xl font-bold text-[#252952]">
+                  Invoice Generator
+                </h2>
+              )}
+              {currentPath.startsWith("/dashboard/contracts") && (
+                <h2 className="text-xl lg:text-2xl font-bold text-[#252952]">
+                  Contract Templates
+                </h2>
+              )}
+              {currentPath.startsWith("/dashboard/feedbackCoach") && (
+                <h2 className="text-xl lg:text-2xl font-bold text-[#252952]">
+                  Team Insights
+                </h2>
+              )}
+              {currentPath.startsWith("/dashboard/investor-email-draft") && (
+                <h2 className="text-xl lg:text-2xl font-bold text-[#252952]">
+                  Email Templates
+                </h2>
+              )}
+              {currentPath.startsWith("/dashboard/qr-card") && (
+                <h2 className="text-xl lg:text-2xl font-bold text-[#252952]">
+                  QR Visit Card
+                </h2>
+              )}
+              {currentPath.startsWith("/dashboard/ai-hiring-assistant") && (
+                <h2 className="text-xl lg:text-2xl font-bold text-[#252952]">
+                  AI Hiring Assistant
+                </h2>
+              )}
+              {currentPath.startsWith("/dashboard/landing-page-generator") && (
+                <h2 className="text-xl lg:text-2xl font-bold text-[#252952]">
+                  Landing Page Generator
+                </h2>
+              )}
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 lg:gap-4">
+              {currentPath.startsWith("/dashboard/pitches") && (
+                <Button
+                  onClick={() => navigate("/builder")}
+                  className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[10px] shadow-sm px-3 lg:px-4 transition-all duration-300"
+                >
+                  <Plus className="mr-0 lg:mr-2 h-4 w-4" />
+                  <span className="hidden lg:inline">Create New</span>
+                </Button>
+              )}
+
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="flex items-center gap-2 hover:bg-gray-50 rounded-xl px-3 py-2"
+                      className="flex items-center gap-2 hover:bg-gray-50 rounded-xl px-2 lg:px-3 py-2"
                     >
-                      <Avatar className="h-7 w-7">
+                      <Avatar className="h-8 w-8">
                         <AvatarImage
                           src={user.photoURL || ""}
                           alt={user.displayName || "User"}
                         />
-                        <AvatarFallback className="bg-[#8B4513] text-white font-semibold">
-                          {user.displayName?.[0]?.toUpperCase() || "U"}
+                        <AvatarFallback className="bg-gradient-to-r from-[#252952] to-[#4A90E2] text-white">
+                          <User className="h-4 w-4" />
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-lg text-gray-900 font-medium">
-                        {user.displayName || "User"}
-                      </span>
-                      <ChevronDown className="h-4 w-4 text-gray-900" />
+                      <ChevronDown className="h-4 w-4 text-gray-500 hidden lg:block" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="end"
-                    className="w-56 rounded-xl border border-gray-200 shadow-lg bg-white"
+                    className="w-64 rounded-2xl border border-gray-200 shadow-xl p-0 overflow-hidden"
                   >
-                    <div className="px-3 py-3">
-                      <p className="text-lg font-bold text-[#1f1147]">
+                    <div className="px-6 py-6 bg-white">
+                      <h3 className="text-lg font-bold text-gray-900 mb-1">
                         {user.displayName || "User"}
-                      </p>
-                      <p className="text-sm text-gray-900">{user.email}</p>
+                      </h3>
+                      <p className="text-sm text-gray-600">{user.email}</p>
                     </div>
-                    <DropdownMenuSeparator className="bg-gray-200" />
-
-                    <DropdownMenuItem
-                      onClick={handleSignOut}
-                      className="flex items-center gap-2 px-3 py-3 text-sm text-[#1f1147] hover:bg-gray-50 rounded-lg mx-1 cursor-pointer"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      <span>Log out</span>
-                    </DropdownMenuItem>
+                    <div className="px-4 py-2 bg-gray-50">
+                      <DropdownMenuItem className="flex items-center gap-3 px-4 py-3 text-base font-medium text-gray-700 hover:bg-white rounded-xl transition-colors cursor-pointer">
+                        <LayoutDashboard className="h-5 w-5" />
+                        <span>Dashboard</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={handleSignOut}
+                        className="flex items-center gap-3 px-4 py-3 text-base font-medium text-gray-700 hover:bg-white rounded-xl transition-colors cursor-pointer"
+                      >
+                        <LogOut className="h-5 w-5" />
+                        <span>Log out</span>
+                      </DropdownMenuItem>
+                    </div>
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
