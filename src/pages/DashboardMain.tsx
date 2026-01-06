@@ -11,8 +11,10 @@ import { ContractsListPage } from "./ContractsListPage";
 import React from "react";
 import { FeedbackCoach } from "./FeedbackCoach";
 import { InvestorEmailDraft } from "./InvestorEmailDraft";
+import { EmailTemplatesPage } from "./EmailTemplatesPage";
 import { AIHiringAssistant } from "./AIHiringAssistant";
 import { QRVisitCardPage } from "./QRVisitCardPage";
+import { TeamInsightsPage } from "./TeamInsightsPage";
 import { useSubscriptionService } from "../services/subscriptionsService";
 import { toast } from "sonner";
 import { useSubscription } from "../hooks/useSubscription";
@@ -195,8 +197,11 @@ export function DashboardMain() {
         /> */}
         <Route path="invoices" element={<InvoicesPage />} />
         <Route path="contracts" element={<ContractsListPage />} />
-        <Route path="feedbackCoach" element={<FeedbackCoach />} />
-        <Route path="investor-email-draft" element={<InvestorEmailDraft />} />
+        <Route path="feedbackCoach" element={<TeamInsightsPage />} />
+        <Route
+          path="investor-email-draft"
+          element={<EmailTemplatesPage />}
+        />
         <Route path="ai-hiring-assistant" element={<AIHiringAssistant />} />
         <Route path="qr-card" element={<QRVisitCardPage />} />
       </Routes>
