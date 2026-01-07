@@ -38,6 +38,14 @@ import SignInModal from "./signIn/SignInModal";
 import { useApiService } from "../services/api";
 import React from "react";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+
 const BRAND_COLORS = [
   {
     name: "Navy Blue",
@@ -65,8 +73,43 @@ const BRAND_COLORS = [
   { name: "Teal", value: "#14B8A6", gradient: "from-teal-500 to-teal-600" },
 ];
 
+const INDUSTRIES = [
+  "AI/ML",
+  "Analytics",
+  "B2B SaaS",
+  "B2C Consumer",
+  "Blockchain / Crypto",
+  "Climate / CleanTech",
+  "Construction / Real Estate",
+  "Creator Economy",
+  "Cybersecurity",
+  "Developer Tools",
+  "E-commerce / Marketplaces",
+  "EdTech",
+  "Energy",
+  "Enterprise Software",
+  "Fintech",
+  "Gaming",
+  "Government / Public Sector",
+  "Hardware / IoT",
+  "Healthcare",
+  "HR / Future of Work",
+  "LegalTech",
+  "Logistics / Supply Chain",
+  "Manufacturing",
+  "Media / Entertainment",
+  "Productivity",
+  "PropTech",
+  "Retail",
+  "Sales / Marketing Tech",
+  "Social / Community",
+  "Travel / Hospitality",
+  "Other",
+];
+
 interface BuilderFormData {
   companyName: string;
+  industry: string;
   oneLiner: string;
   problem: string;
   value: string;
@@ -86,6 +129,7 @@ export function PitchBuilder() {
   const [shouldAutoSubmit, setShouldAutoSubmit] = useState(false);
   const [formData, setFormData] = useState<BuilderFormData>({
     companyName: "",
+    industry: "",
     oneLiner: "",
     problem: "",
     value: "",
@@ -118,6 +162,13 @@ export function PitchBuilder() {
           label: "Company name",
           placeholder: "Enter your company name",
           type: "input" as const,
+          required: true,
+        },
+        {
+          id: "industry",
+          label: "Industry",
+          placeholder: "Select your industry",
+          type: "select" as const,
           required: true,
         },
         {
@@ -193,6 +244,14 @@ export function PitchBuilder() {
           return "Company name must be at least 2 characters long";
         if (value.trim().length > 100)
           return "Company name cannot exceed 100 characters";
+        break;
+
+      case "industry":
+        if (!value.trim()) return "Industry is required";
+        if (value.trim().length < 2)
+          return "Industry must be at least 2 characters long";
+        if (value.trim().length > 120)
+          return "Industry cannot exceed 120 characters";
         break;
 
       case "oneLiner":
@@ -414,6 +473,7 @@ export function PitchBuilder() {
 
       const payload = {
         startupName: data.companyName,
+        industry: data.industry,
         problemSolved: data.problem,
         targetAudience: data.oneLiner, // Use oneLiner as target audience description
         mainProduct: data.value, // Use value proposition as main product description
@@ -574,7 +634,23 @@ export function PitchBuilder() {
                     )}
                   </Label>
 
-                  {field.type === "input" ? (
+                  {field.id === "industry" ? (
+                    <Select
+                      value={formData.industry}
+                      onValueChange={(value) => handleChange("industry", value)}
+                    >
+                      <SelectTrigger className="text-base h-14 border-2 border-gray-200 focus:border-[#252952] rounded-[12px]">
+                        <SelectValue placeholder={field.placeholder} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {INDUSTRIES.map((industry) => (
+                          <SelectItem key={industry} value={industry}>
+                            {industry}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : field.type === "input" ? (
                     <Input
                       placeholder={field.placeholder}
                       value={
