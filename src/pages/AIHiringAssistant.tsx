@@ -10,12 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../components/ui/tabs";
 
 import {
   Card,
@@ -50,7 +44,6 @@ import {
   RefreshCw,
   Loader2,
   ArrowLeft,
-  ArrowRight,
 } from "lucide-react";
 import { useApiService } from "../services/api";
 import { toast } from "sonner";
@@ -103,6 +96,7 @@ export function AIHiringAssistant() {
 
   const validate = useMemo(() => {
     const trimmed = {
+      candidateName: candidateName.trim(),
       role: role.trim(),
       seniority: seniority.trim(),
       industry: industry.trim(),
@@ -111,20 +105,34 @@ export function AIHiringAssistant() {
 
     const errs: Errors = {};
 
+    if (!trimmed.candidateName || trimmed.candidateName.length < 2) {
+      errs.candidateName = "This field is required (minimum 2 characters)";
+    } else if (trimmed.candidateName.length > 100) {
+      errs.candidateName = "Maximum 100 characters allowed";
+    }
+
     if (!trimmed.role || trimmed.role.length < 2) {
       errs.role = "This field is required (minimum 2 characters)";
     } else if (trimmed.role.length > 120) {
       errs.role = "Maximum 120 characters allowed";
     }
 
-    // Keep a lightweight version of the original validation so the backend
-    // receives a meaningful description (at least 10 characters).
+    if (!trimmed.seniority) {
+      errs.seniority = "Please select a seniority level";
+    }
+
+    if (!trimmed.industry) {
+      errs.industry = "Please select an industry";
+    }
+
     if (!trimmed.interviewGoal || trimmed.interviewGoal.length < 10) {
-      errs.interviewGoal = "Please add a bit more detail (at least 10 characters)";
+      errs.interviewGoal = "This field is required (minimum 10 characters)";
+    } else if (trimmed.interviewGoal.length > 500) {
+      errs.interviewGoal = "Maximum 500 characters allowed";
     }
 
     return { trimmed, errs, valid: Object.keys(errs).length === 0 };
-  }, [role, seniority, industry, interviewGoal]);
+  }, [candidateName, role, seniority, industry, interviewGoal]);
 
   useEffect(() => {
     if (submitted) {
@@ -145,7 +153,7 @@ export function AIHiringAssistant() {
 
     try {
       const response = await generateInterviewQuestions({
-        candidateName: candidateName || "Candidate",
+        candidateName: validate.trimmed.candidateName,
         role: validate.trimmed.role,
         seniority: validate.trimmed.seniority,
         industry: validate.trimmed.industry,
@@ -347,123 +355,202 @@ ${i + 1}. ${q.question}
   const canGenerate = validate.valid;
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      {/* Small Header (matches second design) */}
-      <div className="mb-8">
-        <p className="text-gray-600">
-          Generate structured interview templates and assessment criteria with AI
-        </p>
+    <div className="p-8">
+      {/* Header: Back + Title */}
+      <div className="flex items-center justify-center gap-3 mb-8">
+        <div>
+          <h2 className="mb-3 text-center text-3xl font-bold text-gray-900">
+            AI Hiring Assistant
+          </h2>
+          <p className="text-gray-600">
+            Generate smart interview questions, evaluate candidates, and make
+            better hiring decisions
+          </p>
+        </div>
       </div>
 
-      {/* Top card styled like second image (tabs + form) */}
-      <Card className="border-2 border-gray-100 rounded-2xl mb-8">
-        <CardContent className="p-6">
-          <Tabs defaultValue="generate" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="generate">Generate</TabsTrigger>
-              <TabsTrigger value="generated">Generated</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="generate" className="space-y-4">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="mb-1" htmlFor="role">
-                    Position Title
-                  </Label>
-                  <Input
-                    id="role"
-                    value={role}
-                    onChange={(e) => setRole(e.target.value)}
-                    placeholder="Senior Software Engineer"
-                    maxLength={120}
-                    className="rounded-xl bg-slate-50 border border-slate-200 placeholder:text-slate-400"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Department</Label>
-                    <Select
-                      value={industry}
-                      onValueChange={(value) => setIndustry(value)}
-                    >
-                      <SelectTrigger className="rounded-xl bg-slate-50 border border-slate-200 data-[placeholder]:text-slate-400">
-                        <SelectValue placeholder="Select department" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Engineering">Engineering</SelectItem>
-                        <SelectItem value="Product">Product</SelectItem>
-                        <SelectItem value="Design">Design</SelectItem>
-                        <SelectItem value="Marketing">Marketing</SelectItem>
-                        <SelectItem value="Sales">Sales</SelectItem>
-                        <SelectItem value="Operations">Operations</SelectItem>
-                      </SelectContent>
-                    </Select>
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Candidate & Interview Setup */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Candidate & Interview Setup</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="mb-2" htmlFor="candidate-name">
+                  Candidate Name
+                </Label>
+                <Input
+                  id="candidate-name"
+                  value={candidateName}
+                  onChange={(e) => setCandidateName(e.target.value)}
+                  placeholder="e.g., Sarah Johnson"
+                  maxLength={100}
+                  className="placeholder:text-gray-400"
+                />
+                {submitted && errors.candidateName && (
+                  <div
+                    style={{
+                      color: "#b91c1c",
+                      fontSize: "0.8rem",
+                      marginTop: "0.375rem",
+                    }}
+                  >
+                    {errors.candidateName}
                   </div>
-                  <div className="space-y-2">
-                    <Label>Experience Level</Label>
-                    <Select
-                      value={seniority}
-                      onValueChange={(value) => setSeniority(value)}
-                    >
-                      <SelectTrigger className="rounded-xl bg-slate-50 border border-slate-200 data-[placeholder]:text-slate-400">
-                        <SelectValue placeholder="Select level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Entry Level">Entry Level</SelectItem>
-                        <SelectItem value="Mid-Level">Mid-Level</SelectItem>
-                        <SelectItem value="Senior">Senior</SelectItem>
-                        <SelectItem value="Lead/Principal">
-                          Lead/Principal
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                )}
+              </div>
+              <div>
+                <Label className="mb-2" htmlFor="role">
+                  Role / Position
+                </Label>
+                <Input
+                  id="role"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  placeholder="e.g., Senior Frontend Developer"
+                  maxLength={120}
+                  className="placeholder:text-gray-400"
+                />
+                {submitted && errors.role && (
+                  <div
+                    style={{
+                      color: "#b91c1c",
+                      fontSize: "0.8rem",
+                      marginTop: "0.375rem",
+                    }}
+                  >
+                    {errors.role}
                   </div>
-                </div>
+                )}
+              </div>
+            </div>
 
-                <div className="space-y-2">
-                  <Label>Key Skills Required (comma-separated)</Label>
-                  <Textarea
-                    placeholder="React, Node.js, System Design, AWS"
-                    className="rounded-xl bg-slate-50 border border-slate-200 placeholder:text-slate-400"
-                    rows={2}
-                    value={interviewGoal}
-                    onChange={(e) => setInterviewGoal(e.target.value)}
-                  />
-                </div>
-
-                <Button
-                  onClick={handleGenerateQuestions}
-                  disabled={isGenerating}
-                  className="w-full bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-700 hover:to-violet-800 text-white rounded-xl"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="mb-2" htmlFor="seniority">
+                  Level of Seniority
+                </Label>
+                <Select
+                  value={seniority}
+                  onValueChange={(value) => setSeniority(value)}
                 >
-                  {isGenerating ? (
-                    <>
-                      <Sparkles className="mr-2 h-4 w-4 animate-spin" />
-                      Generating Guide...
-                    </>
-                  ) : (
-                    <>
-                      Generate Interview Guide
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </>
-                  )}
-                </Button>
+                  <SelectTrigger
+                    id="seniority"
+                    className="data-[placeholder]:text-gray-400"
+                  >
+                    <SelectValue placeholder="Select level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Intern">Intern</SelectItem>
+                    <SelectItem value="Junior">Junior</SelectItem>
+                    <SelectItem value="Mid-level">Mid-level</SelectItem>
+                    <SelectItem value="Senior">Senior</SelectItem>
+                    <SelectItem value="Lead">Lead</SelectItem>
+                  </SelectContent>
+                </Select>
+                {submitted && errors.seniority && (
+                  <div
+                    style={{
+                      color: "#b91c1c",
+                      fontSize: "0.8rem",
+                      marginTop: "0.375rem",
+                    }}
+                  >
+                    {errors.seniority}
+                  </div>
+                )}
               </div>
-            </TabsContent>
-
-            <TabsContent value="generated" className="space-y-4">
-              {/* We keep functionality the same (questions below), so just show a hint here */}
-              <div className="text-center py-8 text-gray-500 text-sm">
-                Use the generated questions and notes in the section below after
-                creating a guide.
+              <div>
+                <Label className="mb-2" htmlFor="industry">
+                  Industry
+                </Label>
+                <Select
+                  value={industry}
+                  onValueChange={(value) => setIndustry(value)}
+                >
+                  <SelectTrigger
+                    id="industry"
+                    className="data-[placeholder]:text-gray-400"
+                  >
+                    <SelectValue placeholder="Select industry" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Technology">Technology</SelectItem>
+                    <SelectItem value="Engineering">Engineering</SelectItem>
+                    <SelectItem value="Marketing">Marketing</SelectItem>
+                    <SelectItem value="Design">Design</SelectItem>
+                    <SelectItem value="Finance">Finance</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                {submitted && errors.industry && (
+                  <div
+                    style={{
+                      color: "#b91c1c",
+                      fontSize: "0.8rem",
+                      marginTop: "0.375rem",
+                    }}
+                  >
+                    {errors.industry}
+                  </div>
+                )}
               </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+            </div>
 
-      <div className="space-y-8">
+            <div>
+              <Label className="mb-2" htmlFor="interview-goal">
+                Interview Goal / Focus
+              </Label>
+              <Textarea
+                id="interview-goal"
+                value={interviewGoal}
+                onChange={(e) => setInterviewGoal(e.target.value)}
+                placeholder="Example: Evaluate problem-solving and teamwork in real-world projects."
+                rows={3}
+                maxLength={500}
+                className="placeholder:text-gray-400"
+              />
+              {submitted && errors.interviewGoal && (
+                <div
+                  style={{
+                    color: "#b91c1c",
+                    fontSize: "0.8rem",
+                    marginTop: "0.375rem",
+                  }}
+                >
+                  {errors.interviewGoal}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Generate Questions CTA */}
+        {!questionsGenerated && (
+          <div className="text-center">
+            <Button
+              onClick={handleGenerateQuestions}
+              disabled={isGenerating}
+              size="lg"
+              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Generating questions...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Generate Questions with AI
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+
         {/* Generated Questions Section */}
         {questionsGenerated && (
           <>

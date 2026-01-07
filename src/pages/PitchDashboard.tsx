@@ -117,43 +117,7 @@ export function PitchDashboard({
   const [isEditing, setIsEditing] = useState(false);
   const [editStep, setEditStep] = useState(0);
 
-  // Get company data from first pitch
-  const companyData = firstPitchMeta
-    ? {
-        companyName: firstPitchMeta.startupName || "",
-        oneLiner: firstPitchMeta.preview || "",
-        problem: "",
-        value: "",
-        status: "",
-        brandColor: "#252952",
-        industry: "",
-        teamSize: "",
-      }
-    : null;
-
-  const [editedData, setEditedData] = useState(
-    companyData || {
-      companyName: "",
-      oneLiner: "",
-      problem: "",
-      value: "",
-      status: "",
-      brandColor: "#252952",
-      industry: "",
-      teamSize: "",
-    }
-  );
-
-  const isProfileComplete = companyData?.companyName && companyData?.oneLiner;
-
-  // Update editedData when companyData changes
-  useEffect(() => {
-    if (companyData) {
-      setEditedData(companyData);
-    }
-  }, [firstPitchMeta]);
-
-  const INDUSTRIES = [
+  const DEFAULT_INDUSTRIES = [
     "AI/ML",
     "SaaS",
     "Fintech",
@@ -179,6 +143,61 @@ export function PitchDashboard({
     { name: "Teal", value: "#14B8A6" },
   ];
 
+  // Get basic company data from first pitch (details are loaded lazily when editing)
+  const companyData = firstPitchMeta
+    ? {
+        companyName: firstPitchMeta.startupName || "",
+        industry: firstPitchMeta.industry || "",
+        oneLiner: firstPitchMeta.preview || "",
+        problem: "",
+        value: "",
+        status: "",
+        brandColor: "#252952",
+        teamSize: "",
+      }
+    : null;
+
+  const [industryOptions, setIndustryOptions] =
+    useState<string[]>(DEFAULT_INDUSTRIES);
+
+  const [isOpeningEditor, setIsOpeningEditor] = useState(false);
+  const [regenCount, setRegenCount] = useState(0);
+
+  const [editedData, setEditedData] = useState(
+    companyData || {
+      companyName: "",
+      industry: "",
+      oneLiner: "",
+      problem: "",
+      value: "",
+      status: "",
+      brandColor: "#252952",
+      teamSize: "",
+    }
+  );
+
+  const isProfileComplete = companyData?.companyName && companyData?.oneLiner;
+
+  // Update editedData when companyData changes
+  useEffect(() => {
+    if (companyData) {
+      setEditedData(companyData);
+    }
+  }, [firstPitchMeta]);
+
+  // Load regenerate count from localStorage (per user + pitch)
+  useEffect(() => {
+    if (!currentUser?.uid || !firstPitchMeta?.id) return;
+    const key = `foundify_regen_count_${currentUser.uid}_${firstPitchMeta.id}`;
+    const stored = window.localStorage.getItem(key);
+    if (stored) {
+      const parsed = parseInt(stored, 10);
+      if (!Number.isNaN(parsed)) {
+        setRegenCount(parsed);
+      }
+    }
+  }, [currentUser?.uid, firstPitchMeta?.id]);
+
   const editSteps = [
     { id: "basics", label: "Company Basics", icon: Building2 },
     { id: "problem", label: "Problem & Value", icon: Target },
@@ -186,23 +205,45 @@ export function PitchDashboard({
     { id: "brand", label: "Brand", icon: Palette },
   ];
 
-  const handleSaveEdit = () => {
-    // TODO: Save edited data to API
-    setIsEditing(false);
-    setEditStep(0);
-    toast.success("Company profile updated successfully!");
+  const handleSaveEdit = async () => {
+    if (!firstPitchMeta?.id) {
+      setIsEditing(false);
+      setEditStep(0);
+      return;
+    }
+
+    try {
+      await apiService.updatePitchCompany(firstPitchMeta.id, {
+        companyName: editedData.companyName,
+        industry: editedData.industry,
+        oneLiner: editedData.oneLiner,
+        problem: editedData.problem,
+        value: editedData.value,
+        status: editedData.status,
+        teamSize: editedData.teamSize,
+        brandColor: editedData.brandColor,
+      });
+      setIsEditing(false);
+      setEditStep(0);
+      toast.success("Company profile updated successfully!");
+    } catch (error: any) {
+      console.error("Failed to update company profile:", error);
+      toast.error("Failed to update company profile", {
+        description: error.message || "Please try again later.",
+      });
+    }
   };
 
   const handleCancelEdit = () => {
     setEditedData(
       companyData || {
         companyName: "",
+        industry: "",
         oneLiner: "",
         problem: "",
         value: "",
         status: "",
         brandColor: "#252952",
-        industry: "",
         teamSize: "",
       }
     );
@@ -389,11 +430,235 @@ export function PitchDashboard({
     }
   };
 
+  // Convert JSON pitch content to HTML
+  const formatPitchContentAsHtml = (
+    pitchContent: any,
+    startupName: string,
+    primaryColor: string = "#252952"
+  ) => {
+    // Handle case where pitchContent might be a string (JSON) or already an object
+    let content: any;
+    if (typeof pitchContent === "string") {
+      try {
+        content = JSON.parse(pitchContent);
+      } catch {
+        // If it's not valid JSON, treat it as HTML
+        return pitchContent;
+      }
+    } else {
+      content = pitchContent;
+    }
+
+    // If it's not an object with expected fields, return as-is (might already be HTML)
+    if (!content || typeof content !== "object" || !content.startupName) {
+      return typeof pitchContent === "string"
+        ? pitchContent
+        : JSON.stringify(pitchContent);
+    }
+
+    const color = primaryColor || "#252952";
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            padding: 40px;
+            background: #fff;
+          }
+          .pitch-container {
+            max-width: 800px;
+            margin: 0 auto;
+          }
+          .header {
+            border-bottom: 4px solid ${color};
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          h1 {
+            color: ${color};
+            font-size: 36px;
+            margin-bottom: 10px;
+            font-weight: 700;
+          }
+          .subtitle {
+            color: #666;
+            font-size: 18px;
+            font-weight: 500;
+          }
+          .section {
+            margin-bottom: 40px;
+            page-break-inside: avoid;
+          }
+          .section-title {
+            color: ${color};
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            border-left: 4px solid ${color};
+            padding-left: 15px;
+          }
+          .section-content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #444;
+            text-align: justify;
+          }
+          .highlight {
+            background: ${color}15;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+          }
+          @media print {
+            body { padding: 20px; }
+            .section { page-break-inside: avoid; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="pitch-container">
+          <div class="header">
+            <h1>${content.startupName || startupName}</h1>
+            ${
+              content.industryArea
+                ? `<p class="subtitle">${content.industryArea}</p>`
+                : ""
+            }
+          </div>
+
+          ${
+            content.executiveSummary
+              ? `
+            <div class="section highlight">
+              <div class="section-title">Executive Summary</div>
+              <div class="section-content">${content.executiveSummary}</div>
+            </div>
+          `
+              : ""
+          }
+
+          ${
+            content.problemStatement
+              ? `
+            <div class="section">
+              <div class="section-title">Problem Statement</div>
+              <div class="section-content">${content.problemStatement}</div>
+            </div>
+          `
+              : ""
+          }
+
+          ${
+            content.solutionOverview
+              ? `
+            <div class="section">
+              <div class="section-title">Solution Overview</div>
+              <div class="section-content">${content.solutionOverview}</div>
+            </div>
+          `
+              : ""
+          }
+
+          ${
+            content.marketOpportunity
+              ? `
+            <div class="section">
+              <div class="section-title">Market Opportunity</div>
+              <div class="section-content">${content.marketOpportunity}</div>
+            </div>
+          `
+              : ""
+          }
+
+          ${
+            content.productDescription
+              ? `
+            <div class="section">
+              <div class="section-title">Product Description</div>
+              <div class="section-content">${content.productDescription}</div>
+            </div>
+          `
+              : ""
+          }
+
+          ${
+            content.uniqueValueProposition
+              ? `
+            <div class="section">
+              <div class="section-title">Unique Value Proposition</div>
+              <div class="section-content">${content.uniqueValueProposition}</div>
+            </div>
+          `
+              : ""
+          }
+
+          ${
+            content.targetMarketAnalysis
+              ? `
+            <div class="section">
+              <div class="section-title">Target Market Analysis</div>
+              <div class="section-content">${content.targetMarketAnalysis}</div>
+            </div>
+          `
+              : ""
+          }
+
+          ${
+            content.businessModel
+              ? `
+            <div class="section">
+              <div class="section-title">Business Model</div>
+              <div class="section-content">${content.businessModel}</div>
+            </div>
+          `
+              : ""
+          }
+
+          ${
+            content.competitiveAdvantage
+              ? `
+            <div class="section">
+              <div class="section-title">Competitive Advantage</div>
+              <div class="section-content">${content.competitiveAdvantage}</div>
+            </div>
+          `
+              : ""
+          }
+
+          ${
+            content.nextSteps
+              ? `
+            <div class="section">
+              <div class="section-title">Next Steps</div>
+              <div class="section-content">${content.nextSteps}</div>
+            </div>
+          `
+              : ""
+          }
+        </div>
+      </body>
+      </html>
+    `;
+  };
+
   const handleDownload = (pitch: PitchHistoryItem) => {
     try {
       // Add classes to body and html to lock layout during PDF generation
       document.body.classList.add("pdf-generating");
       document.documentElement.classList.add("pdf-generating");
+
+      // Get primary color from companyData or use default
+      const primaryColor = companyData?.brandColor || "#252952";
+
+      // Convert pitch content to HTML
+      const htmlContent = pitch.pitchContent;
 
       // Create hidden container for PDF content
       const hiddenContainer = document.createElement("div");
@@ -401,46 +666,18 @@ export function PitchDashboard({
       hiddenContainer.style.position = "absolute";
       hiddenContainer.style.left = "-9999px";
       hiddenContainer.style.width = "210mm";
-      hiddenContainer.innerHTML = pitch.pitchContent;
+      hiddenContainer.innerHTML = htmlContent;
       document.body.appendChild(hiddenContainer);
 
       const opt = {
         margin: 0.5,
         filename: `${pitch.startupName}_Pitch.pdf`,
-        image: { type: "jpeg" as const, quality: 0.98 },
+        image: { type: "jpeg", quality: 0.98 },
         html2canvas: { scale: 2 },
-        jsPDF: {
-          unit: "in",
-          format: "letter",
-          orientation: "portrait" as const,
-        },
-      };
+        jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+      } as any;
 
-      html2pdf()
-        .set(opt)
-        .from(hiddenContainer)
-        .save()
-        .then(() => {
-          // Cleanup
-          if (document.body.contains(hiddenContainer)) {
-            document.body.removeChild(hiddenContainer);
-          }
-          document.body.classList.remove("pdf-generating");
-          document.documentElement.classList.remove("pdf-generating");
-        })
-        .catch((error: any) => {
-          // Cleanup on error
-          if (document.body.contains(hiddenContainer)) {
-            document.body.removeChild(hiddenContainer);
-          }
-          document.body.classList.remove("pdf-generating");
-          document.documentElement.classList.remove("pdf-generating");
-          throw error;
-        });
-
-      toast.success("PDF Downloaded!", {
-        description: "Your pitch deck PDF has been downloaded successfully.",
-      });
+      html2pdf().set(opt).from(htmlContent).save();
     } catch (error: any) {
       console.error("Failed to download PDF:", error);
       document.body.classList.remove("pdf-generating");
@@ -509,9 +746,45 @@ export function PitchDashboard({
     }
   };
 
-  const handleRegenerate = () => {
-    loadPitches(1);
-    toast.success("Pitch assets regenerated!");
+  const handleRegenerate = async () => {
+    if (!firstPitchMeta?.id) {
+      toast.error("No pitch to regenerate");
+      return;
+    }
+
+    // Enforce a max of 10 regenerations per user per pitch (client-side)
+    if (regenCount >= 10) {
+      toast.error("Regeneration limit reached", {
+        description:
+          "You can regenerate this pitch up to 10 times. Please create a new pitch if you need more changes.",
+      });
+      return;
+    }
+
+    try {
+      toast.loading("Regenerating pitch…", {
+        id: "regenerate-pitch",
+      });
+      await apiService.regeneratePitch(firstPitchMeta.id);
+      await loadPitches(1);
+
+      const nextCount = regenCount + 1;
+      setRegenCount(nextCount);
+      if (currentUser?.uid) {
+        const key = `foundify_regen_count_${currentUser.uid}_${firstPitchMeta.id}`;
+        window.localStorage.setItem(key, String(nextCount));
+      }
+
+      toast.success("Pitch regenerated from your latest company info!", {
+        id: "regenerate-pitch",
+      });
+    } catch (error: any) {
+      console.error("Failed to regenerate pitch:", error);
+      toast.error("Failed to regenerate pitch", {
+        description: error.message || "Please try again later.",
+        id: "regenerate-pitch",
+      });
+    }
   };
 
   return (
@@ -611,17 +884,74 @@ export function PitchDashboard({
 
                 {/* Edit Button */}
                 <Button
-                  onClick={() => {
-                    if (companyData) {
-                      setEditedData(companyData);
+                  onClick={async () => {
+                    if (isOpeningEditor) return;
+                    setIsOpeningEditor(true);
+                    try {
+                      if (firstPitchMeta?.id) {
+                        const details = await apiService.getPitchDetails(
+                          firstPitchMeta.id
+                        );
+                        const pitch = details.data;
+                        const backendIndustry = pitch.industry || "";
+                        if (
+                          backendIndustry &&
+                          !industryOptions.includes(backendIndustry)
+                        ) {
+                          setIndustryOptions((prev) => [
+                            backendIndustry,
+                            ...prev,
+                          ]);
+                        }
+                        setEditedData({
+                          companyName: pitch.startupName || "",
+                          industry:
+                            backendIndustry || companyData?.industry || "",
+                          oneLiner:
+                            pitch.targetAudience || companyData?.oneLiner || "",
+                          problem: pitch.problemSolved || "",
+                          value:
+                            pitch.mainProduct || pitch.uniqueSellingPoint || "",
+                          status: pitch.traction || companyData?.status || "",
+                          brandColor:
+                            pitch.primaryColor ||
+                            companyData?.brandColor ||
+                            "#252952",
+                          teamSize:
+                            pitch.teamSize || companyData?.teamSize || "",
+                        });
+                      } else if (companyData) {
+                        setEditedData(companyData);
+                      }
+                      setIsEditing(true);
+                      setEditStep(0);
+                    } catch (error) {
+                      console.error("Failed to load pitch details:", error);
+                      if (companyData) {
+                        setEditedData(companyData);
+                      }
+                      toast.error("Failed to open company editor", {
+                        description:
+                          (error as any)?.message || "Please try again later.",
+                      });
+                    } finally {
+                      setIsOpeningEditor(false);
                     }
-                    setIsEditing(true);
-                    setEditStep(0);
                   }}
-                  className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[12px] shadow-lg hover:shadow-xl transition-all"
+                  disabled={isOpeningEditor}
+                  className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[12px] shadow-lg hover:shadow-xl transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit Company Info
+                  {isOpeningEditor ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit Company Info
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>
@@ -666,7 +996,7 @@ export function PitchDashboard({
                   className="border-2 border-gray-200 hover:border-[#252952] rounded-[12px]"
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
-                  Regenerate
+                  Regenerate (Pitch)
                 </Button>
               </div>
 
@@ -1075,7 +1405,7 @@ export function PitchDashboard({
                       <SelectValue placeholder="Select your industry" />
                     </SelectTrigger>
                     <SelectContent>
-                      {INDUSTRIES.map((industry) => (
+                      {industryOptions.map((industry) => (
                         <SelectItem key={industry} value={industry}>
                           {industry}
                         </SelectItem>
