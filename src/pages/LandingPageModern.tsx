@@ -274,7 +274,9 @@ export function LandingPageModern() {
               onClick={() => navigate("/")}
             >
               <img
-                src={new URL("../assets/FOUNDIFY-LOGO.svg", import.meta.url).href}
+                src={
+                  new URL("../assets/FOUNDIFY-LOGO.svg", import.meta.url).href
+                }
                 alt="Foundify"
                 className="h-6 w-auto"
               />
@@ -413,21 +415,23 @@ export function LandingPageModern() {
             </h1>
 
             {/* Subtitle */}
-            <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
-              From invoices and contracts to hiring, team insights, pitches, and smart digital cards — Foundify works in the background while you decide.
+            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+              and grow all in one intelligent platform.
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
               <Button
-                className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[12px] h-14 px-8 text-base font-medium shadow-lg hover:shadow-xl transition-all"
+                className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[12px] h-14 px-20 text-base font-medium shadow-lg hover:shadow-xl transition-all"
                 onClick={handleGetStarted}
               >
                 Get Started
               </Button>
               <button className="text-[#252952] hover:text-[#4A90E2] text-base font-medium flex items-center justify-center gap-2 transition-colors">
                 Book a Demo
-                <ArrowRight className="w-4 h-4" />
+                <div className="w-5 h-5 rounded-full border border-gray-400 flex items-center justify-center">
+                  <ArrowRight className="w-3 h-3 text-gray-600" />
+                </div>
               </button>
             </div>
 
@@ -442,8 +446,7 @@ export function LandingPageModern() {
               <div className="bg-white/60 backdrop-blur-md rounded-full px-6 py-3 shadow-sm border border-gray-200/50 flex items-center gap-3">
                 {/* Dynamic Icon */}
                 {(() => {
-                  const ActivityIcon =
-                    verbs[activeServiceIndex]?.icon || Brain;
+                  const ActivityIcon = verbs[activeServiceIndex]?.icon || Brain;
                   return (
                     <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-[#4A90E2]/10">
                       <ActivityIcon className="w-5 h-5 text-[#4A90E2]" />
@@ -453,7 +456,8 @@ export function LandingPageModern() {
 
                 {/* Dynamic Text */}
                 <span className="text-sm text-gray-600 flex-1">
-                  {verbs[activeServiceIndex]?.activityMessage || "Analyzing your pitch, team, and operations…"}
+                  {verbs[activeServiceIndex]?.activityMessage ||
+                    "Analyzing your pitch, team, and operations…"}
                 </span>
               </div>
             </motion.div>
@@ -463,7 +467,7 @@ export function LandingPageModern() {
 
       {/* 2️⃣ HOW FOUNDIFY WORKS - Interactive Two-Column Layout */}
       <section id="how" className="py-32 bg-white relative">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -484,7 +488,7 @@ export function LandingPageModern() {
           </motion.div>
 
           {/* Two-Column Interactive Layout - Inspired by Modern AI Builders */}
-          <div className="grid lg:grid-cols-2 gap-20 items-start">
+          <div className="grid lg:grid-cols-2 gap-16 items-center max-w-5xl mx-auto">
             {/* Left: Simple Vertical Feature List with Continuous Progress Bar */}
             <div className="relative">
               {/* Continuous Vertical Progress Bar Background */}
@@ -971,7 +975,7 @@ export function LandingPageModern() {
               whileInView={{ opacity: 1, y: 0, rotate: -5 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="absolute top-8 left-0 lg:left-8 xl:left-4 z-10"
+              className="absolute top-12 left-4 lg:left-12 xl:left-8 z-30"
             >
               <Card
                 className="bg-white border-2 border-gray-200 rounded-[24px] p-6 shadow-2xl hover:shadow-3xl hover:-translate-y-2 transition-all w-[280px]"
@@ -996,7 +1000,7 @@ export function LandingPageModern() {
               whileInView={{ opacity: 1, y: 0, rotate: 5 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="absolute top-8 right-0 lg:right-8 xl:right-4 z-10"
+              className="absolute top-12 right-4 lg:right-12 xl:right-8 z-30"
             >
               <Card
                 className="bg-white border-2 border-gray-200 rounded-[24px] p-6 shadow-2xl hover:shadow-3xl hover:-translate-y-2 transition-all w-[280px]"
@@ -1020,7 +1024,7 @@ export function LandingPageModern() {
               whileInView={{ opacity: 1, y: 0, rotate: 3 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="absolute bottom-8 left-0 lg:left-8 xl:left-4 z-10"
+              className="absolute bottom-12 left-4 lg:left-12 xl:left-8 z-30"
             >
               <Card
                 className="bg-white border-2 border-gray-200 rounded-[24px] p-6 shadow-2xl hover:shadow-3xl hover:-translate-y-2 transition-all w-[280px]"
@@ -1044,7 +1048,7 @@ export function LandingPageModern() {
               whileInView={{ opacity: 1, y: 0, rotate: -3 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.5 }}
-              className="absolute bottom-8 right-0 lg:right-8 xl:right-4 z-10"
+              className="absolute bottom-12 right-4 lg:right-12 xl:right-8 z-30"
             >
               <Card
                 className="bg-white border-2 border-gray-200 rounded-[24px] p-6 shadow-2xl hover:shadow-3xl hover:-translate-y-2 transition-all w-[280px]"
@@ -1586,7 +1590,7 @@ export function LandingPageModern() {
           </motion.div>
 
           {/* Pricing Cards */}
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {/* Starter Plan */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -1694,56 +1698,6 @@ export function LandingPageModern() {
                       <span className="text-gray-700 font-medium">
                         {feature}
                       </span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </motion.div>
-
-            {/* Enterprise Plan */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              <Card className="bg-white border-2 border-gray-200 rounded-[24px] p-8 h-full hover:shadow-xl hover:border-[#4A90E2] transition-all">
-                <div className="mb-8">
-                  <h3 className="text-2xl font-bold text-[#252952] mb-6">
-                    Enterprise
-                  </h3>
-                  <div className="flex items-baseline gap-1 mb-4">
-                    <span className="text-6xl font-bold text-[#252952]">
-                      ${pricingToggle === "monthly" ? "200" : "168"}
-                    </span>
-                    <span className="text-gray-500 text-xl">/mo</span>
-                  </div>
-                  <p className="text-gray-600 leading-relaxed">
-                    AI the power, customization, and support your organization
-                    needs.
-                  </p>
-                </div>
-
-                <Button
-                  className="w-full bg-gray-100 hover:bg-[#252952] text-[#252952] hover:text-white rounded-[12px] h-12 mb-8 transition-all"
-                  onClick={handleGetStarted}
-                >
-                  Get started
-                </Button>
-
-                <div className="space-y-4">
-                  {[
-                    "Unlimited users",
-                    "Advanced management",
-                    "Drag-and-drop builder",
-                    "Task deadlines & reminders",
-                    "Mobile access",
-                  ].map((feature, index) => (
-                    <div key={index} className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <Check className="w-3 h-3 text-gray-400" />
-                      </div>
-                      <span className="text-gray-600">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -1936,7 +1890,7 @@ export function LandingPageModern() {
 
             {/* Right: CTA Button */}
             <Button
-              className="bg-white text-[#4A90E2] hover:bg-gray-50 rounded-[12px] h-14 px-10 text-lg font-semibold shadow-lg hover:shadow-xl transition-all flex-shrink-0"
+              className="bg-white text-[#4A90E2] hover:bg-gray-50 rounded-[12px] h-14 px-14 text-lg font-semibold shadow-lg hover:shadow-xl transition-all flex-shrink-0"
               onClick={handleGetStarted}
             >
               Get Started Free
