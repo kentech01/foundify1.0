@@ -416,7 +416,8 @@ export function LandingPageModern() {
 
             {/* Subtitle */}
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              and grow all in one intelligent platform.
+              From pitch to contracts, everything you need to launch
+              <br /> and grow all in one intelligent platform.
             </p>
 
             {/* CTA Buttons */}
