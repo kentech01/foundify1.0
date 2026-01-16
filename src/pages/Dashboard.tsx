@@ -141,7 +141,7 @@ export function Dashboard({
             </div>
             <Button
               onClick={onCreateNew}
-              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)]  text-white rounded-xl shadow-lg"
+              className="bg-[#EEF0FF]  text-[#252952] rounded-xl shadow-lg "
             >
               <Plus className="mr-2 h-4 w-4" />
               New Pitch

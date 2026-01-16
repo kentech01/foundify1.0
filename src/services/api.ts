@@ -37,7 +37,7 @@ interface GenerateEmailRequest {
   companyName: string;
   investorName: string;
   valueProposition: string;
-  keyTraction: string;
+  keyTraction?: string; // Optional for meeting_followup and warm_introduction, required for cold_outreach
 }
 
 interface GenerateEmailResponse {
@@ -753,11 +753,23 @@ export const useApiService = () => {
     async (payload: GenerateEmailRequest): Promise<GenerateEmailResponse> => {
       try {
         const response = await axiosInstance.post("/email/generate", payload);
-        return response.data;
+        // Backend returns { success: true, subject, body, template }
+        // Extract the email data from the response
+        const data = response.data;
+        return {
+          success: data.success ?? true,
+          subject: data.subject || "",
+          body: data.body || "",
+          template: data.template || payload.template,
+        };
       } catch (error: any) {
-        throw new Error(
-          error.response?.data?.message || "Failed to generate email"
-        );
+        // Extract detailed error message
+        const errorMessage =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message ||
+          "Failed to generate email";
+        throw new Error(errorMessage);
       }
     },
     [axiosInstance]

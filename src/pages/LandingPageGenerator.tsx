@@ -296,14 +296,14 @@ export function LandingPageGenerator() {
               <div className="flex justify-center gap-3 pt-4">
                 {firstPitchHasPremiumLanding ? (
                   <Button
-                    className="px-6 bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110"
+                    className="px-6 bg-[#252952] text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-101 hover:shadow-xl hover:brightness-110"
                     onClick={openLandingPage}
                   >
                     View Landing Page
                   </Button>
                 ) : (
                   <Button
-                    className="px-6 bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] cursor-pointer hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
+                    className="px-6 bg-[#252952] cursor-pointer hover:from-premium-purple-dark hover:to-deep-blue-dark text-white"
                     onClick={generateLandingPage}
                     disabled={isGenerating}
                   >

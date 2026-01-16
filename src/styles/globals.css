@@ -1,8 +1,13 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap');
+
 
 @custom-variant dark (&:is(.dark *));
 
 /* Light Theme */
+.figtree {
+  font-family: 'Figtree', sans-serif;
+}
 :root {
   --font-size: 14px;
   
@@ -192,7 +197,8 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+      'Roboto', sans-serif;
   }
   
   html {

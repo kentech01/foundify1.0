@@ -71,12 +71,14 @@ const useAxios = (): AxiosInstance => {
           | undefined;
 
         // Handle 401 Unauthorized errors with possible token refresh
-        if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+        if (
+          error.response?.status === 401 &&
+          originalRequest &&
+          !originalRequest._retry
+        ) {
           const data: any = error.response.data;
           const message: string | undefined =
-            (typeof data === "string" && data) ||
-            data?.message ||
-            data?.error;
+            (typeof data === "string" && data) || data?.message || data?.error;
 
           if (
             message &&
@@ -92,7 +94,9 @@ const useAxios = (): AxiosInstance => {
                 const newToken = await user.getIdToken(true); // force refresh
                 originalRequest._retry = true;
                 originalRequest.headers = originalRequest.headers || {};
-                (originalRequest.headers as any).Authorization = `Bearer ${newToken}`;
+                (
+                  originalRequest.headers as any
+                ).Authorization = `Bearer ${newToken}`;
                 return instance(originalRequest);
               } catch (refreshError) {
                 console.error("Failed to refresh auth token", refreshError);
