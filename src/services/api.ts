@@ -86,6 +86,7 @@ interface PitchHistoryItem {
   hasLandingPage?: boolean;
   hasLandingPagePremium?: boolean;
   landingPagePremium?: string;
+  logo?: string | null;
 }
 
 interface PitchHistoryResponse {
@@ -115,6 +116,7 @@ interface PitchDetails {
   teamSize?: string;
   primaryColor?: string;
   secondaryColor?: string;
+  logo?: string | null;
 }
 
 interface PitchDetailsResponse {
@@ -606,6 +608,7 @@ export const useApiService = () => {
         status?: string;
         teamSize?: string;
         brandColor?: string;
+        logo?: string | null;
       }
     ): Promise<PitchDetailsResponse> => {
       try {
@@ -624,6 +627,7 @@ export const useApiService = () => {
           teamSize: data.teamSize,
           primaryColor,
           secondaryColor,
+          logo: data.logo || null,
         };
 
         const response = await axiosInstance.put(`/pitch/history/${id}`, payload);
