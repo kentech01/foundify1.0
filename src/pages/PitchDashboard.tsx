@@ -119,6 +119,9 @@ export function PitchDashboard({
   // Company profile state
   const [isEditing, setIsEditing] = useState(false);
   const [editStep, setEditStep] = useState(0);
+  const [editLogoFile, setEditLogoFile] = useState<File | null>(null);
+  const [editLogoPreview, setEditLogoPreview] = useState<string | null>(null);
+  const [editLogoError, setEditLogoError] = useState<string>("");
 
   const DEFAULT_INDUSTRIES = [
     "AI/ML",
@@ -146,9 +149,23 @@ export function PitchDashboard({
     { name: "Teal", value: "#14B8A6" },
   ];
 
-  // Get basic company data from first pitch (details are loaded lazily when editing)
-  const companyData = firstPitchMeta
-    ? {
+  // Company data state - initialized from firstPitchMeta but can be updated independently
+  const [companyData, setCompanyData] = useState<{
+    companyName: string;
+    industry: string;
+    oneLiner: string;
+    problem: string;
+    value: string;
+    status: string;
+    brandColor: string;
+    teamSize: string;
+    logo: string | null;
+  } | null>(null);
+
+  // Initialize companyData from firstPitchMeta when it's available
+  useEffect(() => {
+    if (firstPitchMeta) {
+      setCompanyData({
         companyName: firstPitchMeta.startupName || "",
         industry: firstPitchMeta.industry || "",
         oneLiner: firstPitchMeta.preview || "",
@@ -157,14 +174,17 @@ export function PitchDashboard({
         status: "",
         brandColor: "#252952",
         teamSize: "",
-      }
-    : null;
+        logo: (firstPitchMeta as any).logo || null,
+      });
+    }
+  }, [firstPitchMeta?.id, firstPitchMeta?.startupName]); // Only update when pitch ID or name changes
 
   const [industryOptions, setIndustryOptions] =
     useState<string[]>(DEFAULT_INDUSTRIES);
 
   const [isOpeningEditor, setIsOpeningEditor] = useState(false);
   const [regenCount, setRegenCount] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [editedData, setEditedData] = useState(
     companyData || {
@@ -176,6 +196,7 @@ export function PitchDashboard({
       status: "",
       brandColor: "#252952",
       teamSize: "",
+      logo: null,
     }
   );
 
@@ -215,7 +236,19 @@ export function PitchDashboard({
       return;
     }
 
+    setIsSaving(true);
     try {
+      // Convert logo file to base64 if a new file was uploaded
+      let logoData = editedData.logo;
+      if (editLogoFile && editLogoPreview) {
+        // If it's a data URL, extract the base64 part
+        if (editLogoPreview.startsWith("data:")) {
+          logoData = editLogoPreview;
+        } else {
+          logoData = editLogoPreview;
+        }
+      }
+
       await apiService.updatePitchCompany(firstPitchMeta.id, {
         companyName: editedData.companyName,
         industry: editedData.industry,
@@ -225,15 +258,58 @@ export function PitchDashboard({
         status: editedData.status,
         teamSize: editedData.teamSize,
         brandColor: editedData.brandColor,
+        logo: logoData,
       });
+
+      // Get updated pitch details
+      const updatedPitch = await apiService.getPitchDetails(firstPitchMeta.id);
+
+      // Update companyData immediately with the new data
+      if (updatedPitch?.data) {
+        setCompanyData({
+          companyName: updatedPitch.data.startupName || "",
+          industry: updatedPitch.data.industry || "",
+          oneLiner: updatedPitch.data.targetAudience || "",
+          problem: updatedPitch.data.problemSolved || "",
+          value:
+            updatedPitch.data.mainProduct ||
+            updatedPitch.data.uniqueSellingPoint ||
+            "",
+          status: updatedPitch.data.traction || "",
+          brandColor: updatedPitch.data.primaryColor || "#252952",
+          teamSize: updatedPitch.data.teamSize || "",
+          logo: updatedPitch.data.logo || null,
+        });
+
+        // Update firstPitchMeta with the new data
+        if (firstPitchMeta) {
+          setFirstPitchMeta({
+            ...firstPitchMeta,
+            startupName: updatedPitch.data.startupName,
+            industry: updatedPitch.data.industry,
+            preview: updatedPitch.data.targetAudience || firstPitchMeta.preview,
+            logo: updatedPitch.data.logo || null,
+          } as any);
+        }
+      }
+
+      // Also refresh the pitches list to update the pitch card
+      await loadPitches(1);
+
+      // Clear edit logo state after successful save
+      setEditLogoFile(null);
+      setEditLogoPreview(null);
       setIsEditing(false);
       setEditStep(0);
+
       toast.success("Company profile updated successfully!");
     } catch (error: any) {
       console.error("Failed to update company profile:", error);
       toast.error("Failed to update company profile", {
         description: error.message || "Please try again later.",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -248,10 +324,106 @@ export function PitchDashboard({
         status: "",
         brandColor: "#252952",
         teamSize: "",
+        logo: null,
       }
     );
+    setEditLogoFile(null);
+    setEditLogoPreview(null);
+    setEditLogoError("");
     setIsEditing(false);
     setEditStep(0);
+  };
+
+  // Handle logo upload in edit modal
+  const handleEditLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ["image/svg+xml", "image/png", "image/jpeg"];
+    if (!validTypes.includes(file.type)) {
+      setEditLogoError("Please upload SVG, PNG, or JPEG files only");
+      setEditLogoFile(null);
+      setEditLogoPreview(null);
+      return;
+    }
+
+    // Validate file size (2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setEditLogoError("File size must be less than 2MB");
+      setEditLogoFile(null);
+      setEditLogoPreview(null);
+      return;
+    }
+
+    setEditLogoError("");
+    setEditLogoFile(file);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      setEditLogoPreview(content);
+    };
+    reader.onerror = () => {
+      setEditLogoError("Failed to read file");
+      setEditLogoFile(null);
+      setEditLogoPreview(null);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Handle drag and drop
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ["image/svg+xml", "image/png", "image/jpeg"];
+    if (!validTypes.includes(file.type)) {
+      setEditLogoError("Please upload SVG, PNG, or JPEG files only");
+      setEditLogoFile(null);
+      setEditLogoPreview(null);
+      return;
+    }
+
+    // Validate file size (2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setEditLogoError("File size must be less than 2MB");
+      setEditLogoFile(null);
+      setEditLogoPreview(null);
+      return;
+    }
+
+    setEditLogoError("");
+    setEditLogoFile(file);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      setEditLogoPreview(content);
+    };
+    reader.onerror = () => {
+      setEditLogoError("Failed to read file");
+      setEditLogoFile(null);
+      setEditLogoPreview(null);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const clearEditLogo = () => {
+    setEditLogoFile(null);
+    setEditLogoPreview(null);
+    setEditLogoError("");
   };
 
   // Load pitches with pagination
@@ -817,15 +989,25 @@ export function PitchDashboard({
             <CardContent className="p-8">
               <div className="flex items-start justify-between mb-6">
                 <div className="flex items-start gap-6 flex-1">
-                  {/* Logo/Icon */}
-                  <div
-                    className="w-20 h-20 rounded-[20px] flex items-center justify-center flex-shrink-0 shadow-lg"
-                    style={{
-                      background: `linear-gradient(135deg, ${companyData.brandColor} 0%, ${companyData.brandColor}dd 100%)`,
-                    }}
-                  >
-                    <Building2 className="w-10 h-10 text-white" />
-                  </div>
+                  {/* Logo/Icon - Avatar Style */}
+                  {companyData.logo ? (
+                    <div className="w-28 h-28 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg bg-white p-1 border-2 border-gray-100 overflow-hidden">
+                      <img
+                        src={companyData.logo}
+                        alt={`${companyData.companyName} logo`}
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className="w-28 h-28 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg"
+                      style={{
+                        background: `linear-gradient(135deg, ${companyData.brandColor} 0%, ${companyData.brandColor}dd 100%)`,
+                      }}
+                    >
+                      <Building2 className="w-14 h-14 text-white" />
+                    </div>
+                  )}
 
                   {/* Company Info */}
                   <div className="flex-1">
@@ -908,6 +1090,26 @@ export function PitchDashboard({
                             ...prev,
                           ]);
                         }
+                        // Update companyData with full pitch details
+                        setCompanyData({
+                          companyName: pitch.startupName || "",
+                          industry:
+                            backendIndustry || companyData?.industry || "",
+                          oneLiner:
+                            pitch.targetAudience || companyData?.oneLiner || "",
+                          problem: pitch.problemSolved || "",
+                          value:
+                            pitch.mainProduct || pitch.uniqueSellingPoint || "",
+                          status: pitch.traction || companyData?.status || "",
+                          brandColor:
+                            pitch.primaryColor ||
+                            companyData?.brandColor ||
+                            "#252952",
+                          teamSize:
+                            pitch.teamSize || companyData?.teamSize || "",
+                          logo: pitch.logo || null,
+                        });
+
                         setEditedData({
                           companyName: pitch.startupName || "",
                           industry:
@@ -924,7 +1126,17 @@ export function PitchDashboard({
                             "#252952",
                           teamSize:
                             pitch.teamSize || companyData?.teamSize || "",
+                          logo: pitch.logo || null,
                         });
+
+                        // Set logo preview if logo exists
+                        if (pitch.logo) {
+                          setEditLogoPreview(pitch.logo);
+                          setEditLogoFile(null); // No file, just existing logo
+                        } else {
+                          setEditLogoPreview(null);
+                          setEditLogoFile(null);
+                        }
                       } else if (companyData) {
                         setEditedData(companyData);
                       }
@@ -1520,13 +1732,69 @@ export function PitchDashboard({
                   <Label className="text-base font-semibold text-[#252952]">
                     Upload Logo
                   </Label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-[16px] p-12 text-center hover:border-[#4A90E2] transition-all cursor-pointer bg-gradient-to-br from-white to-gray-50">
+                  <label
+                    htmlFor="edit-logo-upload"
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                    className="border-2 border-dashed border-gray-300 rounded-[16px] p-12 text-center hover:border-[#4A90E2] transition-all cursor-pointer bg-gradient-to-br from-white to-gray-50 block"
+                  >
                     <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-base text-gray-600 mb-2">
                       Click to upload or drag and drop
                     </p>
                     <p className="text-sm text-gray-500">SVG, PNG (max. 2MB)</p>
-                  </div>
+                    <Input
+                      id="edit-logo-upload"
+                      type="file"
+                      accept=".svg,.png,.jpg,.jpeg,image/svg+xml,image/png,image/jpeg"
+                      onChange={handleEditLogoUpload}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {/* Show uploaded file */}
+                  {editLogoFile && (
+                    <div className="flex items-center justify-between bg-purple-50 p-3 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <FileCheck className="h-5 w-5 text-purple-600" />
+                        <span className="text-sm text-gray-700">
+                          {editLogoFile.name}
+                        </span>
+                      </div>
+                      <button
+                        onClick={clearEditLogo}
+                        className="text-gray-500 hover:text-red-500"
+                        type="button"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Show preview */}
+                  {editLogoPreview && (
+                    <div className="mt-3 p-4 bg-white rounded-lg border border-gray-200">
+                      <p className="text-sm font-semibold text-[#252952] mb-2">
+                        Preview:
+                      </p>
+                      <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
+                        <div className="w-32 h-32 rounded-full flex items-center justify-center bg-white p-1 border-2 border-gray-200 overflow-hidden shadow-md">
+                          <img
+                            src={editLogoPreview}
+                            alt="Logo preview"
+                            className="w-full h-full object-cover rounded-full"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Error message */}
+                  {editLogoError && (
+                    <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+                      {editLogoError}
+                    </div>
+                  )}
                 </div>
 
                 <div className="relative">
@@ -1588,28 +1856,85 @@ export function PitchDashboard({
                   <h4 className="text-sm font-semibold text-[#252952] mb-4">
                     Preview
                   </h4>
-                  <div className="space-y-3">
-                    <div
-                      className="h-14 rounded-[12px] flex items-center justify-center font-semibold text-white shadow-lg transition-all hover:shadow-xl"
-                      style={{ backgroundColor: editedData.brandColor }}
-                    >
-                      Primary Button
-                    </div>
-                    <div
-                      className="h-24 rounded-[16px] p-4 border-2 transition-all"
-                      style={{
-                        backgroundColor: `${editedData.brandColor}10`,
-                        borderColor: `${editedData.brandColor}40`,
-                      }}
-                    >
-                      <div className="text-xs font-semibold text-gray-500 mb-2">
-                        Company Card
-                      </div>
+                  <div className="space-y-4">
+                    {/* Button Preview */}
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 mb-2">
+                        Button Style
+                      </p>
                       <div
-                        className="font-bold text-lg"
-                        style={{ color: editedData.brandColor }}
+                        className="h-12 rounded-[12px] flex items-center justify-center font-semibold text-white shadow-lg transition-all"
+                        style={{ backgroundColor: editedData.brandColor }}
                       >
-                        {editedData.companyName || "Your Company"}
+                        Get Started
+                      </div>
+                    </div>
+
+                    {/* Company Card Preview */}
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 mb-2">
+                        Company Profile Card
+                      </p>
+                      <div
+                        className="rounded-[20px] p-5 border-2 transition-all shadow-sm"
+                        style={{
+                          backgroundColor: "white",
+                          borderColor: `${editedData.brandColor}30`,
+                        }}
+                      >
+                        {/* Brand accent bar */}
+                        <div
+                          className="h-1.5 rounded-t-[20px] -mx-5 -mt-5 mb-4"
+                          style={{
+                            background: `linear-gradient(90deg, ${editedData.brandColor} 0%, ${editedData.brandColor}80 100%)`,
+                          }}
+                        />
+
+                        <div className="flex items-start gap-4">
+                          {/* Logo/Icon - Avatar Style */}
+                          {editLogoPreview || editedData.logo ? (
+                            <div className="w-24 h-24 rounded-full flex items-center justify-center flex-shrink-0 shadow-md bg-white p-1 border-2 border-gray-100 overflow-hidden">
+                              <img
+                                src={editLogoPreview || editedData.logo || ""}
+                                alt="Logo preview"
+                                className="w-full h-full object-cover rounded-full"
+                              />
+                            </div>
+                          ) : (
+                            <div
+                              className="w-24 h-24 rounded-full flex items-center justify-center flex-shrink-0 shadow-md"
+                              style={{
+                                background: `linear-gradient(135deg, ${editedData.brandColor} 0%, ${editedData.brandColor}dd 100%)`,
+                              }}
+                            >
+                              <Building2 className="w-12 h-12 text-white" />
+                            </div>
+                          )}
+
+                          {/* Company Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="text-xl font-bold text-[#252952] truncate">
+                                {editedData.companyName || "Your Company"}
+                              </h3>
+                            </div>
+                            {editedData.oneLiner && (
+                              <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                                {editedData.oneLiner}
+                              </p>
+                            )}
+                            {editedData.industry && (
+                              <div className="flex items-center gap-2 mt-2">
+                                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-full">
+                                  <BarChart3 className="w-3 h-3 text-gray-600" />
+                                  <span className="text-xs text-gray-700 font-medium">
+                                    {editedData.industry}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1652,12 +1977,22 @@ export function PitchDashboard({
                     handleSaveEdit();
                   }
                 }}
-                className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[12px] shadow-lg px-8"
+                disabled={isSaving}
+                className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[12px] shadow-lg px-8 disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {editStep === editSteps.length - 1 ? (
                   <>
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                    Save Changes
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                        Save Changes
+                      </>
+                    )}
                   </>
                 ) : (
                   <>

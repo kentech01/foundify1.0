@@ -55,6 +55,7 @@ import {
   Play,
   Brain,
 } from "lucide-react";
+import { Footer } from "../components/Footer";
 
 /**
  * Loading Placeholder - Vertical Carousel Animation
@@ -416,7 +417,8 @@ export function LandingPageModern() {
 
             {/* Subtitle */}
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              and grow all in one intelligent platform.
+              From pitch to contracts, everything you need to launch
+              <br /> and grow all in one intelligent platform.
             </p>
 
             {/* CTA Buttons */}
@@ -1557,8 +1559,8 @@ export function LandingPageModern() {
             </h2>
 
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-              Get real-time brand, campaign, and creator insights designed to
-              help you find opportunities faster and close smarter.
+              Clear plans designed around your company's needs — from pitching
+              and landing pages to invoices, contracts, and hiring.
             </p>
 
             {/* Monthly/Yearly Toggle */}
@@ -1610,8 +1612,10 @@ export function LandingPageModern() {
                     <span className="text-gray-500 text-xl">/mo</span>
                   </div>
                   <p className="text-gray-600 leading-relaxed">
-                    Ideal for individuals or small teams exploring task
-                    management basics.
+                    For founders validating ideas and getting online fast.
+                  </p>
+                  <p className="text-gray-600 leading-relaxed mt-2">
+                    Create your pitch, share it, and start conversations.
                   </p>
                 </div>
 
@@ -1624,11 +1628,12 @@ export function LandingPageModern() {
 
                 <div className="space-y-4">
                   {[
-                    "Up to 3 users",
-                    "Basic task management",
-                    "Drag-and-drop builder",
-                    "Task deadlines & reminders",
-                    "Mobile access",
+                    "Pitch Dashboard (company overview)",
+                    "AI-generated pitch content",
+                    "Investor / outreach email drafts",
+                    "Landing page generator (basic)",
+                    "Shareable pitch link",
+                    "Essential AI assistance",
                   ].map((feature, index) => (
                     <div key={index} className="flex items-start gap-3">
                       <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -1669,8 +1674,10 @@ export function LandingPageModern() {
                     <span className="text-gray-500 text-xl">/mo</span>
                   </div>
                   <p className="text-gray-600 leading-relaxed">
-                    Built for teams that need speed, structure, and real-time
-                    collaboration.
+                    For founders and companies ready to operate and scale.
+                  </p>
+                  <p className="text-gray-600 leading-relaxed mt-2">
+                    Everything connected through one intelligent company brain.
                   </p>
                 </div>
 
@@ -1683,13 +1690,16 @@ export function LandingPageModern() {
 
                 <div className="space-y-4">
                   {[
-                    "Up to 10 users",
-                    "Advanced task management",
-                    "Drag-and-drop builder",
-                    "Task deadlines & reminders",
-                    "Mobile access",
+                    "Everything in Starter",
+                    "Invoices & contract generation",
+                    "Email templates (sales, hiring, investors)",
+                    "AI Hiring Assistant",
+                    "Team insights & records",
+                    "Smart Digital Card (QR & shareable)",
+                    "Advanced landing & pitch pages",
+                    "Company branding (logo & colors)",
                     "Priority support",
-                    "1-1 calls",
+                    "Optional 1-1 onboarding call",
                   ].map((feature, index) => (
                     <div key={index} className="flex items-start gap-3">
                       <div className="w-5 h-5 rounded-full bg-[#4A90E2] flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -1704,6 +1714,20 @@ export function LandingPageModern() {
               </Card>
             </motion.div>
           </div>
+
+          {/* Footer Line */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="text-center mt-12"
+          >
+            <p className="text-sm text-gray-500">
+              No credit card required · Cancel anytime · Built for founders and
+              growing companies
+            </p>
+          </motion.div>
         </div>
       </section>
 
@@ -1900,37 +1924,7 @@ export function LandingPageModern() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#252952] border-t border-white/10 py-12">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            {/* Logo */}
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-[8px] bg-gradient-to-br from-[#4A90E2] to-[#7DD3FC] flex items-center justify-center">
-                <span className="text-white font-bold">F</span>
-              </div>
-              <span className="text-white font-bold text-lg">foundify</span>
-            </div>
-
-            {/* Links */}
-            <div className="flex items-center gap-8 text-sm text-white/60">
-              <a href="#" className="hover:text-white transition-colors">
-                Privacy
-              </a>
-              <a href="#" className="hover:text-white transition-colors">
-                Terms
-              </a>
-              <a href="#" className="hover:text-white transition-colors">
-                Support
-              </a>
-            </div>
-
-            {/* Copyright */}
-            <div className="text-sm text-white/60">
-              © 2026 Foundify. Built for founders.
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
       {/* Sign In Modal */}
       <SignInModal
