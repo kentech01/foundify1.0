@@ -76,6 +76,7 @@ interface PitchFormData {
 interface PitchHistoryItem {
   id: string;
   startupName: string;
+  industry?: string;
   createdAt: string;
   status: string;
   preview: string;
@@ -102,6 +103,7 @@ interface PitchHistoryResponse {
 interface PitchDetails {
   id: string;
   startupName: string;
+  industry?: string;
   problemSolved: string;
   targetAudience: string;
   mainProduct: string;
@@ -109,6 +111,10 @@ interface PitchDetails {
   email: string;
   content: string;
   createdAt: string;
+  traction?: string;
+  teamSize?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
 }
 
 interface PitchDetailsResponse {
@@ -478,10 +484,7 @@ export const apiFetch = async (
     }
   }
 
-  // TEMPORARILY DISABLED: Premium check for Founder Essentials
-  // All users can access Founder Essentials for now
-  // TODO: Re-enable when premium feature is returned
-  /* Handle 403 Forbidden errors - check if it's a premium requirement
+  // Handle 403 Forbidden errors - check if it's a premium requirement
   if (response.status === 403) {
     try {
       const data = await response
@@ -505,7 +508,6 @@ export const apiFetch = async (
       // If we fail to read the body, just fall through
     }
   }
-  */
 
   return response;
 };
@@ -583,6 +585,71 @@ export const useApiService = () => {
       } catch (error: any) {
         throw new Error(
           error.response?.data?.message || "Failed to delete pitch"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  /**
+   * Update core company information for a pitch (used by Edit Company Info).
+   */
+  const updatePitchCompany = useCallback(
+    async (
+      id: string,
+      data: {
+        companyName: string;
+        industry: string;
+        oneLiner: string;
+        problem: string;
+        value: string;
+        status?: string;
+        teamSize?: string;
+        brandColor?: string;
+      }
+    ): Promise<PitchDetailsResponse> => {
+      try {
+        // Reuse the same helper logic as the builder for secondary color
+        const primaryColor = data.brandColor || "#252952";
+        const secondaryColor = primaryColor;
+
+        const payload = {
+          startupName: data.companyName,
+          industry: data.industry,
+          problemSolved: data.problem,
+          targetAudience: data.oneLiner,
+          mainProduct: data.value,
+          uniqueSellingPoint: data.value,
+          traction: data.status,
+          teamSize: data.teamSize,
+          primaryColor,
+          secondaryColor,
+        };
+
+        const response = await axiosInstance.put(`/pitch/history/${id}`, payload);
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to update company info"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  /**
+   * Regenerate pitch content for an existing pitch.
+   */
+  const regeneratePitch = useCallback(
+    async (id: string): Promise<PitchDetailsResponse> => {
+      try {
+        const response = await axiosInstance.post(
+          `/pitch/history/${id}/regenerate`
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to regenerate pitch"
         );
       }
     },
@@ -1228,6 +1295,8 @@ export const useApiService = () => {
     getLandingPageHtmlByStartupName,
     getCurrentUserProfile,
     getFirstPitch,
+    updatePitchCompany,
+    regeneratePitch,
     // Email generator methods
     getEmailTemplates,
     generateInvestorEmail,

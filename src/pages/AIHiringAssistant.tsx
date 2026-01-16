@@ -388,6 +388,7 @@ ${i + 1}. ${q.question}
                   placeholder="e.g., Sarah Johnson"
                   maxLength={100}
                   className="placeholder:text-gray-400"
+                  autoComplete="off"
                 />
                 {submitted && errors.candidateName && (
                   <div
@@ -412,6 +413,7 @@ ${i + 1}. ${q.question}
                   placeholder="e.g., Senior Frontend Developer"
                   maxLength={120}
                   className="placeholder:text-gray-400"
+                  autoComplete="off"
                 />
                 {submitted && errors.role && (
                   <div
@@ -511,6 +513,7 @@ ${i + 1}. ${q.question}
                 rows={3}
                 maxLength={500}
                 className="placeholder:text-gray-400"
+                autoComplete="off"
               />
               {submitted && errors.interviewGoal && (
                 <div
@@ -638,6 +641,7 @@ ${i + 1}. ${q.question}
                                       placeholder="Record the candidate's answer and add your observations..."
                                       rows={3}
                                       className="placeholder:text-gray-400"
+                                      autoComplete="off"
                                     />
                                   </div>
                                 </div>
@@ -730,6 +734,7 @@ ${i + 1}. ${q.question}
               placeholder="Example: Can you describe a challenging project you've worked on?"
               rows={4}
               className="resize-none placeholder:text-gray-400"
+              autoComplete="off"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && e.ctrlKey) {
                   handleSaveCustomQuestion();

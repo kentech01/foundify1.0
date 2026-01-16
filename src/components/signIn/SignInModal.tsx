@@ -156,6 +156,7 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }: SignInModalProps) {
                   }
                   required
                   disabled={isLoading}
+                  autoComplete="off"
                 />
               </div>
 

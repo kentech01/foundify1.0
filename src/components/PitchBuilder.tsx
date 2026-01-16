@@ -7,12 +7,23 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import { XIcon } from "lucide-react@0.487.0";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
-import { ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
+import { Badge } from "./ui/badge";
+import {
+  ArrowRight,
+  ArrowLeft,
+  Sparkles,
+  Building2,
+  Target,
+  TrendingUp,
+  Palette,
+  Upload,
+  Check,
+  X,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +38,86 @@ import SignInModal from "./signIn/SignInModal";
 import { useApiService } from "../services/api";
 import React from "react";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+
+const BRAND_COLORS = [
+  {
+    name: "Navy Blue",
+    value: "#252952",
+    gradient: "from-[#252952] to-[#1a1d3a]",
+  },
+  {
+    name: "Ocean Blue",
+    value: "#4A90E2",
+    gradient: "from-[#4A90E2] to-[#357ABD]",
+  },
+  {
+    name: "Purple",
+    value: "#8B5CF6",
+    gradient: "from-purple-600 to-purple-700",
+  },
+  {
+    name: "Emerald",
+    value: "#10B981",
+    gradient: "from-emerald-500 to-emerald-600",
+  },
+  { name: "Rose", value: "#F43F5E", gradient: "from-rose-500 to-rose-600" },
+  { name: "Amber", value: "#F59E0B", gradient: "from-amber-500 to-amber-600" },
+  { name: "Slate", value: "#475569", gradient: "from-slate-600 to-slate-700" },
+  { name: "Teal", value: "#14B8A6", gradient: "from-teal-500 to-teal-600" },
+];
+
+const INDUSTRIES = [
+  "AI/ML",
+  "Analytics",
+  "B2B SaaS",
+  "B2C Consumer",
+  "Blockchain / Crypto",
+  "Climate / CleanTech",
+  "Construction / Real Estate",
+  "Creator Economy",
+  "Cybersecurity",
+  "Developer Tools",
+  "E-commerce / Marketplaces",
+  "EdTech",
+  "Energy",
+  "Enterprise Software",
+  "Fintech",
+  "Gaming",
+  "Government / Public Sector",
+  "Hardware / IoT",
+  "Healthcare",
+  "HR / Future of Work",
+  "LegalTech",
+  "Logistics / Supply Chain",
+  "Manufacturing",
+  "Media / Entertainment",
+  "Productivity",
+  "PropTech",
+  "Retail",
+  "Sales / Marketing Tech",
+  "Social / Community",
+  "Travel / Hospitality",
+  "Other",
+];
+
+interface BuilderFormData {
+  companyName: string;
+  industry: string;
+  oneLiner: string;
+  problem: string;
+  value: string;
+  status: string;
+  brandColor: string;
+  logo?: string;
+}
+
 export function PitchBuilder() {
   const navigate = useNavigate();
   const { addPitch, setIsGenerating, setProgress } = useApp();
@@ -36,15 +127,15 @@ export function PitchBuilder() {
   const [limitModalMessage, setLimitModalMessage] = useState("");
   const [currentStep, setCurrentStep] = useState(0);
   const [shouldAutoSubmit, setShouldAutoSubmit] = useState(false);
-  const [formData, setFormData] = useState<PitchData>({
-    startupName: "",
+  const [formData, setFormData] = useState<BuilderFormData>({
+    companyName: "",
+    industry: "",
+    oneLiner: "",
     problem: "",
-    targetAudience: "",
-    solution: "",
-    uniqueValue: "",
-    primaryColor: "#3b82f6",
-    secondaryColor: "#1f1147",
-    email: "",
+    value: "",
+    status: "",
+    brandColor: "#252952",
+    logo: undefined,
   });
 
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
@@ -57,14 +148,118 @@ export function PitchBuilder() {
     }
   }, [shouldAutoSubmit, user, loading, formData]);
 
+  const { generatePitch } = useApiService();
+
+  const steps = [
+    {
+      id: "snapshot",
+      title: "Company Snapshot",
+      subtitle: "Who you are, in one sentence",
+      icon: Building2,
+      fields: [
+        {
+          id: "companyName",
+          label: "Company name",
+          placeholder: "Enter your company name",
+          type: "input" as const,
+          required: true,
+        },
+        {
+          id: "industry",
+          label: "Industry",
+          placeholder: "Select your industry",
+          type: "select" as const,
+          required: true,
+        },
+        {
+          id: "oneLiner",
+          label: "What does your company do?",
+          placeholder:
+            "We help teams generate investor-ready pitches and business documents using AI.",
+          helperText: "One sentence that explains your company",
+          type: "textarea" as const,
+          required: true,
+        },
+      ],
+    },
+    {
+      id: "problem-value",
+      title: "Problem & Value",
+      subtitle: "Why your company exists",
+      icon: Target,
+      fields: [
+        {
+          id: "problem",
+          label: "What problem do you solve?",
+          placeholder: "Describe the problem your company addresses...",
+          helperText: "Write it as if you're explaining it to a smart friend.",
+          type: "textarea" as const,
+          required: true,
+        },
+        {
+          id: "value",
+          label: "How do you create value?",
+          placeholder: "Explain how you help your customers...",
+          helperText: "Focus on the benefits and outcomes you deliver.",
+          type: "textarea" as const,
+          required: true,
+        },
+      ],
+    },
+    {
+      id: "status",
+      title: "Status / Traction",
+      subtitle: "Where you are today",
+      icon: TrendingUp,
+      optional: true,
+      fields: [
+        {
+          id: "status",
+          label: "Current status or traction",
+          placeholder:
+            'e.g., "Early stage", "500+ customers", "$50k ARR", "Used by internal teams"',
+          helperText:
+            "This is completely optional and never blocks your progress.",
+          type: "textarea" as const,
+          required: false,
+        },
+      ],
+    },
+    {
+      id: "brand",
+      title: "Brand Identity",
+      subtitle: "How your company looks everywhere",
+      icon: Palette,
+      fields: [],
+    },
+  ];
+
+  const currentStepData = steps[currentStep];
+
   const validateField = (name: string, value: string): string | undefined => {
     switch (name) {
-      case "startupName":
-        if (!value.trim()) return "Startup name is required";
+      case "companyName":
+        if (!value.trim()) return "Company name is required";
         if (value.trim().length < 2)
-          return "Startup name must be at least 2 characters long";
+          return "Company name must be at least 2 characters long";
         if (value.trim().length > 100)
-          return "Startup name cannot exceed 100 characters";
+          return "Company name cannot exceed 100 characters";
+        break;
+
+      case "industry":
+        if (!value.trim()) return "Industry is required";
+        if (value.trim().length < 2)
+          return "Industry must be at least 2 characters long";
+        if (value.trim().length > 120)
+          return "Industry cannot exceed 120 characters";
+        break;
+
+      case "oneLiner":
+        if (!value.trim()) return "Company description is required";
+        if (value.trim().length < 10)
+          return "Company description must be at least 10 characters long";
+        if (value.trim().length > 500)
+          return "Company description cannot exceed 500 characters";
         break;
 
       case "problem":
@@ -75,183 +270,193 @@ export function PitchBuilder() {
           return "Problem description cannot exceed 1000 characters";
         break;
 
-      case "targetAudience":
-        if (!value.trim()) return "Target audience is required";
-        if (value.trim().length < 5)
-          return "Target audience must be at least 5 characters long";
-        if (value.trim().length > 500)
-          return "Target audience cannot exceed 500 characters";
+      case "value":
+        if (!value.trim()) return "Value proposition is required";
+        if (value.trim().length < 10)
+          return "Value proposition must be at least 10 characters long";
+        if (value.trim().length > 1000)
+          return "Value proposition cannot exceed 1000 characters";
         break;
 
-      // Adapted 'product' -> our field 'solution'
-      case "solution":
-        if (!value.trim())
-          return "Main product or service description is required";
-        if (value.trim().length < 5)
-          return "Product description must be at least 5 characters long";
-        if (value.trim().length > 500)
-          return "Product description cannot exceed 500 characters";
+      case "status":
+        // Optional field, no validation needed
         break;
 
-      // Adapted 'uniqueSellingPoint' -> our field 'uniqueValue'
-      case "uniqueValue":
-        if (!value.trim()) return "Unique selling point is required";
-        if (value.trim().length < 5)
-          return "Unique selling point must be at least 5 characters long";
-        if (value.trim().length > 500)
-          return "Unique selling point cannot exceed 500 characters";
-        break;
-
-      case "primaryColor":
-        if (!value.trim()) return "Primary color is required";
+      case "brandColor":
+        if (!value.trim()) return "Brand color is required";
         if (!/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(value))
           return "Please provide a valid hex color";
         break;
-
-      case "secondaryColor":
-        if (!value.trim()) return "Secondary color is required";
-        if (!/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(value))
-          return "Please provide a valid hex color";
-        break;
-
-      case "email": {
-        if (!value.trim()) return "Email is required";
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(value))
-          return "Please provide a valid email address";
-        break;
-      }
     }
     return undefined;
   };
 
-  const { generatePitch } = useApiService();
+  const isStepValid = () => {
+    // Step 2 (status/traction) is optional, always valid
+    if (currentStep === 2) {
+      return true;
+    }
 
-  const questions = [
-    {
-      id: "startupName",
-      label: "What is your startup name?",
-      placeholder: "Enter your startup name",
-      type: "input",
-    },
-    {
-      id: "problem",
-      label: "What problem are you solving?",
-      placeholder: "Describe the problem your startup addresses",
-      type: "textarea",
-    },
-    {
-      id: "targetAudience",
-      label: "Who is your target audience?",
-      placeholder: "Describe your ideal customers",
-      type: "textarea",
-    },
-    {
-      id: "solution",
-      label: "What is your solution?",
-      placeholder: "Explain how your product/service solves the problem",
-      type: "textarea",
-    },
-    {
-      id: "uniqueValue",
-      label: "What makes you unique?",
-      placeholder: "Describe your unique value proposition",
-      type: "textarea",
-    },
-    {
-      id: "colors",
-      label: "Choose your brand colors",
-      placeholder: "",
-      type: "color-picker",
-    },
-    {
-      id: "email",
-      label: "Your email address",
-      placeholder: "Enter your email",
-      type: "input",
-    },
-  ];
+    // Step 3 (brand) - check if there's a validation error for brandColor
+    if (currentStep === 3) {
+      return !errors.brandColor;
+    }
 
-  const currentQuestion = questions[currentStep];
+    // For other steps, check both that required fields have values AND no validation errors
+    const requiredFields = currentStepData.fields.filter((f) => f.required);
 
-  // Special handling for color picker step
-  const currentValue = currentQuestion.id === "colors" 
-    ? "" 
-    : String(formData[currentQuestion.id as keyof PitchData] ?? "");
-  
-  const currentError = currentQuestion.id === "colors"
-    ? (validateField("primaryColor", formData.primaryColor) || validateField("secondaryColor", formData.secondaryColor))
-    : validateField(currentQuestion.id, currentValue);
-  
-  const isCurrentStepValid = !currentError;
+    // First check if all required fields have values
+    const allFieldsHaveValues = requiredFields.every((field) => {
+      const value =
+        formData[field.id as keyof BuilderFormData]?.toString().trim() || "";
+      return value.length > 0;
+    });
 
-  const handleChange = (value: string, colorType?: "primary" | "secondary") => {
-    const fieldName = currentQuestion.id;
-    
-    // Handle color picker separately
-    if (fieldName === "colors" && colorType) {
-      const colorFieldName = colorType === "primary" ? "primaryColor" : "secondaryColor";
-      setFormData({
-        ...formData,
-        [colorFieldName]: value,
-      });
-      const err = validateField(colorFieldName, value);
-      setErrors((prev) => ({ ...prev, [colorFieldName]: err }));
-    } else {
-      setFormData({
-        ...formData,
-        [fieldName]: value,
-      });
-      const err = validateField(fieldName, value);
-      setErrors((prev) => ({ ...prev, [fieldName]: err }));
+    // Then check if there are any validation errors for fields in this step
+    const hasErrors = currentStepData.fields.some((field) => {
+      return errors[field.id] !== undefined && errors[field.id] !== null;
+    });
+
+    return allFieldsHaveValues && !hasErrors;
+  };
+
+  const handleChange = (fieldId: string, value: string) => {
+    setFormData({
+      ...formData,
+      [fieldId]: value,
+    });
+    // Only clear error if one exists - don't show new errors until Continue is clicked
+    if (errors[fieldId]) {
+      setErrors((prev) => ({ ...prev, [fieldId]: undefined }));
     }
   };
+
+  const handleColorSelect = (color: string) => {
+    setFormData({
+      ...formData,
+      brandColor: color,
+    });
+    // Only clear error if one exists - don't show new errors until Continue is clicked
+    if (errors.brandColor) {
+      setErrors((prev) => ({ ...prev, brandColor: undefined }));
+    }
+  };
+
   const handleNext = () => {
-    const fieldName = currentQuestion.id;
-    
-    // Special validation for color picker step
-    if (fieldName === "colors") {
-      const primaryErr = validateField("primaryColor", formData.primaryColor);
-      const secondaryErr = validateField("secondaryColor", formData.secondaryColor);
-      setErrors((prev) => ({ 
-        ...prev, 
-        primaryColor: primaryErr,
-        secondaryColor: secondaryErr 
-      }));
-      if (primaryErr || secondaryErr) return;
-    } else {
-      const value = String(formData[fieldName as keyof PitchData] ?? "");
-      const err = validateField(fieldName, value);
-      setErrors((prev) => ({ ...prev, [fieldName]: err }));
-      if (err) return;
+    // Step 2 (status/traction) is optional, skip validation
+    if (currentStep === 2) {
+      // Proceed directly to next step
+      if (currentStep < steps.length - 1) {
+        setCurrentStep(currentStep + 1);
+      } else {
+        handleCreatePitch();
+      }
+      return;
     }
 
-    if (currentStep < questions.length - 1) {
+    // First, validate all fields in the current step
+    const stepErrors: Record<string, string | undefined> = {};
+    let hasStepErrors = false;
+
+    if (currentStep === 3) {
+      // Validate brand color
+      const brandColorErr = validateField("brandColor", formData.brandColor);
+      if (brandColorErr) {
+        stepErrors.brandColor = brandColorErr;
+        hasStepErrors = true;
+      }
+    } else {
+      // Validate all required fields in current step
+      currentStepData.fields.forEach((field) => {
+        if (field.required) {
+          const value = String(
+            formData[field.id as keyof BuilderFormData] ?? ""
+          );
+          const err = validateField(field.id, value);
+          if (err) {
+            stepErrors[field.id] = err;
+            hasStepErrors = true;
+          }
+        }
+      });
+    }
+
+    // Update errors state - don't proceed if there are errors
+    if (hasStepErrors) {
+      setErrors((prev) => ({ ...prev, ...stepErrors }));
+      return; // Don't proceed if there are errors
+    }
+
+    // Clear any errors for this step if validation passed
+    if (currentStep === 3) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.brandColor;
+        return newErrors;
+      });
+    } else {
+      currentStepData.fields.forEach((field) => {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[field.id];
+          return newErrors;
+        });
+      });
+    }
+
+    // If validation passes, proceed to next step
+    if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Changed: Check auth before completing
+      // Check auth before completing
       handleCreatePitch();
     }
   };
-  const handleKeyDown = (event) => {
-    if (event.key == "Enter") {
-      console.log("qitu jem");
-      handleNext();
-    }
+
+  // Helper to generate secondary color from primary (darken it)
+  const generateSecondaryColor = (primaryColor: string): string => {
+    // Convert hex to RGB
+    const hex = primaryColor.replace("#", "");
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+
+    // Darken by 30%
+    const darkenedR = Math.max(0, Math.floor(r * 0.7));
+    const darkenedG = Math.max(0, Math.floor(g * 0.7));
+    const darkenedB = Math.max(0, Math.floor(b * 0.7));
+
+    // Convert back to hex
+    return `#${darkenedR.toString(16).padStart(2, "0")}${darkenedG
+      .toString(16)
+      .padStart(2, "0")}${darkenedB.toString(16).padStart(2, "0")}`;
   };
 
-  const handleComplete = async (data: PitchData) => {
-    // Validate all fields before submitting
+  const handleComplete = async (data: BuilderFormData) => {
+    // Validate all required fields before submitting
     const allErrors: Record<string, string | undefined> = {};
     let firstInvalidIndex = -1;
-    questions.forEach((q, idx) => {
-      const v = String((data as any)[q.id] ?? "");
-      const err = validateField(q.id, v);
-      if (err) {
-        allErrors[q.id] = err;
-        if (firstInvalidIndex === -1) firstInvalidIndex = idx;
-      }
+
+    steps.forEach((step, stepIdx) => {
+      step.fields.forEach((field) => {
+        if (field.required) {
+          const value = String((data as any)[field.id] ?? "");
+          const err = validateField(field.id, value);
+          if (err) {
+            allErrors[field.id] = err;
+            if (firstInvalidIndex === -1) firstInvalidIndex = stepIdx;
+          }
+        }
+      });
     });
+
+    // Validate brand color
+    const brandColorErr = validateField("brandColor", data.brandColor);
+    if (brandColorErr) {
+      allErrors.brandColor = brandColorErr;
+      if (firstInvalidIndex === -1) firstInvalidIndex = 3;
+    }
+
     if (firstInvalidIndex !== -1) {
       setErrors((prev) => ({ ...prev, ...allErrors }));
       setCurrentStep(firstInvalidIndex);
@@ -262,16 +467,20 @@ export function PitchBuilder() {
     setProgress(10);
 
     try {
-      // Map UI fields -> API contract
+      // Map new UI fields -> API contract
+      // Use oneLiner for targetAudience, and combine with value for solution/mainProduct
+      const secondaryColor = generateSecondaryColor(data.brandColor);
+
       const payload = {
-        startupName: data.startupName,
+        startupName: data.companyName,
+        industry: data.industry,
         problemSolved: data.problem,
-        targetAudience: data.targetAudience,
-        mainProduct: data.solution,
-        uniqueSellingPoint: data.uniqueValue,
-        primaryColor: data.primaryColor,
-        secondaryColor: data.secondaryColor,
-        email: data.email,
+        targetAudience: data.oneLiner, // Use oneLiner as target audience description
+        mainProduct: data.value, // Use value proposition as main product description
+        uniqueSellingPoint: data.value, // Use value as unique selling point
+        primaryColor: data.brandColor,
+        secondaryColor: secondaryColor,
+        email: user?.email || "", // Use email from authenticated user
       };
 
       setProgress(30);
@@ -285,7 +494,7 @@ export function PitchBuilder() {
       const startupName =
         response?.data?.startupName ||
         response?.startupName ||
-        data.startupName;
+        data.companyName;
 
       const hasLanding = Boolean(
         response?.data?.landingPage || response?.landingPage
@@ -347,165 +556,306 @@ export function PitchBuilder() {
     }
   };
 
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
+    fieldType: "input" | "textarea"
+  ) => {
+    if (e.key === "Enter") {
+      // For textareas, allow Shift+Enter for new lines
+      if (fieldType === "textarea" && e.shiftKey) {
+        return; // Allow default behavior (new line)
+      }
+      // For inputs or Enter without Shift in textareas, submit
+      e.preventDefault();
+      handleNext();
+    }
+  };
+
+  const StepIcon = currentStepData.icon;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-premium-purple-50 via-white to-deep-blue-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl shadow-2xl border-2 border-gray-100">
-        <CardHeader className="pb-4">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-[#fafbff] via-white to-[#f8fafc] flex items-center justify-center p-4">
+      <Card className="w-full max-w-3xl shadow-2xl border-2 border-gray-200 rounded-[20px]">
+        <CardHeader className="pb-4 border-b border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-[16px] bg-gradient-to-br from-[#252952] to-[#4A90E2] flex items-center justify-center">
+                <StepIcon className="h-7 w-7 text-white" />
               </div>
               <div>
-                <CardTitle className="text-2xl">Create Your Pitch</CardTitle>
-                <CardDescription>
-                  Step {currentStep + 1} of {questions.length}
+                <div className="flex items-center gap-3 mb-1">
+                  <CardTitle className="text-2xl text-[#252952]">
+                    {currentStepData.title}
+                  </CardTitle>
+                  {currentStepData.optional && (
+                    <Badge className="bg-gray-100 text-gray-600 border-0">
+                      Optional
+                    </Badge>
+                  )}
+                </div>
+                <CardDescription className="text-base">
+                  {currentStepData.subtitle}
                 </CardDescription>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="cursor-pointer"
-            >
-              <XIcon />
-            </button>
+            <div className="flex items-center gap-3">
+              <div className="text-sm font-semibold text-gray-500">
+                Step {currentStep + 1} of {steps.length}
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
           </div>
 
           {/* Progress bar */}
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
-              className="bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] h-2 rounded-full transition-all duration-300"
-              style={{
-                width: `${((currentStep + 1) / questions.length) * 100}%`,
-              }}
+              className="bg-gradient-to-r from-[#252952] to-[#4A90E2] h-2 rounded-full transition-all duration-500"
+              style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
             />
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-6 pt-6">
-          <div className="space-y-4">
-            <Label className="text-xl font-semibold text-gray-900">
-              {currentQuestion.label}
-            </Label>
-
-            {currentQuestion.type === "color-picker" ? (
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <Label htmlFor="primaryColor" className="text-base font-medium text-gray-700">
-                    Primary Color
+        <CardContent className="pt-8 pb-8">
+          {/* Regular form fields */}
+          {currentStep < 3 && (
+            <div className="space-y-6">
+              {currentStepData.fields.map((field) => (
+                <div key={field.id} className="space-y-3">
+                  <Label className="text-lg font-semibold text-[#252952]">
+                    {field.label}
+                    {field.required && (
+                      <span className="text-red-500 ml-1">*</span>
+                    )}
                   </Label>
-                  <div className="flex items-center gap-4">
-                    <input
-                      id="primaryColor"
-                      type="color"
-                      value={formData.primaryColor}
-                      onChange={(e) => handleChange(e.target.value, "primary")}
-                      className="h-14 w-20 cursor-pointer"
-                    />
+
+                  {field.id === "industry" ? (
+                    <Select
+                      value={formData.industry}
+                      onValueChange={(value) => handleChange("industry", value)}
+                    >
+                      <SelectTrigger className="text-base h-14 border-2 border-gray-200 focus:border-[#252952] rounded-[12px]">
+                        <SelectValue placeholder={field.placeholder} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {INDUSTRIES.map((industry) => (
+                          <SelectItem key={industry} value={industry}>
+                            {industry}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : field.type === "input" ? (
                     <Input
-                      type="text"
-                      value={formData.primaryColor}
-                      onChange={(e) => handleChange(e.target.value, "primary")}
-                      placeholder="#3b82f6"
-                      className="text-lg py-6 border-2 border-gray-200 focus:border-premium-purple rounded-xl flex-1"
-                      maxLength={7}
+                      placeholder={field.placeholder}
+                      value={
+                        (formData[
+                          field.id as keyof BuilderFormData
+                        ] as string) || ""
+                      }
+                      onChange={(e) => handleChange(field.id, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(e, "input")}
+                      className="text-base h-14 border-2 border-gray-200 focus:border-[#252952] rounded-[12px]"
+                      autoFocus={field.id === currentStepData.fields[0]?.id}
+                      autoComplete="off"
                     />
-                  </div>
-                  {errors.primaryColor && (
-                    <p className="text-sm text-red-600">{errors.primaryColor}</p>
+                  ) : (
+                    <Textarea
+                      placeholder={field.placeholder}
+                      value={
+                        (formData[
+                          field.id as keyof BuilderFormData
+                        ] as string) || ""
+                      }
+                      onChange={(e) => handleChange(field.id, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(e, "textarea")}
+                      className="text-base min-h-[140px] border-2 border-gray-200 focus:border-[#252952] rounded-[12px] resize-none"
+                      autoFocus={field.id === currentStepData.fields[0]?.id}
+                      autoComplete="off"
+                    />
+                  )}
+
+                  {field.helperText && (
+                    <p className="text-sm text-gray-500 mt-2">
+                      {field.helperText}
+                    </p>
+                  )}
+
+                  {errors[field.id] && (
+                    <p className="text-sm text-red-600">{errors[field.id]}</p>
                   )}
                 </div>
+              ))}
+            </div>
+          )}
 
-                <div className="space-y-3">
-                  <Label htmlFor="secondaryColor" className="text-base font-medium text-gray-700">
-                    Secondary Color
-                  </Label>
-                  <div className="flex items-center gap-4">
-                    <input
-                      id="secondaryColor"
-                      type="color"
-                      value={formData.secondaryColor}
-                      onChange={(e) => handleChange(e.target.value, "secondary")}
-                      className="h-14 w-20 cursor-pointer"
-                    />
-                    <Input
-                      type="text"
-                      value={formData.secondaryColor}
-                      onChange={(e) => handleChange(e.target.value, "secondary")}
-                      placeholder="#1f1147"
-                      className="text-lg py-6 border-2 border-gray-200 focus:border-premium-purple rounded-xl flex-1"
-                      maxLength={7}
-                    />
-                  </div>
-                  {errors.secondaryColor && (
-                    <p className="text-sm text-red-600">{errors.secondaryColor}</p>
-                  )}
-                </div>
-
-                <div className="mt-4 p-4 bg-gray-50 rounded-xl">
-                  <p className="text-sm text-gray-600 mb-3">Preview:</p>
-                  <div className="flex gap-3">
-                    <div 
-                      className="flex-1 h-16 rounded-lg shadow-sm border-2 border-gray-200"
-                      style={{ backgroundColor: formData.primaryColor }}
-                    />
-                    <div 
-                      className="flex-1 h-16 rounded-lg shadow-sm border-2 border-gray-200"
-                      style={{ backgroundColor: formData.secondaryColor }}
-                    />
+          {/* Brand Identity Step */}
+          {currentStep === 3 && (
+            <div className="space-y-8">
+              <div className="bg-[#f8fafc] rounded-[16px] p-6 border border-gray-200">
+                <div className="flex items-start gap-3 mb-4">
+                  <Sparkles className="w-5 h-5 text-[#4A90E2] mt-1" />
+                  <div>
+                    <h3 className="font-semibold text-[#252952] mb-2">
+                      Choose one option
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Upload your logo or pick a primary brand color. Foundify
+                      will auto-generate the rest.
+                    </p>
                   </div>
                 </div>
               </div>
-            ) : currentQuestion.type === "input" ? (
-              <Input
-                placeholder={currentQuestion.placeholder}
-                value={formData[currentQuestion.id as keyof PitchData]}
-                onChange={(e) => handleChange(e.target.value)}
-                className="text-lg py-6 border-1 border-[#252952] focus:border-[#161930] rounded-xl placeholder:text-gray-300"
-                onKeyDown={handleKeyDown}
-                autoFocus
-                aria-invalid={Boolean(errors[currentQuestion.id])}
-              />
-            ) : (
-              <Textarea
-                placeholder={currentQuestion.placeholder}
-                value={formData[currentQuestion.id as keyof PitchData]}
-                onChange={(e) => handleChange(e.target.value)}
-                className="text-base min-h-[150px] border-1 border-[#252952] focus:border-[#161930] rounded-xl resize-none placeholder:text-gray-300"
-                onKeyDown={handleKeyDown}
-                autoFocus
-                aria-invalid={Boolean(errors[currentQuestion.id])}
-              />
-            )}
 
-            {errors[currentQuestion.id] && currentQuestion.type !== "color-picker" && (
-              <p className="text-sm text-red-600">
-                {errors[currentQuestion.id]}
-              </p>
-            )}
-          </div>
+              {/* Logo Upload Option */}
+              <div className="space-y-3">
+                <Label className="text-base font-semibold text-[#252952]">
+                  Upload Logo (SVG / PNG)
+                </Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-[12px] p-8 text-center hover:border-[#4A90E2] transition-colors cursor-pointer">
+                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+                  <p className="text-sm text-gray-600 mb-1">
+                    Click to upload or drag and drop
+                  </p>
+                  <p className="text-xs text-gray-500">SVG, PNG (max. 2MB)</p>
+                </div>
+              </div>
 
-          <div className="flex items-center justify-between pt-4">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200"></div>
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="bg-white px-4 text-sm text-gray-500">
+                    or
+                  </span>
+                </div>
+              </div>
+
+              {/* Color Picker */}
+              <div className="space-y-4">
+                <Label className="text-base font-semibold text-[#252952]">
+                  Pick a Primary Brand Color
+                </Label>
+                <div className="grid grid-cols-4 gap-3">
+                  {BRAND_COLORS.map((color) => (
+                    <button
+                      key={color.value}
+                      onClick={() => handleColorSelect(color.value)}
+                      className={`relative h-20 rounded-[12px] bg-gradient-to-br ${
+                        color.gradient
+                      } transition-all hover:scale-105 ${
+                        formData.brandColor === color.value
+                          ? "ring-4 ring-[#252952] ring-offset-2"
+                          : "ring-2 ring-gray-200"
+                      }`}
+                    >
+                      {formData.brandColor === color.value && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center">
+                            <Check className="w-5 h-5 text-[#252952]" />
+                          </div>
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-sm text-gray-500">
+                  Selected:{" "}
+                  <span className="font-semibold text-[#252952]">
+                    {
+                      BRAND_COLORS.find((c) => c.value === formData.brandColor)
+                        ?.name
+                    }
+                  </span>
+                </p>
+                {errors.brandColor && (
+                  <p className="text-sm text-red-600">{errors.brandColor}</p>
+                )}
+              </div>
+
+              {/* Preview */}
+              <div className="bg-[#f8fafc] rounded-[16px] p-6 border border-gray-200">
+                <h3 className="text-sm font-semibold text-[#252952] mb-4">
+                  Preview
+                </h3>
+                <p className="text-xs text-gray-600 mb-4">
+                  Used across pitches, emails, landing pages, and documents.
+                </p>
+                <div className="space-y-3">
+                  {/* Preview button */}
+                  <div
+                    className="h-12 rounded-[10px] flex items-center justify-center font-semibold text-white shadow-lg"
+                    style={{ background: formData.brandColor }}
+                  >
+                    Primary Button
+                  </div>
+                  {/* Preview card */}
+                  <div
+                    className="h-24 rounded-[12px] p-4 border-2"
+                    style={{
+                      backgroundColor: `${formData.brandColor}15`,
+                      borderColor: `${formData.brandColor}40`,
+                    }}
+                  >
+                    <div className="text-xs text-gray-600 mb-1">
+                      Company Card
+                    </div>
+                    <div
+                      className="font-semibold"
+                      style={{ color: formData.brandColor }}
+                    >
+                      {formData.companyName || "Your Company"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+
+        {/* Navigation */}
+        <div className="border-t border-gray-100 p-6">
+          <div className="flex items-center justify-between">
             <Button
               variant="outline"
               onClick={handleBack}
-              className="px-6 py-6 rounded-xl border-2"
+              disabled={currentStep === 0}
+              className="border-2 border-gray-200 hover:border-gray-300 rounded-[10px]"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
 
             <Button
               onClick={handleNext}
-              disabled={!isCurrentStepValid}
-              className="px-8 py-6 rounded-xl bg-[#252952]  text-white shadow-lg"
+              className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[10px] shadow-lg px-8"
             >
-              {currentStep === questions.length - 1 ? "Generate Pitch" : "Next"}
-              <ArrowRight className="ml-2 h-4 w-4" />
+              {currentStep === steps.length - 1 ? (
+                <>
+                  Complete Setup
+                  <Sparkles className="h-4 w-4 ml-2" />
+                </>
+              ) : (
+                <>
+                  Continue
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </>
+              )}
             </Button>
           </div>
-        </CardContent>
+
+          {currentStep === 2 && (
+            <p className="text-center text-sm text-gray-500 mt-4">
+              You can skip this step and add traction details later
+            </p>
+          )}
+        </div>
       </Card>
 
       {/* Sign In Modal */}

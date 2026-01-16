@@ -105,10 +105,7 @@ const useAxios = (): AxiosInstance => {
           }
         }
 
-        // TEMPORARILY DISABLED: Premium check for Founder Essentials
-        // All users can access Founder Essentials for now
-        // TODO: Re-enable when premium feature is returned
-        /* Handle 403 Forbidden errors - check if it's a premium requirement
+        // Handle 403 Forbidden errors - check if it's a premium requirement
         if (error.response?.status === 403) {
           const data: any = error.response.data;
           const message: string | undefined =
@@ -128,7 +125,6 @@ const useAxios = (): AxiosInstance => {
             }
           }
         }
-        */
 
         // Global error toast so backend messages are always surfaced
         const status = error.response?.status;
@@ -136,7 +132,9 @@ const useAxios = (): AxiosInstance => {
         // Try to extract a human-readable message from the backend payload
         const data: any = error.response?.data;
         const backendMessage: string | undefined =
-          (typeof data === "string" && data) || data?.message || data?.error;
+          (typeof data === "string" && data) ||
+          data?.message ||
+          data?.error;
 
         if (!error.response) {
           // Network-level error (no response at all)

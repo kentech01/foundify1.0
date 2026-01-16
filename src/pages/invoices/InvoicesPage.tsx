@@ -553,6 +553,7 @@ export function InvoicesPage() {
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
                       placeholder="Your Company Inc."
+                      autoComplete="off"
                       required
                       maxLength={100}
                       className="placeholder:text-gray-400"
@@ -582,6 +583,7 @@ export function InvoicesPage() {
                       required
                       maxLength={100}
                       className="placeholder:text-gray-400"
+                      autoComplete="off"
                     />
                     {submitted && errors.clientName && (
                       <div
@@ -609,6 +611,7 @@ export function InvoicesPage() {
                       id="invoice-num"
                       value={invoiceNumber}
                       onChange={(e) => setInvoiceNumber(e.target.value)}
+                      autoComplete="off"
                     />
                   </div>
                   <div>
@@ -660,6 +663,7 @@ export function InvoicesPage() {
                         placeholder="Service or product name"
                         required
                         className="placeholder:text-gray-400"
+                        autoComplete="off"
                       />
                     </div>
                     <div className={styles.amountCol}>
@@ -674,6 +678,7 @@ export function InvoicesPage() {
                         }
                         placeholder="1"
                         className="placeholder:text-gray-400"
+                        autoComplete="off"
                       />
                     </div>
                     <div className={styles.amountCol}>
@@ -689,6 +694,7 @@ export function InvoicesPage() {
                           updateLineItem(index, "rate", e.target.value)
                         }
                         placeholder="0.00"
+                        autoComplete="off"
                       />
                     </div>
                     <div className={styles.amountCol}>
@@ -755,6 +761,7 @@ export function InvoicesPage() {
                     placeholder="Add any additional notes or terms (e.g., payment terms, thank you message)"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
+                    autoComplete="off"
                     className="placeholder:text-gray-400"
                   />
                 </div>
@@ -765,6 +772,7 @@ export function InvoicesPage() {
                     placeholder="Bank name, account number, routing number, SWIFT/BIC code"
                     value={bankDetails}
                     onChange={(e) => setBankDetails(e.target.value)}
+                    autoComplete="off"
                     className="placeholder:text-gray-400"
                   />
                 </div>
@@ -841,6 +849,7 @@ export function InvoicesPage() {
                     placeholder="Your Company Inc."
                     required
                     maxLength={100}
+                    autoComplete="off"
                   />
                   {submitted && errors.companyName && (
                     <div
@@ -866,6 +875,7 @@ export function InvoicesPage() {
                     placeholder="Client Company"
                     required
                     maxLength={100}
+                    autoComplete="off"
                   />
                   {submitted && errors.clientName && (
                     <div
@@ -888,6 +898,7 @@ export function InvoicesPage() {
                     id="edit-invoice-num"
                     value={invoiceNumber}
                     onChange={(e) => setInvoiceNumber(e.target.value)}
+                    autoComplete="off"
                   />
                 </div>
                 <div>
@@ -949,6 +960,7 @@ export function InvoicesPage() {
                       }
                       placeholder="Service or product name"
                       required
+                      autoComplete="off"
                     />
                   </div>
                   <div className={styles.amountCol}>
@@ -962,6 +974,7 @@ export function InvoicesPage() {
                         updateLineItem(index, "quantity", e.target.value)
                       }
                       placeholder={item.quantity === "" ? "1" : undefined}
+                      autoComplete="off"
                     />
                   </div>
                   <div className={styles.amountCol}>
@@ -975,6 +988,7 @@ export function InvoicesPage() {
                         updateLineItem(index, "rate", e.target.value)
                       }
                       placeholder="0.00"
+                      autoComplete="off"
                     />
                   </div>
                   <div className={styles.amountCol}>
@@ -1032,6 +1046,7 @@ export function InvoicesPage() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   className="mt-4"
+                  autoComplete="off"
                 />
               </div>
               <div className="flex flex-col gap-4">
@@ -1047,6 +1062,7 @@ export function InvoicesPage() {
                   value={bankDetails}
                   onChange={(e) => setBankDetails(e.target.value)}
                   className="mt-4"
+                  autoComplete="off"
                 />
               </div>
             </CardContent>
@@ -1125,6 +1141,7 @@ export function InvoicesPage() {
             className="pl-10 border-2 border-gray-200 rounded-xl placeholder:text-gray-400"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            autoComplete="off"
           />
         </div>
       </div>

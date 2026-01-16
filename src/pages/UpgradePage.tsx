@@ -240,6 +240,7 @@ export function UpgradePage() {
                           type="text"
                           placeholder="1234 5678 9012 3456"
                           className="pl-10 border-2 border-gray-200 rounded-xl"
+                          autoComplete="off"
                           required
                         />
                         <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -259,6 +260,7 @@ export function UpgradePage() {
                           type="text"
                           placeholder="MM/YY"
                           className="border-2 border-gray-200 rounded-xl"
+                          autoComplete="off"
                           required
                         />
                       </div>
@@ -274,6 +276,7 @@ export function UpgradePage() {
                           type="text"
                           placeholder="123"
                           className="border-2 border-gray-200 rounded-xl"
+                          autoComplete="off"
                           required
                         />
                       </div>
@@ -291,6 +294,7 @@ export function UpgradePage() {
                         type="text"
                         placeholder="John Doe"
                         className="border-2 border-gray-200 rounded-xl"
+                        autoComplete="off"
                         required
                       />
                     </div>
@@ -315,6 +319,7 @@ export function UpgradePage() {
                         type="text"
                         placeholder="United States"
                         className="border-2 border-gray-200 rounded-xl"
+                        autoComplete="off"
                         required
                       />
                     </div>
@@ -330,6 +335,7 @@ export function UpgradePage() {
                         type="text"
                         placeholder="12345"
                         className="border-2 border-gray-200 rounded-xl"
+                        autoComplete="off"
                         required
                       />
                     </div>

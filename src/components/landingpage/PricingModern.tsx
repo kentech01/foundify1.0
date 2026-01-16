@@ -6,15 +6,16 @@ import React from "react";
 
 interface HeroModernProps {
   onStart?: (e: React.MouseEvent) => void;
+  onUpgrade?: (e: React.MouseEvent) => void;
 }
 
-export function PricingModern({ onStart }: HeroModernProps) {
+export function PricingModern({ onStart, onUpgrade }: HeroModernProps) {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annually">(
     "annually"
   );
 
-  const priceMonthly = 15;
-  const priceAnnually = 10;
+  const priceMonthly = 10;
+  const priceYearly = 100;
   const handleStartClick = (e: React.MouseEvent) => {
     if (onStart) {
       onStart(e);
@@ -74,7 +75,7 @@ export function PricingModern({ onStart }: HeroModernProps) {
               }`}
             >
               <Sparkles className="h-3 w-3" />
-              Save 33%
+              Save ${priceMonthly * 12 - priceYearly}
             </span>
           </div>
         </div>
@@ -149,17 +150,17 @@ export function PricingModern({ onStart }: HeroModernProps) {
               </div>
               <div className="mb-2 flex items-baseline gap-2">
                 <span className="text-5xl font-bold bg-gradient-to-r from-[#1f1147] via-[#3b82f6] to-[#a5f3fc]  bg-clip-text text-transparent">
-                  ${billingCycle === "monthly" ? priceMonthly : priceAnnually}
+                  ${billingCycle === "monthly" ? priceMonthly : priceYearly}
                 </span>
-                <span className="text-gray-600">/ month</span>
+                <span className="text-gray-600">
+                  {billingCycle === "monthly" ? "/ month" : "/ year"}
+                </span>
               </div>
-              <p
-                className={`text-sm text-gray-600 ${
-                  billingCycle === "annually" ? "visible" : "invisible"
-                }`}
-              >
-                Billed as ${priceAnnually * 12}/year
-              </p>
+              {billingCycle === "annually" && (
+                <p className="text-sm text-gray-600">
+                  ${(priceYearly / 12).toFixed(2)}/month when billed yearly
+                </p>
+              )}
               <p className="text-gray-600 mt-2">Everything you need to scale</p>
             </CardHeader>
 
@@ -221,9 +222,13 @@ export function PricingModern({ onStart }: HeroModernProps) {
                 </li>
               </ul>
 
-              {/* <Button className="w-full py-6  rounded-xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:from-premium-purple-dark hover:to-deep-blue-dark text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+              <Button
+                onClick={onUpgrade || handleStartClick}
+                className="w-full py-6 rounded-xl bg-[linear-gradient(135deg,#1f1147_0%,#3b82f6_80%,#a5f3fc_100%)] hover:from-premium-purple-dark hover:to-deep-blue-dark text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                <Sparkles className="h-5 w-5 mr-2 inline" />
                 Upgrade to Premium
-              </Button> */}
+              </Button>
             </CardContent>
           </Card>
         </div>

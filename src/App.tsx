@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { LandingPage } from "./pages/LandingPage";
+import { LandingPageModern } from "./pages/LandingPageModern";
 import { DashboardMain } from "./pages/DashboardMain";
 import { UpgradePage } from "./pages/UpgradePage";
 import { PitchBuilder } from "./components/PitchBuilder";
@@ -52,7 +53,7 @@ export default function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<LandingPageModern />} />
         <Route path="/builder" element={<PitchBuilder />} />
         <Route path="/dashboard/*" element={<DashboardMain username={user?.displayName ?? null} />} />
         <Route path="/upgrade" element={<UpgradePage />} />
