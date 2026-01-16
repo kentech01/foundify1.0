@@ -1047,6 +1047,7 @@ export function ContractTemplates({
                       }
                       rows={3}
                       className="w-full placeholder:text-gray-400"
+                      autoComplete="off"
                     />
                   ) : (
                     <Input
@@ -1060,6 +1061,7 @@ export function ContractTemplates({
                           : field.placeholderAlb ?? field.placeholder
                       }
                       className="w-full placeholder:text-gray-400"
+                      autoComplete="off"
                     />
                   )}
                   {submitted && errors[field.id] && (
@@ -1178,6 +1180,7 @@ export function ContractTemplates({
                       }
                       rows={3}
                       className="w-full placeholder:text-gray-400"
+                      autoComplete="off"
                     />
                   ) : (
                     <Input
@@ -1191,6 +1194,7 @@ export function ContractTemplates({
                           : field.placeholderAlb ?? field.placeholder
                       }
                       className="w-full placeholder:text-gray-400"
+                      autoComplete="off"
                     />
                   )}
                   {submitted && errors[field.id] && (

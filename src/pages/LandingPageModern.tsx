@@ -155,42 +155,31 @@ export function LandingPageModern() {
   const [toolViewProgress, setToolViewProgress] = useState(0);
   const [isToolCycling, setIsToolCycling] = useState(false);
 
-  // Services for hero cycling animation (2500ms cycles with AI effects)
-  const services = [
+  // Verbs for hero cycling animation (synced with AI activity messages)
+  const verbs = [
     {
       id: 0,
-      verb: "Recruits",
-      hasAI: false,
-      commandIcon: DollarSign,
-      commandText: "Create professional invoices in seconds",
+      verb: "Analyzes",
+      activityMessage: "Analyzing your pitch, team, and operations…",
+      icon: Brain,
     },
     {
       id: 1,
-      verb: "Connects",
-      hasAI: true,
-      commandIcon: GitBranch,
-      commandText: "Sync data across all your business tools",
+      verb: "Drafts",
+      activityMessage: "Drafting invoices, contracts, emails, and pitches…",
+      icon: FileText,
     },
     {
       id: 2,
-      verb: "Automates",
-      hasAI: true,
-      commandIcon: Zap,
-      commandText: "Build workflows that run on autopilot",
+      verb: "Assists",
+      activityMessage: "Assisting hiring and team decisions…",
+      icon: UserCheck,
     },
     {
       id: 3,
-      verb: "Drafts",
-      hasAI: true,
-      commandIcon: FileText,
-      commandText: "Generate contracts and documents instantly",
-    },
-    {
-      id: 4,
-      verb: "Analyzes",
-      hasAI: true,
-      commandIcon: Brain,
-      commandText: "Get insights from your business data",
+      verb: "Organizes",
+      activityMessage: "Organizing everything into one company brain…",
+      icon: Database,
     },
   ];
 
@@ -220,11 +209,11 @@ export function LandingPageModern() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Cycle through services every 2500ms (slower animation)
+  // Cycle through verbs every 2500ms (synced with activity messages)
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveServiceIndex((prev) => (prev + 1) % services.length);
-    }, 2500);
+      setActiveServiceIndex((prev) => (prev + 1) % verbs.length);
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
 
@@ -284,10 +273,11 @@ export function LandingPageModern() {
               className="flex items-center gap-2 cursor-pointer"
               onClick={() => navigate("/")}
             >
-              <span className="text-xl font-bold">
-                <span className="text-[#252952]">found</span>
-                <span className="text-[#4A90E2]">ify</span>
-              </span>
+              <img
+                src={new URL("../assets/FOUNDIFY-LOGO.svg", import.meta.url).href}
+                alt="Foundify"
+                className="h-6 w-auto"
+              />
             </div>
 
             {/* Desktop Nav - Center Links */}
@@ -392,113 +382,43 @@ export function LandingPageModern() {
       </motion.nav>
 
       {/* 1️⃣ HERO SECTION - Pixel-Accurate Replication */}
-      <section className="relative min-h-screen flex items-center justify-center pt-32 pb-20 overflow-hidden">
+      <section className="relative h-screen flex items-center justify-center overflow-hidden">
         {/* Background - Soft Gradient from purplish-blue to pinkish-orange */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#e8e5f5] via-[#f5f4fa] to-[#ffe5e5]" />
 
-        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
+        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center pt-20">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            {/* Headline with Animated Word (2500ms cycle with AI effects) */}
+            {/* Headline with Animated Verb */}
             <h1 className="text-5xl lg:text-6xl font-bold text-[#2d3142] mb-6 leading-tight">
-              The only AI that{" "}
-              <span className="relative inline-block">
+              The only platform that
+              <br />
+              <span className="relative inline-block min-h-[1.2em]">
                 <motion.span
                   key={activeServiceIndex}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.5 }}
-                  className={
-                    services[activeServiceIndex]?.hasAI
-                      ? "bg-gradient-to-r from-[#4A90E2] via-[#7B68EE] to-[#9D7FEA] bg-clip-text text-transparent"
-                      : "text-[#4A90E2]"
-                  }
+                  className="bg-gradient-to-r from-[#252952] to-[#4A90E2] bg-clip-text text-transparent inline-block"
                 >
-                  {services[activeServiceIndex]?.verb || "Recruits"}
+                  {verbs[activeServiceIndex]?.verb || "Analyzes"}
                 </motion.span>
-
-                {/* AI Sparkles Effect */}
-                {services[activeServiceIndex]?.hasAI && (
-                  <>
-                    <motion.span
-                      key={`sparkle1-${activeServiceIndex}`}
-                      initial={{ opacity: 0, scale: 0 }}
-                      animate={{
-                        opacity: [0, 1, 0],
-                        scale: [0, 1, 0],
-                        x: [-5, 0],
-                        y: [-5, -10],
-                      }}
-                      transition={{
-                        duration: 1.2,
-                        delay: 0.3,
-                        repeat: Infinity,
-                        repeatDelay: 1.3,
-                      }}
-                      className="absolute -top-2 -left-2 text-[#4A90E2]"
-                      style={{ fontSize: "0.5rem" }}
-                    >
-                      ✦
-                    </motion.span>
-                    <motion.span
-                      key={`sparkle2-${activeServiceIndex}`}
-                      initial={{ opacity: 0, scale: 0 }}
-                      animate={{
-                        opacity: [0, 1, 0],
-                        scale: [0, 1, 0],
-                        x: [5, 10],
-                        y: [5, 0],
-                      }}
-                      transition={{
-                        duration: 1.2,
-                        delay: 0.5,
-                        repeat: Infinity,
-                        repeatDelay: 1.3,
-                      }}
-                      className="absolute -bottom-2 -right-2 text-[#7B68EE]"
-                      style={{ fontSize: "0.4rem" }}
-                    >
-                      ✦
-                    </motion.span>
-                    <motion.span
-                      key={`sparkle3-${activeServiceIndex}`}
-                      initial={{ opacity: 0, scale: 0 }}
-                      animate={{
-                        opacity: [0, 1, 0],
-                        scale: [0, 1, 0],
-                        x: [0, 5],
-                        y: [-8, -15],
-                      }}
-                      transition={{
-                        duration: 1.2,
-                        delay: 0.7,
-                        repeat: Infinity,
-                        repeatDelay: 1.3,
-                      }}
-                      className="absolute top-0 right-0 text-[#9D7FEA]"
-                      style={{ fontSize: "0.3rem" }}
-                    >
-                      ✦
-                    </motion.span>
-                  </>
-                )}
               </span>
               <br />
-              with your work.
+              your company.
             </h1>
 
             {/* Subtitle */}
-            <p className="text-lg text-gray-600 mb-10 max-w-2xl mx-auto">
-              From pitch to contracts, everything you need to launch and grow
-              your startup <br /> in one intelligent platform.
+            <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
+              From invoices and contracts to hiring, team insights, pitches, and smart digital cards — Foundify works in the background while you decide.
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
               <Button
                 className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[12px] h-14 px-8 text-base font-medium shadow-lg hover:shadow-xl transition-all"
                 onClick={handleGetStarted}
@@ -511,59 +431,32 @@ export function LandingPageModern() {
               </button>
             </div>
 
-            {/* Synchronized Command Field (ClickUp Brain Style) */}
+            {/* AI Activity Bar - Glass-style, visually secondary */}
             <motion.div
               key={activeServiceIndex}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="max-w-md mx-auto mb-20"
+              className="max-w-md mx-auto"
             >
-              <div className="bg-white/80 backdrop-blur-md rounded-full px-6 py-4 shadow-lg border border-gray-200 flex items-center gap-3">
+              <div className="bg-white/60 backdrop-blur-md rounded-full px-6 py-3 shadow-sm border border-gray-200/50 flex items-center gap-3">
                 {/* Dynamic Icon */}
                 {(() => {
-                  const CommandIcon =
-                    services[activeServiceIndex]?.commandIcon || DollarSign;
-                  const isDollarSign = CommandIcon === DollarSign;
+                  const ActivityIcon =
+                    verbs[activeServiceIndex]?.icon || Brain;
                   return (
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        isDollarSign ? "bg-red-500" : "bg-[#4A90E2]/10"
-                      }`}
-                    >
-                      <CommandIcon
-                        className={`w-5 h-5 ${
-                          isDollarSign ? "text-white" : "text-[#4A90E2]"
-                        }`}
-                      />
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-[#4A90E2]/10">
+                      <ActivityIcon className="w-5 h-5 text-[#4A90E2]" />
                     </div>
                   );
                 })()}
 
                 {/* Dynamic Text */}
-                <span className="text-gray-700 text-sm">
-                  {services[activeServiceIndex]?.commandText ||
-                    "Create professional invoices in seconds"}
+                <span className="text-sm text-gray-600 flex-1">
+                  {verbs[activeServiceIndex]?.activityMessage || "Analyzing your pitch, team, and operations…"}
                 </span>
               </div>
             </motion.div>
-
-            {/* Trust Section with Brand Logos */}
-            <div className="space-y-6">
-              <p className="text-xs uppercase tracking-wider text-gray-500 font-medium">
-                TRUSTED BY INNOVATIVE STARTUPS
-              </p>
-
-              {/* Brand Logos in Grayscale */}
-              <div className="flex items-center justify-center gap-12 flex-wrap opacity-40 grayscale">
-                <div className="text-2xl font-bold text-gray-600">Walmart</div>
-                <div className="text-2xl font-bold text-gray-600">FedEx</div>
-                <div className="text-2xl font-bold text-gray-600">amazon</div>
-                <div className="text-2xl font-bold text-gray-600">stripe</div>
-                <div className="text-2xl font-bold text-gray-600">airbnb</div>
-                <div className="text-2xl font-bold text-gray-600">ripp</div>
-              </div>
-            </div>
           </motion.div>
         </div>
       </section>
@@ -1196,7 +1089,7 @@ export function LandingPageModern() {
         <div className="max-w-7xl mx-auto px-6">
           {/* Section Title */}
           <h2 className="text-5xl font-bold text-gray-900 mb-16">
-            More features
+            Company Dashboard & Tools
           </h2>
 
           {/* 3-Column Grid */}

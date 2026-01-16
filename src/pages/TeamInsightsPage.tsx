@@ -596,6 +596,7 @@ Looking ahead, focus on: ${newFeedback.goals
                   setNewEmployee({ ...newEmployee, name: e.target.value })
                 }
                 className="rounded-[10px] border-2 border-gray-200 focus:border-[#252952]"
+                autoComplete="off"
               />
             </div>
             <div className="space-y-2">
@@ -607,6 +608,7 @@ Looking ahead, focus on: ${newFeedback.goals
                   setNewEmployee({ ...newEmployee, role: e.target.value })
                 }
                 className="rounded-[10px] border-2 border-gray-200 focus:border-[#252952]"
+                autoComplete="off"
               />
             </div>
             <div className="space-y-2">
@@ -685,6 +687,7 @@ Looking ahead, focus on: ${newFeedback.goals
                   setNewFeedback({ ...newFeedback, strengths: e.target.value })
                 }
                 className="rounded-[10px] border-2 border-gray-200 focus:border-[#252952] min-h-[100px]"
+                autoComplete="off"
               />
             </div>
 
@@ -700,6 +703,7 @@ Looking ahead, focus on: ${newFeedback.goals
                   })
                 }
                 className="rounded-[10px] border-2 border-gray-200 focus:border-[#252952] min-h-[100px]"
+                autoComplete="off"
               />
             </div>
 
@@ -712,6 +716,7 @@ Looking ahead, focus on: ${newFeedback.goals
                   setNewFeedback({ ...newFeedback, goals: e.target.value })
                 }
                 className="rounded-[10px] border-2 border-gray-200 focus:border-[#252952] min-h-[100px]"
+                autoComplete="off"
               />
             </div>
 
@@ -801,6 +806,7 @@ Looking ahead, focus on: ${newFeedback.goals
                     setNewRecord({ ...newRecord, startDate: e.target.value })
                   }
                   className="rounded-[10px] border-2 border-gray-200 focus:border-[#252952]"
+                  autoComplete="off"
                 />
               </div>
               <div className="space-y-2">
@@ -812,6 +818,7 @@ Looking ahead, focus on: ${newFeedback.goals
                     setNewRecord({ ...newRecord, endDate: e.target.value })
                   }
                   className="rounded-[10px] border-2 border-gray-200 focus:border-[#252952]"
+                  autoComplete="off"
                 />
               </div>
             </div>
@@ -826,6 +833,7 @@ Looking ahead, focus on: ${newFeedback.goals
                 }
                 className="rounded-[10px] border-2 border-gray-200 focus:border-[#252952]"
                 rows={3}
+                autoComplete="off"
               />
             </div>
 

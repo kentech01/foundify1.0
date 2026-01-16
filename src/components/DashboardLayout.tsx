@@ -87,7 +87,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
     },
     {
       path: "/dashboard/qr-card",
-      label: "QR Visit Card",
+      label: "Smart Digital Card",
       icon: QrCode,
     },
     {
@@ -170,8 +170,8 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
           }}
           className={`w-full flex items-center gap-3 px-4 py-3 rounded-[10px] transition-all duration-200 ${
             currentPath.startsWith("/dashboard/pitches")
-              ? "bg-gradient-to-r from-[#4A90E2] to-[#7DD3FC] text-white shadow-lg"
-              : "text-white/70 hover:bg-white/10 hover:text-white"
+              ? "bg-[#252952] text-white shadow-lg"
+              : "bg-[#EEF0FF] text-[#252952] hover:bg-[#EEF0FF]/80"
           }`}
         >
           <LayoutDashboard className="h-5 w-5 flex-shrink-0" />
@@ -279,53 +279,13 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="lg:hidden p-2 hover:bg-[#EEF0FF] rounded-lg transition-colors"
             >
               <Menu className="h-6 w-6 text-gray-700" />
             </button>
 
-            {/* Page Title */}
+            {/* Page Title - Removed */}
             <div className="flex-1 lg:ml-0 ml-4">
-              {currentPath.startsWith("/dashboard/pitches") && (
-                <h2 className="text-xl lg:text-2xl font-bold text-[#252952]">
-                  Company Dashboard
-                </h2>
-              )}
-              {currentPath.startsWith("/dashboard/invoices") && (
-                <h2 className="text-xl lg:text-2xl font-bold text-[#252952]">
-                  Invoice Generator
-                </h2>
-              )}
-              {currentPath.startsWith("/dashboard/contracts") && (
-                <h2 className="text-xl lg:text-2xl font-bold text-[#252952]">
-                  Contract Templates
-                </h2>
-              )}
-              {currentPath.startsWith("/dashboard/feedbackCoach") && (
-                <h2 className="text-xl lg:text-2xl font-bold text-[#252952]">
-                  Team Insights
-                </h2>
-              )}
-              {currentPath.startsWith("/dashboard/investor-email-draft") && (
-                <h2 className="text-xl lg:text-2xl font-bold text-[#252952]">
-                  Email Templates
-                </h2>
-              )}
-              {currentPath.startsWith("/dashboard/qr-card") && (
-                <h2 className="text-xl lg:text-2xl font-bold text-[#252952]">
-                  QR Visit Card
-                </h2>
-              )}
-              {currentPath.startsWith("/dashboard/ai-hiring-assistant") && (
-                <h2 className="text-xl lg:text-2xl font-bold text-[#252952]">
-                  AI Hiring Assistant
-                </h2>
-              )}
-              {currentPath.startsWith("/dashboard/landing-page-generator") && (
-                <h2 className="text-xl lg:text-2xl font-bold text-[#252952]">
-                  Landing Page Generator
-                </h2>
-              )}
             </div>
 
             <div className="flex items-center gap-2 lg:gap-4">
@@ -344,7 +304,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="flex items-center gap-2 hover:bg-gray-50 rounded-xl px-2 lg:px-3 py-2"
+                      className="flex items-center gap-2 hover:bg-[#EEF0FF] rounded-xl px-2 lg:px-3 py-2"
                     >
                       <Avatar className="h-8 w-8">
                         <AvatarImage
@@ -368,7 +328,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
                       </h3>
                       <p className="text-sm text-gray-600">{user.email}</p>
                     </div>
-                    <div className="px-4 py-2 bg-gray-50">
+                    <div className="px-4 py-2 bg-[#EEF0FF]">
                       <DropdownMenuItem className="flex items-center gap-3 px-4 py-3 text-base font-medium text-gray-700 hover:bg-white rounded-xl transition-colors cursor-pointer">
                         <LayoutDashboard className="h-5 w-5" />
                         <span>Dashboard</span>
@@ -387,7 +347,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
                 <Button
                   onClick={() => setIsSignInModalOpen(true)}
                   variant="outline"
-                  className="flex items-center gap-2 hover:bg-gray-50 rounded-xl px-4 py-2"
+                  className="flex items-center gap-2 hover:bg-[#EEF0FF] rounded-xl px-4 py-2"
                 >
                   <LogIn className="h-4 w-4" />
                   <span>Sign In</span>

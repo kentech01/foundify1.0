@@ -662,6 +662,7 @@ export function PitchBuilder() {
                       onKeyDown={(e) => handleKeyDown(e, "input")}
                       className="text-base h-14 border-2 border-gray-200 focus:border-[#252952] rounded-[12px]"
                       autoFocus={field.id === currentStepData.fields[0]?.id}
+                      autoComplete="off"
                     />
                   ) : (
                     <Textarea
@@ -675,6 +676,7 @@ export function PitchBuilder() {
                       onKeyDown={(e) => handleKeyDown(e, "textarea")}
                       className="text-base min-h-[140px] border-2 border-gray-200 focus:border-[#252952] rounded-[12px] resize-none"
                       autoFocus={field.id === currentStepData.fields[0]?.id}
+                      autoComplete="off"
                     />
                   )}
 

@@ -789,13 +789,6 @@ export function PitchDashboard({
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-[#252952] mb-2">
-          Company Dashboard
-        </h1>
-        <p className="text-gray-600 text-lg">Your company's central brain</p>
-      </div>
 
       <div className="grid gap-6">
         {/* Company Profile Card - Primary */}
@@ -825,7 +818,7 @@ export function PitchDashboard({
                   {/* Company Info */}
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-3">
-                      <h2 className="text-3xl font-bold text-[#252952]">
+                      <h2 className="text-[50px] font-bold text-[#252952] leading-tight">
                         {companyData.companyName}
                       </h2>
                       <Badge
@@ -849,7 +842,7 @@ export function PitchDashboard({
                       </Badge>
                     </div>
 
-                    <p className="text-gray-700 text-lg mb-4 leading-relaxed">
+                    <p className="text-gray-700 text-[18px] mb-4 leading-relaxed">
                       {companyData.oneLiner}
                     </p>
 
@@ -960,7 +953,7 @@ export function PitchDashboard({
           <Card className="border-2 border-gray-200 rounded-[24px] overflow-hidden shadow-lg">
             <CardContent className="p-8 text-center">
               <Building2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-[25px] font-semibold text-gray-900 mb-2">
                 No Company Profile
               </h3>
               <p className="text-gray-600 mb-6">
@@ -983,10 +976,10 @@ export function PitchDashboard({
             <CardContent className="p-8">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-2xl font-bold text-[#252952] mb-1">
+                  <h3 className="text-[25px] font-bold text-[#252952] mb-1">
                     Pitch Assets
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 text-[16px]">
                     Auto-generated from your company profile
                   </p>
                 </div>
@@ -1009,10 +1002,10 @@ export function PitchDashboard({
                         <FileText className="w-6 h-6 text-white" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-[#252952] mb-1">
+                        <h4 className="text-[20px] font-semibold text-[#252952] mb-1">
                           Pitch Deck
                         </h4>
-                        <p className="text-sm text-gray-600 mb-3">
+                        <p className="text-[16px] text-gray-600 mb-3">
                           Professional presentation
                         </p>
                         <div className="flex gap-2">
@@ -1058,12 +1051,12 @@ export function PitchDashboard({
                         <Globe className="w-6 h-6 text-white" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-[#252952] mb-1">
+                        <h4 className="text-[20px] font-semibold text-[#252952] mb-1">
                           Live Landing Page
                         </h4>
                         {firstPitchHasPremiumLanding ? (
                           <>
-                            <p className="text-sm text-gray-600 mb-3">
+                            <p className="text-[16px] text-gray-600 mb-3">
                               foundify.app/
                               {firstPitchMeta.startupName
                                 ?.toLowerCase()
@@ -1132,10 +1125,10 @@ export function PitchDashboard({
                   <Zap className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-[#252952] mb-1">
+                  <h3 className="text-[25px] font-bold text-[#252952] mb-1">
                     Powers All Your Tools
                   </h3>
-                  <p className="text-gray-600 text-sm">
+                  <p className="text-gray-600 text-[16px]">
                     This information automatically powers all your Foundify
                     tools
                   </p>
@@ -1185,7 +1178,7 @@ export function PitchDashboard({
 
       {/* Original Pitches List Section (Hidden but kept for functionality) */}
       <div className="hidden">
-        <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4">
+        <h3 className="text-[25px] font-bold text-gray-900 mb-3 md:mb-4">
           Your Pitches
         </h3>
 
@@ -1199,7 +1192,7 @@ export function PitchDashboard({
         ) : (pitches?.length || 0) === 0 ? (
           <div className="text-center py-12">
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <h3 className="text-[25px] font-medium text-gray-900 mb-2">
               No pitches yet
             </h3>
             <p className="text-gray-600 mb-6">
@@ -1225,7 +1218,7 @@ export function PitchDashboard({
                     {/* Pitch Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg md:text-xl font-semibold text-gray-900 truncate">
+                        <h3 className="text-[25px] font-semibold text-gray-900 truncate">
                           {pitch.startupName}
                         </h3>
                       </div>
@@ -1305,11 +1298,11 @@ export function PitchDashboard({
         <DialogContent className="max-w-4xl h-auto max-h-[90vh] rounded-[32px] p-0 flex flex-col">
           <div className="sticky top-0 bg-white z-10 border-b border-gray-200 p-6 flex-shrink-0">
             <DialogHeader>
-              <DialogTitle className="text-3xl text-[#252952] flex items-center gap-3">
+              <DialogTitle className="text-[50px] font-bold text-[#252952] flex items-center gap-3">
                 <Edit className="w-7 h-7" />
                 Edit Company Info
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-[16px]">
                 Update your company information — changes apply everywhere
                 automatically
               </DialogDescription>
@@ -1370,6 +1363,7 @@ export function PitchDashboard({
                       })
                     }
                     className="h-14 text-lg border-2 border-gray-200 rounded-[12px] focus:border-[#252952]"
+                    autoComplete="off"
                     placeholder="Enter your company name"
                   />
                 </div>
@@ -1384,6 +1378,7 @@ export function PitchDashboard({
                       setEditedData({ ...editedData, oneLiner: e.target.value })
                     }
                     className="min-h-[100px] text-base border-2 border-gray-200 rounded-[12px] resize-none focus:border-[#252952]"
+                    autoComplete="off"
                     placeholder="One clear sentence that explains your company"
                   />
                   <p className="text-sm text-gray-500">
@@ -1429,6 +1424,7 @@ export function PitchDashboard({
                       setEditedData({ ...editedData, problem: e.target.value })
                     }
                     className="min-h-[140px] text-base border-2 border-gray-200 rounded-[12px] resize-none focus:border-[#252952]"
+                    autoComplete="off"
                     placeholder="Describe the problem your company addresses..."
                   />
                   <p className="text-sm text-gray-500">
@@ -1446,6 +1442,7 @@ export function PitchDashboard({
                       setEditedData({ ...editedData, value: e.target.value })
                     }
                     className="min-h-[140px] text-base border-2 border-gray-200 rounded-[12px] resize-none focus:border-[#252952]"
+                    autoComplete="off"
                     placeholder="Explain the value you create and how you help..."
                   />
                   <p className="text-sm text-gray-500">
@@ -1471,6 +1468,7 @@ export function PitchDashboard({
                       setEditedData({ ...editedData, status: e.target.value })
                     }
                     className="h-14 text-base border-2 border-gray-200 rounded-[12px] focus:border-[#252952]"
+                    autoComplete="off"
                     placeholder='e.g., "$50K MRR", "500+ customers", "Early stage"'
                   />
                   <p className="text-sm text-gray-500">
@@ -1663,12 +1661,12 @@ export function PitchDashboard({
 
       {/* Landing Page Generator - Hidden */}
       <div className="hidden mt-8">
-        <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-4">
+        <h3 className="text-[25px] font-bold text-gray-900 mb-4">
           Landing Page Generator
         </h3>
         <Card className="border-2 border-gray-100">
           <CardHeader>
-            <CardTitle className="text-xl font-bold">
+            <CardTitle className="text-[25px] font-bold">
               Upload Your Logo (Optional)
             </CardTitle>
             <p className="text-sm text-gray-600">
@@ -1826,7 +1824,7 @@ export function PitchDashboard({
               </div>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-1">
-                  <h3 className="text-base md:text-lg font-bold text-gray-900">
+                  <h3 className="text-[25px] font-bold text-gray-900">
                     Premium Active
                   </h3>
                   <Badge className="bg-green-500 text-white hover:bg-green-600 text-xs">

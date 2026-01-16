@@ -45,7 +45,7 @@ export function QRVisitCardPage() {
       return;
     }
     setIsGenerated(true);
-    toast.success('QR Visit Card generated!');
+    toast.success('Smart Digital Card generated!');
   };
 
   const handleDownload = () => {
@@ -78,7 +78,7 @@ export function QRVisitCardPage() {
     <div className="p-4 lg:p-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-[#252952] mb-2">QR Visit Card</h1>
+        <h1 className="text-4xl font-bold text-[#252952] mb-2">Smart Digital Card</h1>
         <p className="text-gray-600 mt-2">
           Share your identity and startup instantly
         </p>
@@ -121,6 +121,7 @@ export function QRVisitCardPage() {
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                     className="rounded-xl border-2 border-gray-200 focus:border-[#4A90E2]"
+                    autoComplete="off"
                   />
                 </div>
 
@@ -131,6 +132,7 @@ export function QRVisitCardPage() {
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                     className="rounded-xl border-2 border-gray-200 focus:border-[#4A90E2]"
+                    autoComplete="off"
                   />
                 </div>
 
@@ -144,6 +146,7 @@ export function QRVisitCardPage() {
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="pl-10 rounded-xl border-2 border-gray-200 focus:border-[#4A90E2]"
+                      autoComplete="off"
                     />
                   </div>
                 </div>
@@ -158,6 +161,7 @@ export function QRVisitCardPage() {
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       className="pl-10 rounded-xl border-2 border-gray-200 focus:border-[#4A90E2]"
+                      autoComplete="off"
                     />
                   </div>
                 </div>
@@ -171,6 +175,7 @@ export function QRVisitCardPage() {
                       value={formData.linkedin}
                       onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
                       className="pl-10 rounded-xl border-2 border-gray-200 focus:border-[#4A90E2]"
+                      autoComplete="off"
                     />
                   </div>
                 </div>
@@ -184,6 +189,7 @@ export function QRVisitCardPage() {
                       value={formData.twitter}
                       onChange={(e) => setFormData({ ...formData, twitter: e.target.value })}
                       className="pl-10 rounded-xl border-2 border-gray-200 focus:border-[#4A90E2]"
+                      autoComplete="off"
                     />
                   </div>
                 </div>
@@ -214,7 +220,7 @@ export function QRVisitCardPage() {
                   className="w-full bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-xl"
                 >
                   <QrCode className="mr-2 h-4 w-4" />
-                  Generate QR Visit Card
+                  Generate Smart Digital Card
                 </Button>
               </div>
             </CardContent>
@@ -229,7 +235,7 @@ export function QRVisitCardPage() {
                 <QrCode className="h-20 w-20 mx-auto mb-4 text-gray-300" />
                 <h3 className="font-semibold text-gray-900 mb-2">Preview Your Card</h3>
                 <p className="text-gray-500">
-                  Fill in your details and generate your QR visit card
+                  Fill in your details and generate your Smart Digital Card
                 </p>
               </CardContent>
             </Card>

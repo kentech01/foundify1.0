@@ -566,6 +566,7 @@ ${mockStartupData.name}`;
                           value={formData[field] || ''}
                           onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
                           className="rounded-xl border-2 border-gray-200 focus:border-[#4A90E2]"
+                          autoComplete="off"
                         />
                       </div>
                     ))}
@@ -582,6 +583,7 @@ ${mockStartupData.name}`;
                           onChange={(e) => setFormData({ ...formData, note: e.target.value })}
                           className="rounded-xl border-2 border-gray-200 focus:border-[#4A90E2]"
                           rows={3}
+                          autoComplete="off"
                         />
                       </div>
                     )}
@@ -645,6 +647,7 @@ ${mockStartupData.name}`;
                         value={generatedEmail}
                         onChange={(e) => setGeneratedEmail(e.target.value)}
                         className="min-h-[400px] border-0 bg-transparent resize-none focus:ring-0 p-0 font-mono text-sm"
+                        autoComplete="off"
                       />
                     </div>
                     <div className="flex gap-3">

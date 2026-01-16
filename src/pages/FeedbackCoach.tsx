@@ -218,6 +218,7 @@ export function FeedbackCoach() {
                   placeholder="John Smith"
                   className="placeholder:text-gray-400"
                   maxLength={100}
+                  autoComplete="off"
                 />
                 {submitted && errors.employeeName && (
                   <div
@@ -319,6 +320,7 @@ Examples:
 • Takes initiative on challenging projects"
                   rows={5}
                   className="placeholder:text-gray-400"
+                  autoComplete="off"
                 />
               </CardContent>
             </Card>
@@ -342,6 +344,7 @@ Examples:
 • Time management on multiple concurrent projects"
                   rows={5}
                   className="placeholder:text-gray-400"
+                  autoComplete="off"
                 />
               </CardContent>
             </Card>
@@ -365,6 +368,7 @@ Examples:
 • Could improve on providing more detailed handoffs"
                   rows={4}
                   className="placeholder:text-gray-400"
+                  autoComplete="off"
                 />
               </CardContent>
             </Card>
@@ -389,6 +393,7 @@ Examples:
 • Improve presentation skills for client demos"
                   rows={5}
                   className="placeholder:text-gray-400"
+                  autoComplete="off"
                 />
               </CardContent>
             </Card>
@@ -406,6 +411,7 @@ Examples:
                   placeholder="Any additional feedback, context, or discussion points for your conversation with John..."
                   rows={3}
                   className="placeholder:text-gray-400"
+                  autoComplete="off"
                 />
               </CardContent>
             </Card>

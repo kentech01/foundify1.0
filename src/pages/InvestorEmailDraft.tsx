@@ -554,6 +554,7 @@ export function InvestorEmailDraft() {
                         placeholder={field.placeholder}
                         className="placeholder:text-gray-400 min-h-[100px]"
                         rows={4}
+                        autoComplete="off"
                       />
                     ) : (
                       <Input
@@ -563,6 +564,7 @@ export function InvestorEmailDraft() {
                         placeholder={field.placeholder}
                         className="placeholder:text-gray-400"
                         maxLength={280}
+                        autoComplete="off"
                       />
                     )}
                     {(field as any).submitted && field.error && (
