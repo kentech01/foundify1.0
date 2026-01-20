@@ -46,15 +46,12 @@ export function LandingPage() {
         handleOpenSignInModal={() => setIsSignInModalOpen(true)}
       />
       <HeroModern onStart={handleStartPitch} />
-<<<<<<< HEAD
       <WhatYouGet />
       <BenefitsModern />
       <PricingModern onStart={handleStartPitch} onUpgrade={handleUpgrade} />
-=======
       <WhatYouGet onStart={handleStartPitch}/>
       <BenefitsModern onStart={handleStartPitch}/>
       <PricingModern onStart={handleStartPitch} />
->>>>>>> main
       <CTASection onStart={handleStartPitch} />
       <Footer />
       {/* Sign In Modal - only for Header sign in button */}

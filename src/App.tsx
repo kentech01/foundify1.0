@@ -1,7 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import { LandingPage } from "./pages/LandingPage";
-import { LandingPageModern } from "./pages/LandingPageModern";
+import Landing from "./pages/Landing";
 import { DashboardMain } from "./pages/DashboardMain";
 import { UpgradePage } from "./pages/UpgradePage";
 import { PitchBuilder } from "./components/PitchBuilder";
@@ -15,7 +14,6 @@ import { UserAuth } from "./context/AuthContext";
 import LandingPagePreview from "./pages/LandingPagePreview";
 import React from "react";
 import Terms from "./pages/Terms";
-import { log } from "console";
 
 export default function App() {
   const { isGenerating, progress } = useApp();
@@ -53,7 +51,7 @@ export default function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<LandingPageModern />} />
+        <Route path="/" element={<Landing />} />
         <Route path="/builder" element={<PitchBuilder />} />
         <Route path="/dashboard/*" element={<DashboardMain username={user?.displayName ?? null} />} />
         <Route path="/upgrade" element={<UpgradePage />} />

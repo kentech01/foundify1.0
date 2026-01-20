@@ -170,7 +170,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
           }}
           className={`w-full flex items-center gap-3 px-4 py-3 rounded-[10px] transition-all duration-200 ${
             currentPath.startsWith("/dashboard/pitches")
-              ? "bg-[#252952] text-white shadow-lg"
+              ? "bg-[#252952] text-white"
               : "bg-[#EEF0FF] text-[#252952] hover:bg-[#EEF0FF]/80"
           }`}
         >
@@ -255,7 +255,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
   return (
     <div className="flex h-screen bg-[#f8fafc]">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 bg-gradient-to-b from-[#252952] to-[#4A90E2] flex-col">
+      <aside className="hidden lg:flex w-64 flex-col" style={{ backgroundColor: 'rgba(37, 41, 82, 1)' }}>
         <SidebarContent />
       </aside>
 
@@ -263,7 +263,8 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
       <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
         <SheetContent
           side="left"
-          className="w-64 p-0 bg-gradient-to-b from-[#252952] to-[#4A90E2]"
+          className="w-64 p-0"
+          style={{ backgroundColor: 'rgba(37, 41, 82, 1)' }}
         >
           <div className="flex flex-col h-full">
             <SidebarContent />
