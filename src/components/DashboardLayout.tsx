@@ -30,6 +30,7 @@ import {
   Globe,
   User,
   Plus,
+  HomeIcon,
 } from "lucide-react";
 import { UserAuth } from "../context/AuthContext";
 import SignInModal from "./signIn/SignInModal";
@@ -45,7 +46,6 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
   const location = useLocation();
   const { user, logOut, loading } = UserAuth();
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-  const [isEssentialsOpen, setIsEssentialsOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
@@ -76,11 +76,6 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
       icon: FileCheck,
     },
     {
-      path: "/dashboard/feedbackCoach",
-      label: "Team Insights",
-      icon: MessageSquare,
-    },
-    {
       path: "/dashboard/investor-email-draft",
       label: "Email Templates",
       icon: Mail,
@@ -89,6 +84,11 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
       path: "/dashboard/qr-card",
       label: "Smart Digital Card",
       icon: QrCode,
+    },
+    {
+      path: "/dashboard/feedbackCoach",
+      label: "Team Insights",
+      icon: MessageSquare,
     },
     {
       path: "/dashboard/ai-hiring-assistant",
@@ -105,21 +105,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
   const currentPath = location.pathname;
 
   // Auto-open essentials menu when on any essentials page
-  useEffect(() => {
-    const essentialsPages = [
-      "/dashboard/invoices",
-      "/dashboard/contracts",
-      "/dashboard/feedbackCoach",
-      "/dashboard/investor-email-draft",
-      "/dashboard/ai-hiring-assistant",
-      "/dashboard/qr-card",
-      "/dashboard/landing-page-generator",
-    ];
-
-    if (essentialsPages.some((page) => currentPath.startsWith(page))) {
-      setIsEssentialsOpen(true);
-    }
-  }, [currentPath]);
+  
 
   const handleSignOut = async () => {
     try {
@@ -152,7 +138,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
   const SidebarContent = () => (
     <>
       {/* Logo */}
-      <div className="p-6 border-b border-white/10">
+      <div className="p-6 pb-0">
         <div className="flex items-center gap-3">
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-white">foundify</h1>
@@ -170,40 +156,29 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
           }}
           className={`w-full flex items-center gap-3 px-4 py-3 rounded-[10px] transition-all duration-200 ${
             currentPath.startsWith("/dashboard/pitches")
-              ? "bg-[#252952] text-white"
-              : "bg-[#EEF0FF] text-[#252952] hover:bg-[#EEF0FF]/80"
+              ? "bg-white/20 text-white"
+              : "text-white/60 hover:bg-white/10 hover:text-white"
           }`}
         >
-          <LayoutDashboard className="h-5 w-5 flex-shrink-0" />
+          <HomeIcon className="h-5 w-5 flex-shrink-0" />
           <span className="flex-1 text-left font-semibold text-sm">
-            Pitch Dashboard
+            Company Dashboard
           </span>
         </button>
 
         {/* Founder Essentials - Collapsible */}
         <div className="space-y-1">
-          <button
-            onClick={() => setIsEssentialsOpen(!isEssentialsOpen)}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-[10px] transition-all duration-200 ${
-              isFounderEssentialsActive
-                ? "bg-white/10 text-white"
-                : "text-white/70 hover:bg-white/10 hover:text-white"
-            }`}
+          <h1
+            className={`w-full flex items-center gap-3 px-4 py-3 text-gray-500 rounded-[10px] transition-all duration-200 `}
           >
-            <Wrench className="h-5 w-5 flex-shrink-0" />
             <span className="flex-1 text-left font-semibold text-sm">
               Founder Essentials
             </span>
-            <ChevronRight
-              className={`h-4 w-4 transition-transform duration-200 ${
-                isEssentialsOpen ? "rotate-90" : ""
-              }`}
-            />
-          </button>
+          </h1>
 
           {/* Sub-items */}
-          {isEssentialsOpen && (
-            <div className="ml-2 space-y-1 mt-1">
+          
+            <div className="space-y-1 mt-1">
               {essentialsSubItems.map((subItem) => {
                 const Icon = subItem.icon;
                 const isSubItemActive = currentPath.startsWith(subItem.path);
@@ -228,13 +203,12 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
                 );
               })}
             </div>
-          )}
         </div>
       </nav>
 
       {/* Bottom Section */}
       <div className="p-4 border-t border-white/10 space-y-2">
-        <button
+        {/* <button
           onClick={() => {
             navigate("/");
             setIsMobileMenuOpen(false);
@@ -243,7 +217,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
         >
           <Home className="h-5 w-5" />
           <span className="text-sm">Back to Home</span>
-        </button>
+        </button> */}
         <button className="w-full flex items-center gap-3 px-4 py-3 rounded-[10px] text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200">
           <Settings className="h-5 w-5" />
           <span className="text-sm">Settings</span>
@@ -255,7 +229,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
   return (
     <div className="flex h-screen bg-[#f8fafc]">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 flex-col" style={{ backgroundColor: 'rgba(37, 41, 82, 1)' }}>
+      <aside className="hidden lg:flex w-64 flex-col" style={{ backgroundColor: '#1f2937' }}>
         <SidebarContent />
       </aside>
 

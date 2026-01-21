@@ -125,6 +125,8 @@ export function PitchBuilder() {
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [isLimitModalOpen, setIsLimitModalOpen] = useState(false);
   const [limitModalMessage, setLimitModalMessage] = useState("");
+  const [search, setSearch] = useState("");
+  
   const [currentStep, setCurrentStep] = useState(0);
   const [shouldAutoSubmit, setShouldAutoSubmit] = useState(false);
   const [formData, setFormData] = useState<BuilderFormData>({
@@ -627,7 +629,7 @@ export function PitchBuilder() {
             <div className="space-y-6">
               {currentStepData.fields.map((field) => (
                 <div key={field.id} className="space-y-3">
-                  <Label className="text-lg font-semibold text-[#252952]">
+                  <Label className="text-lg gap-0 font-semibold text-[#252952]">
                     {field.label}
                     {field.required && (
                       <span className="text-red-500 ml-1">*</span>
@@ -636,20 +638,37 @@ export function PitchBuilder() {
 
                   {field.id === "industry" ? (
                     <Select
-                      value={formData.industry}
-                      onValueChange={(value) => handleChange("industry", value)}
-                    >
-                      <SelectTrigger className="text-base h-14 border-2 border-gray-200 focus:border-[#252952] rounded-[12px]">
-                        <SelectValue placeholder={field.placeholder} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {INDUSTRIES.map((industry) => (
+                    value={formData.industry}
+                    onValueChange={(value) => handleChange("industry", value)}
+                  >
+                    <SelectTrigger className="text-base h-14 border-2 border-gray-200 rounded-[12px]">
+                      <SelectValue placeholder="Select industry" />
+                    </SelectTrigger>
+                  
+                    <SelectContent>
+                      {/* Search input */}
+                      <div className="p-2">
+                        <input
+                          type="text"
+                          placeholder="Search..."
+                          value={search}
+                          onChange={(e) => setSearch(e.target.value)}
+                          className="w-full h-9 px-3 text-sm border rounded-md outline-none"
+                        />
+                      </div>
+                  
+                      {/* Filtered options */}
+                      {INDUSTRIES
+                        .filter((industry) =>
+                          industry.toLowerCase().includes(search.toLowerCase())
+                        )
+                        .map((industry) => (
                           <SelectItem key={industry} value={industry}>
                             {industry}
                           </SelectItem>
                         ))}
-                      </SelectContent>
-                    </Select>
+                    </SelectContent>
+                  </Select>
                   ) : field.type === "input" ? (
                     <Input
                       placeholder={field.placeholder}
