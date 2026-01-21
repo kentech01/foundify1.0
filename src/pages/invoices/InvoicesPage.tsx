@@ -52,8 +52,13 @@ import {
   Search,
   ArrowLeft,
   AlertTriangle,
+  Calendar1,
 } from "lucide-react";
-import { apiService, useApiService, type Invoice as ApiInvoice } from "../../services/api";
+import {
+  apiService,
+  useApiService,
+  type Invoice as ApiInvoice,
+} from "../../services/api";
 import { toast } from "sonner";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { useNavigate } from "react-router-dom";
@@ -89,7 +94,7 @@ export function InvoicesPage() {
     { description: "", quantity: "", rate: "" },
   ]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [fetchedCompany, setFetchedCompany] = useState<string>("")
+  const [fetchedCompany, setFetchedCompany] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -187,13 +192,13 @@ export function InvoicesPage() {
 
   // Load invoices from API
   useEffect(() => {
-    getCompanyName()
+    getCompanyName();
     loadInvoices();
   }, []);
-  const getCompanyName = async () =>{
+  const getCompanyName = async () => {
     const result = await apiService.getPitchHistory();
     setFetchedCompany(result.data[0].startupName);
-  }
+  };
   const loadInvoices = async () => {
     setIsLoading(true);
     try {
@@ -1138,17 +1143,37 @@ export function InvoicesPage() {
       </div>*/}
 
       {/* Search Bar */}
+      <div className="flex gap-4 mb-8">
+        <div className="border-gray-300 rounded-xl border p-4 w-[200px]">
+          <p className="text-sm text-gray-600">Total Invoices</p>
+          <p className="text-xl sm:text-2xl mt-1 font-bold text-gray-900">{invoices.length}</p>
+        </div>
+        <div className="border-gray-300 flex justify-between items-center rounded-xl border p-4 w-[200px]">
+          <div>
+          <p className="text-sm text-gray-600">Total Revenue</p>
+          <p className="text-xl flex justify-between items-center sm:text-2xl mt-1 font-bold text-gray-900">
+            $564
+            
+          </p>
+          </div>
+          <div className="w-14 h-14 rounded-xl bg-green-50 flex items-center justify-center">
+              <DollarSign className="h-7 w-7 text-green-600" />
+            </div>
+        </div>
+      </div>
       <div className="mb-6">
-        {invoices.length > 0 && <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <Input
-            placeholder="Search invoices..."
-            className="pl-10 border-2 border-gray-200 rounded-xl placeholder:text-gray-400"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            autoComplete="off"
-          />
-        </div>}
+        {invoices.length > 0 && (
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Input
+              placeholder="Search invoices..."
+              className="pl-10 border-2 border-gray-200 rounded-xl placeholder:text-gray-400"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              autoComplete="off"
+            />
+          </div>
+        )}
       </div>
 
       {/* Invoices List */}
@@ -1160,7 +1185,9 @@ export function InvoicesPage() {
             <CardContent className="p-12 text-center">
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {searchTerm ? "No invoices found" : "No invoices yet - create your first one"}
+                {searchTerm
+                  ? "No invoices found"
+                  : "No invoices yet - create your first one"}
               </h3>
               <p className="text-gray-600 mb-4">
                 {searchTerm && "Try adjusting your search terms"}
@@ -1174,7 +1201,7 @@ export function InvoicesPage() {
               className="border-2 border-gray-100 hover:shadow-lg transition-shadow rounded-2xl"
             >
               <CardContent className="p-4 sm:p-6 overflow-hidden">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-7">
                   {/* Invoice Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
@@ -1203,14 +1230,25 @@ export function InvoicesPage() {
                       </p>
                     </div>
                   </div>
+                  <div className="flex items-center gap-4 lg:gap-6 flex-shrink-0 mb-4 lg:mb-0">
+                    <div>
+                      <p className="text-sm text-gray-600">Date Created</p>
+                      <p className="text-sm sm:text-sm flex items-center gap-2 font-medium text-gray-600 h-[29px]">
+                        <Calendar className="h-4 w-[14px] text-gray-600" />
+                        {new Date(invoice.createdAt).toLocaleDateString(
+                          "en-GB"
+                        )}
+                      </p>
+                    </div>
+                  </div>
 
                   {/* Actions */}
                   <div className="flex flex-wrap gap-2 sm:gap-3 w-full lg:w-auto">
                     <Button
                       onClick={() => handleView(invoice)}
-                      variant="secondary"
+                      variant="outline"
                       size="sm"
-                      className="sm:h-10 border-2 border-gray-200 rounded-xl hover:bg-gray-50 flex-1 sm:flex-none"
+                      className="sm:h-8 border-2 border-gray-200 rounded-xl hover:bg-gray-50 flex-1 sm:flex-none"
                       disabled={viewingId === invoice.id}
                     >
                       {viewingId === invoice.id ? (
@@ -1229,23 +1267,23 @@ export function InvoicesPage() {
                       onClick={() => openEditModal(invoice)}
                       variant="outline"
                       size="sm"
-                      className="sm:h-10 border-2 border-gray-200 rounded-xl hover:bg-gray-50 flex-1 sm:flex-none"
+                      className="sm:h-8 border-2 border-gray-200 rounded-xl hover:bg-gray-50 flex-1 sm:flex-none"
                     >
                       <Edit className="mr-1 h-4 w-4" />
                       <span className="hidden sm:inline">Edit</span>
                     </Button>
-                    {invoice.status === "pending" && (
+                    {/* {invoice.status === "pending" && (
                       <Button
                         size="sm"
-                        className="sm:h-10 bg-green-600 hover:bg-green-700 text-white rounded-xl flex-1 sm:flex-none"
+                        className="sm:h-8 bg-green-600 hover:bg-green-700 text-white rounded-xl flex-1 sm:flex-none"
                       >
                         <Send className="mr-1 h-4 w-4" />
                         <span className="hidden sm:inline">Send</span>
                       </Button>
-                    )}
+                    )} */}
                     <Button
                       size="sm"
-                      className="sm:h-10 bg-[#252952] hover:bg-[#161930] text-white rounded-xl flex-1 sm:flex-none"
+                      className="sm:h-8 bg-[#4a90e2] hover:bg-[#618dc0] text-white rounded-xl flex-1 sm:flex-none"
                       onClick={() => handleDownload(invoice)}
                       disabled={downloadingId === invoice.id}
                     >
@@ -1266,7 +1304,7 @@ export function InvoicesPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="sm:h-10 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl flex-1 sm:flex-none"
+                      className="sm:h-8 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl flex-1 sm:flex-none"
                       onClick={() => handleDeleteClick(invoice)}
                     >
                       <Trash2 className="h-4 w-4" />
