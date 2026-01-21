@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserAuth } from "@/context/AuthContext";
+import React from "react";
 
 interface NavProps {
   onDashboardClick?: () => void;

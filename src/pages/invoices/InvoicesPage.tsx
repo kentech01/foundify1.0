@@ -53,7 +53,7 @@ import {
   ArrowLeft,
   AlertTriangle,
 } from "lucide-react";
-import { useApiService, type Invoice as ApiInvoice } from "../../services/api";
+import { apiService, useApiService, type Invoice as ApiInvoice } from "../../services/api";
 import { toast } from "sonner";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { useNavigate } from "react-router-dom";
@@ -89,6 +89,7 @@ export function InvoicesPage() {
     { description: "", quantity: "", rate: "" },
   ]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [fetchedCompany, setFetchedCompany] = useState<string>("")
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -186,9 +187,13 @@ export function InvoicesPage() {
 
   // Load invoices from API
   useEffect(() => {
+    getCompanyName()
     loadInvoices();
   }, []);
-
+  const getCompanyName = async () =>{
+    const result = await apiService.getPitchHistory();
+    setFetchedCompany(result.data[0].startupName);
+  }
   const loadInvoices = async () => {
     setIsLoading(true);
     try {
@@ -484,7 +489,7 @@ export function InvoicesPage() {
               Invoice Generator
             </h2>
             <p className="text-gray-600">
-              Create and manage professional invoices for your business
+              Create and manage professional invoices for your company
             </p>
           </div>
         </div>
@@ -550,7 +555,7 @@ export function InvoicesPage() {
                     </Label>
                     <Input
                       id="company"
-                      value={companyName}
+                      value={companyName == "" ? fetchedCompany : companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
                       placeholder="Your Company Inc."
                       autoComplete="off"
@@ -1134,7 +1139,7 @@ export function InvoicesPage() {
 
       {/* Search Bar */}
       <div className="mb-6">
-        <div className="relative max-w-md">
+        {invoices.length > 0 && <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           <Input
             placeholder="Search invoices..."
@@ -1143,7 +1148,7 @@ export function InvoicesPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
             autoComplete="off"
           />
-        </div>
+        </div>}
       </div>
 
       {/* Invoices List */}
@@ -1155,7 +1160,7 @@ export function InvoicesPage() {
             <CardContent className="p-12 text-center">
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {searchTerm ? "No invoices found" : "No invoices yet"}
+                {searchTerm ? "No invoices found" : "No invoices yet - create your first one"}
               </h3>
               <p className="text-gray-600 mb-4">
                 {searchTerm && "Try adjusting your search terms"}

@@ -32,6 +32,7 @@ import {
   ArrowLeft,
   AlertTriangle,
   Eye,
+  Search,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ContractTemplates } from "../components/ContractTemplates";
@@ -42,11 +43,11 @@ import React from "react";
 
 interface Contract {
   id: string;
-  title: string;
+  contract_name: string;
   type: string;
   status: "completed" | "draft";
-  createdDate: string;
-  templateId?: string;
+  created_at: string;
+  template_id?: string;
   template_name?: string;
   data?: Record<string, string>;
   html?: string;
@@ -62,6 +63,7 @@ export function ContractsListPage() {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [viewingId, setViewingId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [contractToDelete, setContractToDelete] = useState<Contract | null>(
     null
   );
@@ -214,6 +216,16 @@ export function ContractsListPage() {
     // Refresh the contracts list
     fetchContracts();
   };
+  const filteredContracts = contracts.filter(
+    (contract) =>
+      contract.contract_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    contract.template_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    contract.data!.receiving_party?.toLowerCase().includes(searchTerm.toLowerCase())
+    ||
+    contract.data!.jurisdiction?.toLowerCase().includes(searchTerm.toLowerCase())
+    ||
+    contract.data!.disclosing_party?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="p-8">
@@ -247,14 +259,26 @@ export function ContractsListPage() {
           <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
         </div>
       )}
+      <div className="mb-6">
+        {contracts.length > 0 && <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Input
+            placeholder="Search invoices..."
+            className="pl-10 border-2 border-gray-200 rounded-xl placeholder:text-gray-400"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            autoComplete="off"
+          />
+        </div>}
+      </div>
 
       {/* Empty State */}
-      {!isLoading && contracts.length === 0 && (
+      {!isLoading && filteredContracts.length === 0 && (
         <Card className="border-2 border-solid border-gray-200 rounded-2xl">
           <CardContent className="p-6 sm:p-12 text-center">
             <FileCheck className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
-              No contracts yet
+              {searchTerm ? "No contract found" :"No contracts yet - create your first one"}
             </h3>
           </CardContent>
         </Card>
@@ -263,7 +287,7 @@ export function ContractsListPage() {
       {/* Contracts List */}
       {!isLoading && contracts.length > 0 && (
         <div className="space-y-4">
-          {contracts.map((contract) => (
+          {filteredContracts.map((contract) => (
             <Card
               key={contract.id}
               className="border-2 border-gray-100 hover:shadow-lg transition-shadow rounded-2xl"

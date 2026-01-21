@@ -76,11 +76,6 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
       icon: FileCheck,
     },
     {
-      path: "/dashboard/feedbackCoach",
-      label: "Team Insights",
-      icon: MessageSquare,
-    },
-    {
       path: "/dashboard/investor-email-draft",
       label: "Email Templates",
       icon: Mail,
@@ -89,6 +84,11 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
       path: "/dashboard/qr-card",
       label: "Smart Digital Card",
       icon: QrCode,
+    },
+    {
+      path: "/dashboard/feedbackCoach",
+      label: "Team Insights",
+      icon: MessageSquare,
     },
     {
       path: "/dashboard/ai-hiring-assistant",
