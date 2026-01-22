@@ -3,6 +3,7 @@ import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
+import { Badge } from "../components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -218,13 +219,21 @@ export function ContractsListPage() {
   };
   const filteredContracts = contracts.filter(
     (contract) =>
-      contract.contract_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contract.template_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contract.data!.receiving_party?.toLowerCase().includes(searchTerm.toLowerCase())
-    ||
-    contract.data!.jurisdiction?.toLowerCase().includes(searchTerm.toLowerCase())
-    ||
-    contract.data!.disclosing_party?.toLowerCase().includes(searchTerm.toLowerCase())
+      contract.contract_name
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      contract.template_name
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      contract
+        .data!.receiving_party?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      contract
+        .data!.jurisdiction?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      contract
+        .data!.disclosing_party?.toLowerCase()
+        .includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -260,16 +269,18 @@ export function ContractsListPage() {
         </div>
       )}
       <div className="mb-6">
-        {contracts.length > 0 && <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <Input
-            placeholder="Search invoices..."
-            className="pl-10 border-2 border-gray-200 rounded-xl placeholder:text-gray-400"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            autoComplete="off"
-          />
-        </div>}
+        {contracts.length > 0 && (
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Input
+              placeholder="Search contracts..."
+              className="pl-10 border-2 border-gray-200 rounded-xl placeholder:text-gray-400"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              autoComplete="off"
+            />
+          </div>
+        )}
       </div>
 
       {/* Empty State */}
@@ -278,7 +289,9 @@ export function ContractsListPage() {
           <CardContent className="p-6 sm:p-12 text-center">
             <FileCheck className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
-              {searchTerm ? "No contract found" :"No contracts yet - create your first one"}
+              {searchTerm
+                ? "No contract found"
+                : "No contracts yet - create your first one"}
             </h3>
           </CardContent>
         </Card>
@@ -301,17 +314,35 @@ export function ContractsListPage() {
                         <FileCheck className="h-6 w-6 text-blue-600" />
                       </div>
                       <div className="min-w-0">
-                        <h3 className="text-lg font-semibold text-gray-900 truncate">
-                          {contract.data?.contract_name ||
-                            contract.title ||
-                            contract.template_name ||
-                            "Untitled Contract"}
-                        </h3>
+                        <div className="flex items-center gap-3">
+                          <h3 className="text-lg font-semibold text-gray-900 truncate">
+                            {contract.data?.contract_name ||
+                              contract.template_name ||
+                              "Untitled Contract"}
+                          </h3>
+                          <Badge
+                            className={`${
+                              contract.status == "draft"
+                                ? "bg-gray-200 text-gray-600"
+                                : "bg-green-200 text-green-800"
+                            } text-xs pb-0 border-0 capitalize`}
+                          >
+                            {contract.status}
+                          </Badge>
+                        </div>
                         <p className="text-sm text-gray-600">
                           {contract.data?.template_name ||
                             contract.template_name ||
                             contract.type ||
                             "Contract"}
+                        </p>
+                        <p className="text-[12px] text-gray-600">
+                          Created at{" "}
+                          {new Date(contract.created_at).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "2-digit",
+                            year: "numeric",
+                          })}
                         </p>
                       </div>
                     </div>
@@ -321,9 +352,9 @@ export function ContractsListPage() {
                   <div className="flex flex-wrap gap-2 sm:gap-3 w-full lg:w-auto">
                     <Button
                       onClick={() => handleView(contract)}
-                      variant="secondary"
+                      variant="outline"
                       size="sm"
-                      className="sm:h-10 border-2 border-gray-200 rounded-xl hover:bg-gray-50 flex-1 sm:flex-none"
+                      className="sm:h-8 border-2 border-gray-200 rounded-xl hover:bg-gray-50 flex-1 sm:flex-none"
                       disabled={viewingId === contract.id}
                     >
                       {viewingId === contract.id ? (
@@ -341,7 +372,7 @@ export function ContractsListPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="sm:h-10 border-2 border-gray-200 rounded-xl hover:bg-gray-50 flex-1 sm:flex-none"
+                      className="sm:h-8 border-2 border-gray-200 rounded-xl hover:bg-gray-50 flex-1 sm:flex-none"
                       onClick={() => handleEdit(contract)}
                     >
                       <Edit className="mr-1 h-4 w-4" />
@@ -349,7 +380,7 @@ export function ContractsListPage() {
                     </Button>
                     <Button
                       size="sm"
-                      className="sm:h-10 bg-[#252952] hover:bg-[#161930] text-white rounded-xl flex-1 sm:flex-none"
+                      className="sm:h-8 bg-[#4a90e2] hover:bg-[#607dc4] text-white rounded-xl flex-1 sm:flex-none"
                       onClick={() => handleDownload(contract)}
                       disabled={downloadingId === contract.id}
                     >
@@ -370,7 +401,7 @@ export function ContractsListPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="sm:h-10 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl flex-1 sm:flex-none"
+                      className="sm:h-8 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl flex-1 sm:flex-none"
                       onClick={() => handleDeleteClick(contract)}
                     >
                       <Trash2 className="h-4 w-4" />
