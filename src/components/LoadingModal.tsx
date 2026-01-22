@@ -1,10 +1,10 @@
 import React from "react";
 import { Dialog, DialogContent } from "./ui/dialog";
-import { Loader2, FileText, Globe, Sparkles } from "lucide-react";
+import { Loader2, FileText, Globe, Sparkles, Image } from "lucide-react";
 
 interface LoadingModalProps {
   isOpen: boolean;
-  type: "pdf" | "landing" | "generating";
+  type: "pdf" | "landing" | "generating" | "logo";
   progress?: number;
 }
 
@@ -37,6 +37,18 @@ export function LoadingModal({
             "Applying premium design",
             "Optimizing for performance",
             "Polishing final touches",
+          ],
+        };
+      case "logo":
+        return {
+          icon: Image,
+          title: "Generating Your Logo",
+          description: "Creating a unique brand identity...",
+          steps: [
+            "Analyzing your brand",
+            "Designing icon concepts",
+            "Refining the design",
+            "Finalizing your logo",
           ],
         };
       default:

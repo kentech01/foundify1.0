@@ -10,6 +10,8 @@ import { Badge } from "../components/ui/badge";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
+import { Combobox } from "../components/ui/combobox";
+import { INDUSTRIES } from "../constants/industries";
 import {
   Select,
   SelectContent,
@@ -115,6 +117,8 @@ export function PitchDashboard({
   const [isGeneratingLanding, setIsGeneratingLanding] = useState(false);
   const [showLandingLoading, setShowLandingLoading] = useState(false);
   const [landingProgress, setLandingProgress] = useState(0);
+  const [showLogoLoading, setShowLogoLoading] = useState(false);
+  const [logoProgress, setLogoProgress] = useState(0);
 
   // Company profile state
   const [isEditing, setIsEditing] = useState(false);
@@ -122,19 +126,19 @@ export function PitchDashboard({
   const [editLogoFile, setEditLogoFile] = useState<File | null>(null);
   const [editLogoPreview, setEditLogoPreview] = useState<string | null>(null);
   const [editLogoError, setEditLogoError] = useState<string>("");
+  const [isGeneratingLogo, setIsGeneratingLogo] = useState(false);
+  const [generatedLogoSvg, setGeneratedLogoSvg] = useState<string | null>(null);
+  const [logoPreviewModal, setLogoPreviewModal] = useState<{
+    isOpen: boolean;
+    logo: string | null;
+    isSvg: boolean;
+  }>({
+    isOpen: false,
+    logo: null,
+    isSvg: false,
+  });
 
-  const DEFAULT_INDUSTRIES = [
-    "AI/ML",
-    "SaaS",
-    "Fintech",
-    "Healthcare",
-    "E-commerce",
-    "Education",
-    "Enterprise Software",
-    "Consumer",
-    "B2B",
-    "Other",
-  ];
+  // Use comprehensive industries list from constants
 
   const TEAM_SIZES = ["Just me", "2-5", "6-10", "11-25", "26-50", "50+"];
 
@@ -162,29 +166,97 @@ export function PitchDashboard({
     logo: string | null;
   } | null>(null);
 
-  // Initialize companyData from firstPitchMeta when it's available
+  // Initialize companyData from firstPitchMeta when it's available,
+  // but never wipe out an already-loaded logo.
   useEffect(() => {
     if (firstPitchMeta) {
-      setCompanyData({
-        companyName: firstPitchMeta.startupName || "",
-        industry: firstPitchMeta.industry || "",
-        oneLiner: firstPitchMeta.preview || "",
-        problem: "",
-        value: "",
-        status: "",
-        brandColor: "#252952",
-        teamSize: "",
-        logo: (firstPitchMeta as any).logo || null,
-      });
+      const rawLogo = (firstPitchMeta as any).logo;
+      const computedLogo =
+        rawLogo && (rawLogo.startsWith("<svg") || rawLogo.includes("<svg"))
+          ? processSvgLogo(rawLogo)
+          : rawLogo || null;
+
+      setCompanyData((prev) => ({
+        companyName: firstPitchMeta.startupName || prev?.companyName || "",
+        industry: firstPitchMeta.industry || prev?.industry || "",
+        oneLiner: firstPitchMeta.preview || prev?.oneLiner || "",
+        problem: prev?.problem || "",
+        value: prev?.value || "",
+        status: prev?.status || "",
+        brandColor: prev?.brandColor || "#252952",
+        teamSize: prev?.teamSize || "",
+        // Prefer an existing logo if the meta object doesn't contain one
+        logo: computedLogo ?? prev?.logo ?? null,
+      }));
+      
+      // Update firstPitchMeta with logoGenerated if available
+      if ((firstPitchMeta as any).logoGenerated !== undefined) {
+        setFirstPitchMeta((prev: any) => ({
+          ...prev,
+          logoGenerated: (firstPitchMeta as any).logoGenerated || false,
+        }));
+      }
     }
   }, [firstPitchMeta?.id, firstPitchMeta?.startupName]); // Only update when pitch ID or name changes
 
+  // On initial dashboard load, fetch full pitch details (including SVG logo)
+  // so the avatar can render the latest logo from the backend.
+  useEffect(() => {
+    const fetchInitialPitchDetails = async () => {
+      if (!firstPitchMeta?.id) return;
+
+      try {
+        const details = await apiService.getPitchDetails(firstPitchMeta.id);
+        if (!details?.data) return;
+
+        const pitch = details.data;
+        const backendLogo =
+          pitch.logo &&
+          (pitch.logo.startsWith("<svg") || pitch.logo.includes("<svg"))
+            ? processSvgLogo(pitch.logo)
+            : pitch.logo || null;
+
+        setCompanyData((prev) => ({
+          companyName:
+            pitch.startupName || firstPitchMeta.startupName || prev?.companyName || "",
+          industry:
+            pitch.industry || firstPitchMeta.industry || prev?.industry || "",
+          oneLiner:
+            pitch.targetAudience || firstPitchMeta.preview || prev?.oneLiner || "",
+          problem: pitch.problemSolved || prev?.problem || "",
+          value:
+            pitch.mainProduct ||
+            pitch.uniqueSellingPoint ||
+            prev?.value ||
+            "",
+          status: pitch.traction || prev?.status || "",
+          brandColor: pitch.primaryColor || prev?.brandColor || "#252952",
+          teamSize: pitch.teamSize || prev?.teamSize || "",
+          logo: backendLogo ?? prev?.logo ?? null,
+        }));
+        
+        // Update firstPitchMeta with logoGenerated status
+        setFirstPitchMeta((prev: any) => ({
+          ...prev,
+          logoGenerated: (pitch as any).logoGenerated || false,
+        }));
+      } catch (error) {
+        console.error("Failed to load initial pitch details:", error);
+      }
+    };
+
+    fetchInitialPitchDetails();
+    // We intentionally do NOT include companyData in deps to avoid loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firstPitchMeta?.id]);
+
   const [industryOptions, setIndustryOptions] =
-    useState<string[]>(DEFAULT_INDUSTRIES);
+    useState<string[]>(INDUSTRIES);
 
   const [isOpeningEditor, setIsOpeningEditor] = useState(false);
   const [regenCount, setRegenCount] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [isStepSaving, setIsStepSaving] = useState(false);
 
   const [editedData, setEditedData] = useState(
     companyData || {
@@ -229,25 +301,54 @@ export function PitchDashboard({
     { id: "brand", label: "Brand", icon: Palette },
   ];
 
-  const handleSaveEdit = async () => {
-    if (!firstPitchMeta?.id) {
-      setIsEditing(false);
-      setEditStep(0);
-      return;
+  // Helper to check if company data has unsaved changes
+  const hasCompanyChanges = () => {
+    if (!companyData) return false;
+
+    const fields: (keyof typeof companyData)[] = [
+      "companyName",
+      "industry",
+      "oneLiner",
+      "problem",
+      "value",
+      "status",
+      "teamSize",
+      "brandColor",
+      "logo",
+    ];
+
+    for (const field of fields) {
+      if (editedData[field] !== companyData[field]) {
+        return true;
+      }
     }
 
-    setIsSaving(true);
+    // Also treat upload/generated logo state as a change
+    if (editLogoFile || generatedLogoSvg) {
+      return true;
+    }
+
+    return false;
+  };
+
+  // Lightweight auto-save used when moving between steps/tabs
+  const saveCompanyDraft = async () => {
+    if (!firstPitchMeta?.id) return;
+    if (!hasCompanyChanges()) return;
+
     try {
-      // Convert logo file to base64 if a new file was uploaded
+      setIsStepSaving(true);
+      // Convert logo file or generated SVG if present
       let logoData = editedData.logo;
       if (editLogoFile && editLogoPreview) {
-        // If it's a data URL, extract the base64 part
-        if (editLogoPreview.startsWith("data:")) {
-          logoData = editLogoPreview;
-        } else {
-          logoData = editLogoPreview;
-        }
+        logoData = editLogoPreview;
+      } else if (generatedLogoSvg) {
+        logoData = generatedLogoSvg;
       }
+
+      // If user uploaded a logo (not generated), reset logoGenerated flag
+      const isUploadedLogo = editLogoFile && editLogoPreview;
+      const logoGenerated = isUploadedLogo ? false : undefined; // Don't change if not uploading
 
       await apiService.updatePitchCompany(firstPitchMeta.id, {
         companyName: editedData.companyName,
@@ -259,6 +360,85 @@ export function PitchDashboard({
         teamSize: editedData.teamSize,
         brandColor: editedData.brandColor,
         logo: logoData,
+        logoGenerated: logoGenerated,
+      });
+
+      // Update local companyData so UI stays in sync
+      setCompanyData((prev) => {
+        if (!prev) {
+          return {
+            companyName: editedData.companyName,
+            industry: editedData.industry,
+            oneLiner: editedData.oneLiner,
+            problem: editedData.problem,
+            value: editedData.value,
+            status: editedData.status,
+            brandColor: editedData.brandColor,
+            teamSize: editedData.teamSize,
+            logo: logoData || null,
+          };
+        }
+
+        return {
+          ...prev,
+          companyName: editedData.companyName,
+          industry: editedData.industry,
+          oneLiner: editedData.oneLiner,
+          problem: editedData.problem,
+          value: editedData.value,
+          status: editedData.status,
+          brandColor: editedData.brandColor,
+          teamSize: editedData.teamSize,
+          logo: logoData || prev.logo,
+        };
+      });
+    } catch (error) {
+      console.error("Failed to auto-save company profile:", error);
+      // Silent fail for autosave; main save still shows toasts
+    } finally {
+      setIsStepSaving(false);
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!firstPitchMeta?.id) {
+      setIsEditing(false);
+      setEditStep(0);
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // Convert logo file to base64 if a new file was uploaded
+      // Or use generated SVG if one was generated
+      let logoData = editedData.logo;
+      if (editLogoFile && editLogoPreview) {
+        // If it's a data URL, extract the base64 part
+        if (editLogoPreview.startsWith("data:")) {
+          logoData = editLogoPreview;
+        } else {
+          logoData = editLogoPreview;
+        }
+      } else if (generatedLogoSvg) {
+        // Use generated SVG if available
+        logoData = generatedLogoSvg;
+      }
+
+      // If user uploaded a logo (not generated), reset logoGenerated flag
+      const isUploadedLogo = editLogoFile && editLogoPreview;
+      const logoGenerated = isUploadedLogo ? false : (generatedLogoSvg ? true : undefined);
+
+      await apiService.updatePitchCompany(firstPitchMeta.id, {
+        companyName: editedData.companyName,
+        industry: editedData.industry,
+        oneLiner: editedData.oneLiner,
+        problem: editedData.problem,
+        value: editedData.value,
+        status: editedData.status,
+        teamSize: editedData.teamSize,
+        brandColor: editedData.brandColor,
+        logo: logoData,
+        logoGenerated: logoGenerated,
       });
 
       // Get updated pitch details
@@ -266,6 +446,13 @@ export function PitchDashboard({
 
       // Update companyData immediately with the new data
       if (updatedPitch?.data) {
+        const logo = updatedPitch.data.logo
+          ? updatedPitch.data.logo.startsWith("<svg") ||
+            updatedPitch.data.logo.includes("<svg")
+            ? processSvgLogo(updatedPitch.data.logo)
+            : updatedPitch.data.logo
+          : null;
+
         setCompanyData({
           companyName: updatedPitch.data.startupName || "",
           industry: updatedPitch.data.industry || "",
@@ -278,7 +465,7 @@ export function PitchDashboard({
           status: updatedPitch.data.traction || "",
           brandColor: updatedPitch.data.primaryColor || "#252952",
           teamSize: updatedPitch.data.teamSize || "",
-          logo: updatedPitch.data.logo || null,
+          logo: logo,
         });
 
         // Update firstPitchMeta with the new data
@@ -289,6 +476,7 @@ export function PitchDashboard({
             industry: updatedPitch.data.industry,
             preview: updatedPitch.data.targetAudience || firstPitchMeta.preview,
             logo: updatedPitch.data.logo || null,
+            logoGenerated: updatedPitch.data.logoGenerated || false,
           } as any);
         }
       }
@@ -299,6 +487,7 @@ export function PitchDashboard({
       // Clear edit logo state after successful save
       setEditLogoFile(null);
       setEditLogoPreview(null);
+      setGeneratedLogoSvg(null);
       setIsEditing(false);
       setEditStep(0);
 
@@ -330,6 +519,8 @@ export function PitchDashboard({
     setEditLogoFile(null);
     setEditLogoPreview(null);
     setEditLogoError("");
+    setGeneratedLogoSvg(null);
+    setIsGeneratingLogo(false);
     setIsEditing(false);
     setEditStep(0);
   };
@@ -339,10 +530,12 @@ export function PitchDashboard({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    const validTypes = ["image/svg+xml", "image/png", "image/jpeg"];
-    if (!validTypes.includes(file.type)) {
-      setEditLogoError("Please upload SVG, PNG, or JPEG files only");
+    // Validate file type - only accept SVG files
+    const isValidSvgType = file.type === "image/svg+xml";
+    const isValidSvgExtension = file.name.toLowerCase().endsWith(".svg");
+    
+    if (!isValidSvgType && !isValidSvgExtension) {
+      setEditLogoError("Please upload SVG files only");
       setEditLogoFile(null);
       setEditLogoPreview(null);
       return;
@@ -358,12 +551,30 @@ export function PitchDashboard({
 
     setEditLogoError("");
     setEditLogoFile(file);
+    // When user chooses to upload, treat upload as the single source of truth
+    // and clear any previously generated logo
+    setGeneratedLogoSvg(null);
+    setIsGeneratingLogo(false);
+    
+    // Reset logoGenerated flag when uploading (uploads don't count as generated)
+    // This will be saved when the user saves the form
 
     // Create preview
     const reader = new FileReader();
     reader.onload = (e) => {
       const content = e.target?.result as string;
       setEditLogoPreview(content);
+      
+      // Extract colors from the uploaded SVG
+      const extractedColors = extractColorsFromSVG(content);
+      const newBrandColor = extractedColors?.primaryColor || editedData.brandColor || "#252952";
+      
+      // Keep editedData.logo in sync with the uploaded logo preview and update brand color
+      setEditedData((prev) => ({
+        ...prev,
+        logo: content,
+        brandColor: newBrandColor,
+      }));
     };
     reader.onerror = () => {
       setEditLogoError("Failed to read file");
@@ -386,10 +597,12 @@ export function PitchDashboard({
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    const validTypes = ["image/svg+xml", "image/png", "image/jpeg"];
-    if (!validTypes.includes(file.type)) {
-      setEditLogoError("Please upload SVG, PNG, or JPEG files only");
+    // Validate file type - only accept SVG files
+    const isValidSvgType = file.type === "image/svg+xml";
+    const isValidSvgExtension = file.name.toLowerCase().endsWith(".svg");
+    
+    if (!isValidSvgType && !isValidSvgExtension) {
+      setEditLogoError("Please upload SVG files only");
       setEditLogoFile(null);
       setEditLogoPreview(null);
       return;
@@ -405,12 +618,25 @@ export function PitchDashboard({
 
     setEditLogoError("");
     setEditLogoFile(file);
+    // Upload replaces any previously generated logo
+    setGeneratedLogoSvg(null);
+    setIsGeneratingLogo(false);
 
     // Create preview
     const reader = new FileReader();
     reader.onload = (e) => {
       const content = e.target?.result as string;
       setEditLogoPreview(content);
+      
+      // Extract colors from the uploaded SVG
+      const extractedColors = extractColorsFromSVG(content);
+      const newBrandColor = extractedColors?.primaryColor || editedData.brandColor || "#252952";
+      
+      setEditedData((prev) => ({
+        ...prev,
+        logo: content,
+        brandColor: newBrandColor,
+      }));
     };
     reader.onerror = () => {
       setEditLogoError("Failed to read file");
@@ -424,6 +650,366 @@ export function PitchDashboard({
     setEditLogoFile(null);
     setEditLogoPreview(null);
     setEditLogoError("");
+    // Do not touch generatedLogoSvg here – this only clears the uploaded version
+  };
+
+  // Download logo function
+  const downloadLogo = (logo: string, isSvg: boolean, filename: string) => {
+    try {
+      if (isSvg) {
+        // Download as SVG file
+        const blob = new Blob([logo], { type: "image/svg+xml" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${filename}.svg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        toast.success("Logo downloaded successfully!");
+      } else {
+        // Download as image (for uploaded images)
+        const link = document.createElement("a");
+        link.href = logo;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("Logo downloaded successfully!");
+      }
+    } catch (error) {
+      console.error("Failed to download logo:", error);
+      toast.error("Failed to download logo");
+    }
+  };
+
+  // Process SVG to remove black backgrounds
+  // Extract colors from SVG
+  const extractColorsFromSVG = (svgString: string): { primaryColor: string; secondaryColor: string } | null => {
+    if (!svgString || typeof svgString !== "string") {
+      return null;
+    }
+
+    const colors: string[] = [];
+    const hexColorRegex = /#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})\b/g;
+    const rgbColorRegex = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/g;
+
+    // Extract hex colors from fill, stroke, and style attributes
+    const fillMatches = svgString.match(/fill=["']([^"']+)["']/gi) || [];
+    const strokeMatches = svgString.match(/stroke=["']([^"']+)["']/gi) || [];
+    const styleMatches = svgString.match(/style=["']([^"']+)["']/gi) || [];
+
+    const allMatches = [...fillMatches, ...strokeMatches, ...styleMatches];
+
+    allMatches.forEach((match) => {
+      // Extract hex colors
+      const hexMatches = match.match(hexColorRegex);
+      if (hexMatches) {
+        colors.push(...hexMatches);
+      }
+
+      // Extract RGB colors and convert to hex
+      const rgbMatches = match.match(rgbColorRegex);
+      if (rgbMatches) {
+        rgbMatches.forEach((rgb) => {
+          const rgbValues = rgb.match(/\d+/g);
+          if (rgbValues && rgbValues.length === 3) {
+            const r = parseInt(rgbValues[0]).toString(16).padStart(2, "0");
+            const g = parseInt(rgbValues[1]).toString(16).padStart(2, "0");
+            const b = parseInt(rgbValues[2]).toString(16).padStart(2, "0");
+            colors.push(`#${r}${g}${b}`);
+          }
+        });
+      }
+    });
+
+    // Normalize hex colors (convert 3-digit to 6-digit)
+    const normalizeHexColor = (color: string): string | null => {
+      if (typeof color !== "string") return null;
+      const trimmed = color.trim();
+      if (!/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(trimmed)) return null;
+      if (trimmed.length === 4) {
+        const [hash, r, g, b] = trimmed.toUpperCase().split("");
+        return `${hash}${r}${r}${g}${g}${b}${b}`;
+      }
+      return trimmed.toUpperCase();
+    };
+
+    // Remove common non-color values and duplicates
+    const validColors = colors
+      .map((color) => normalizeHexColor(color))
+      .filter((color): color is string => {
+        if (!color) return false;
+        // Filter out white, black, transparent-like colors
+        const lower = color.toLowerCase();
+        return (
+          lower !== "#FFFFFF" &&
+          lower !== "#000000" &&
+          lower !== "#FFF" &&
+          lower !== "#000" &&
+          lower !== "#TRANSPARENT"
+        );
+      })
+      .filter((color, index, self) => self.indexOf(color) === index);
+
+    if (validColors.length === 0) {
+      return null;
+    }
+
+    return {
+      primaryColor: validColors[0],
+      secondaryColor: validColors[1] || validColors[0],
+    };
+  };
+
+  const processSvgLogo = (svg: string): string => {
+    if (!svg || (!svg.startsWith("<svg") && !svg.includes("<svg"))) {
+      return svg;
+    }
+
+    let processed = svg;
+
+    // Remove black background rectangles
+    processed = processed.replace(
+      /<rect[^>]*(?:fill=["']#000000["']|fill=["']black["']|fill=["']#000["'])[^>]*\/?>/gi,
+      ""
+    );
+    processed = processed.replace(
+      /<rect[^>]*(?:width=["']512["']|width=["']100%["'])[^>]*(?:height=["']512["']|height=["']100%["'])[^>]*(?:fill=["']#000000["']|fill=["']black["']|fill=["']#000["'])[^>]*\/?>/gi,
+      ""
+    );
+
+    // Ensure transparent background
+    if (!processed.includes('style=')) {
+      processed = processed.replace(
+        /<svg([^>]*)>/i,
+        '<svg$1 style="background: transparent;">'
+      );
+    } else if (!processed.includes('background')) {
+      processed = processed.replace(
+        /style=["']([^"']*)["']/i,
+        'style="$1; background: transparent;"'
+      );
+    }
+
+    return processed;
+  };
+
+  // Open logo preview modal
+  const openLogoPreview = (logo: string, isSvg: boolean) => {
+    const processedLogo = isSvg ? processSvgLogo(logo) : logo;
+    setLogoPreviewModal({
+      isOpen: true,
+      logo: processedLogo,
+      isSvg,
+    });
+  };
+
+  // Handle logo generation
+  const handleGenerateLogo = async () => {
+    if (!firstPitchMeta?.id || !editedData.companyName) {
+      toast.error("Missing company information", {
+        description: "Please fill in your company name first.",
+      });
+      return;
+    }
+
+    // Check if logo has already been generated
+    if (firstPitchMeta.logoGenerated) {
+      toast.error("Logo generation limit reached", {
+        description: "You can only generate one logo per pitch. Please upload a logo if you need a different one.",
+      });
+      return;
+    }
+
+    setIsGeneratingLogo(true);
+    setEditLogoError("");
+    setShowLogoLoading(true);
+    setLogoProgress(5);
+    // When generating a new logo, clear any uploaded logo so only one source is active
+    setEditLogoFile(null);
+    setEditLogoPreview(null);
+
+    let progressInterval: number | undefined;
+    let currentProgress = 5;
+
+    try {
+      // Simulate smooth, gradual progress updates
+      // Start slow, gradually increase, cap at 85% until API completes
+      progressInterval = window.setInterval(() => {
+        // Use smaller increments and slower updates for more realistic progress
+        // Increment decreases as we get closer to the cap
+        const increment = currentProgress < 50 ? 3 : currentProgress < 75 ? 2 : 1;
+        currentProgress = Math.min(currentProgress + increment, 85);
+        setLogoProgress(currentProgress);
+      }, 800); // Update every 800ms for smoother feel
+
+      // STEP 1: First, save any pending company info changes (without logo)
+      // This ensures we have the latest data before generating the logo
+      if (hasCompanyChanges()) {
+        setLogoProgress(15);
+        currentProgress = 15;
+        try {
+          // Save company info without logo (we'll add the logo after generation)
+          await apiService.updatePitchCompany(firstPitchMeta.id, {
+            companyName: editedData.companyName,
+            industry: editedData.industry || "",
+            oneLiner: editedData.oneLiner || "",
+            problem: editedData.problem || "",
+            value: editedData.value || "",
+            status: editedData.status,
+            teamSize: editedData.teamSize,
+            brandColor: editedData.brandColor,
+            logo: null, // Don't update logo yet, we're about to generate it
+          });
+
+          // Update local companyData to reflect the saved changes
+          if (companyData) {
+            setCompanyData({
+              ...companyData,
+              companyName: editedData.companyName,
+              industry: editedData.industry || "",
+              oneLiner: editedData.oneLiner || "",
+              problem: editedData.problem || "",
+              value: editedData.value || "",
+              status: editedData.status,
+              teamSize: editedData.teamSize,
+              brandColor: editedData.brandColor,
+            });
+          }
+          setLogoProgress(25);
+          currentProgress = 25;
+        } catch (error) {
+          console.error("Failed to save company info before logo generation:", error);
+          // Continue with logo generation even if save fails
+        }
+      } else {
+        setLogoProgress(20);
+        currentProgress = 20;
+      }
+
+      // STEP 2: Now generate the logo with the latest saved data
+      // Progress will continue gradually up to 85% while waiting for API
+      const result = await apiService.generateAndSaveCompanyLogo(
+        firstPitchMeta.id,
+        {
+          companyName: editedData.companyName,
+          industry: editedData.industry || "",
+          oneLiner: editedData.oneLiner || "",
+          problem: editedData.problem || "",
+          value: editedData.value || "",
+          status: editedData.status,
+          teamSize: editedData.teamSize,
+          brandColor: editedData.brandColor,
+        }
+      );
+
+      // Clear the interval and jump to 100% when API completes
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
+      setLogoProgress(100);
+
+      // Process the SVG to remove any black backgrounds
+      const processedSvg = processSvgLogo(result.svg);
+
+      // Extract colors from the generated SVG
+      const extractedColors = extractColorsFromSVG(processedSvg);
+      const newBrandColor = extractedColors?.primaryColor || editedData.brandColor || "#252952";
+
+      // Store the generated SVG
+      setGeneratedLogoSvg(processedSvg);
+
+      // Update editedData with the new logo and extracted brand color
+      setEditedData((prev) => ({
+        ...prev,
+        logo: processedSvg,
+        brandColor: newBrandColor,
+      }));
+
+      // Update companyData immediately
+      if (companyData) {
+        setCompanyData({
+          ...companyData,
+          logo: processedSvg,
+        });
+      }
+
+      // Update firstPitchMeta with logo and mark as generated
+      if (firstPitchMeta) {
+        setFirstPitchMeta({
+          ...firstPitchMeta,
+          logo: processedSvg,
+          logoGenerated: true,
+        } as any);
+      }
+
+      // Refresh pitches list
+      await loadPitches(1);
+
+      // Refresh company data to get the updated logo
+      if (firstPitchMeta?.id) {
+        try {
+          const updatedPitch = await apiService.getPitchDetails(
+            firstPitchMeta.id
+          );
+          if (updatedPitch?.data) {
+            setCompanyData({
+              companyName: updatedPitch.data.startupName || "",
+              industry: updatedPitch.data.industry || "",
+              oneLiner: updatedPitch.data.targetAudience || "",
+              problem: updatedPitch.data.problemSolved || "",
+              value:
+                updatedPitch.data.mainProduct ||
+                updatedPitch.data.uniqueSellingPoint ||
+                "",
+              status: updatedPitch.data.traction || "",
+              brandColor: updatedPitch.data.primaryColor || "#252952",
+              teamSize: updatedPitch.data.teamSize || "",
+              logo:
+                updatedPitch.data.logo &&
+                (updatedPitch.data.logo.startsWith("<svg") ||
+                  updatedPitch.data.logo.includes("<svg"))
+                  ? processSvgLogo(updatedPitch.data.logo)
+                  : updatedPitch.data.logo || null,
+            });
+            
+            // Update firstPitchMeta with logoGenerated status
+            if (firstPitchMeta) {
+              setFirstPitchMeta({
+                ...firstPitchMeta,
+                logoGenerated: updatedPitch.data.logoGenerated || false,
+              } as any);
+            }
+          }
+        } catch (error) {
+          console.error("Failed to refresh company data:", error);
+        }
+      }
+
+      toast.success("Logo generated and saved successfully!");
+    } catch (error: any) {
+      console.error("Failed to generate logo:", error);
+      // Clear interval on error
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
+      toast.error("Failed to generate logo", {
+        description: error.message || "Please try again later.",
+      });
+      setEditLogoError(error.message || "Failed to generate logo");
+    } finally {
+      // Ensure interval is cleared
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
+      setTimeout(() => {
+        setShowLogoLoading(false);
+        setLogoProgress(0);
+      }, 400);
+      setIsGeneratingLogo(false);
+    }
   };
 
   // Load pitches with pagination
@@ -991,19 +1577,71 @@ export function PitchDashboard({
                 <div className="flex items-start gap-6 flex-1">
                   {/* Logo/Icon - Avatar Style */}
                   {companyData.logo ? (
-                    <div className="w-28 h-28 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg bg-white p-1 border-2 border-gray-100 overflow-hidden">
-                      <img
-                        src={companyData.logo}
-                        alt={`${companyData.companyName} logo`}
-                        className="w-full h-full object-cover rounded-full"
-                      />
+                    <div
+                      className="w-28 h-28 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg bg-white p-4 border-2 border-gray-100 overflow-hidden cursor-pointer hover:scale-105 transition-transform group relative"
+                      onClick={() =>
+                        openLogoPreview(
+                          companyData.logo!,
+                          companyData.logo.startsWith("<svg") ||
+                            companyData.logo.includes("<svg")
+                        )
+                      }
+                      title="Click to preview and download logo"
+                    >
+                      {companyData.logo.startsWith("<svg") ||
+                      companyData.logo.includes("<svg") ? (
+                        <div
+                          className="w-full h-full flex items-center justify-center"
+                          style={{
+                            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
+                          }}
+                          dangerouslySetInnerHTML={{
+                            __html: processSvgLogo(companyData.logo),
+                          }}
+                        />
+                      ) : (
+                        <img
+                          src={companyData.logo}
+                          alt={`${companyData.companyName} logo`}
+                          className="w-full h-full object-contain"
+                        />
+                      )}
+                      {/* <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 rounded-full flex items-center justify-center transition-all">
+                        <Eye className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
+                      </div> */}
                     </div>
                   ) : (
                     <div
-                      className="w-28 h-28 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg"
+                      className="w-28 h-28 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg cursor-pointer hover:scale-105 transition-transform"
                       style={{
                         background: `linear-gradient(135deg, ${companyData.brandColor} 0%, ${companyData.brandColor}dd 100%)`,
                       }}
+                      onClick={() => {
+                        // Initialize logo preview from existing company data
+                        if (companyData?.logo) {
+                          if (
+                            companyData.logo.startsWith("<svg") ||
+                            companyData.logo.includes("<svg")
+                          ) {
+                            // It's a generated SVG
+                            setGeneratedLogoSvg(companyData.logo);
+                            setEditLogoPreview(null);
+                            setEditLogoFile(null);
+                          } else {
+                            // It's an uploaded image (data URL or base64)
+                            setEditLogoPreview(companyData.logo);
+                            setEditLogoFile(null);
+                            setGeneratedLogoSvg(null);
+                          }
+                        } else {
+                          setEditLogoPreview(null);
+                          setEditLogoFile(null);
+                          setGeneratedLogoSvg(null);
+                        }
+                        setEditStep(3);
+                        setIsEditing(true);
+                      }}
+                      title="Click to add a logo"
                     >
                       <Building2 className="w-14 h-14 text-white" />
                     </div>
@@ -1076,10 +1714,35 @@ export function PitchDashboard({
                     setIsOpeningEditor(true);
                     try {
                       if (firstPitchMeta?.id) {
-                        const details = await apiService.getPitchDetails(
-                          firstPitchMeta.id
-                        );
-                        const pitch = details.data;
+                        // Only fetch if we don't already have companyData with all fields populated
+                        // This prevents unnecessary refetches when reopening the modal
+                        const needsFetch = !companyData || 
+                          !companyData.problem || 
+                          !companyData.value || 
+                          !companyData.status;
+                        
+                        let pitch;
+                        if (needsFetch) {
+                          const details = await apiService.getPitchDetails(
+                            firstPitchMeta.id
+                          );
+                          pitch = details.data;
+                        } else {
+                          // Use existing companyData, but structure it like pitch data
+                          // No need to fetch - we already have all the data
+                          pitch = {
+                            startupName: companyData.companyName,
+                            industry: companyData.industry,
+                            targetAudience: companyData.oneLiner,
+                            problemSolved: companyData.problem,
+                            mainProduct: companyData.value,
+                            uniqueSellingPoint: companyData.value,
+                            traction: companyData.status,
+                            primaryColor: companyData.brandColor,
+                            teamSize: companyData.teamSize,
+                            logo: companyData.logo,
+                          };
+                        }
                         const backendIndustry = pitch.industry || "";
                         if (
                           backendIndustry &&
@@ -1091,6 +1754,13 @@ export function PitchDashboard({
                           ]);
                         }
                         // Update companyData with full pitch details
+                        const processedLogo = pitch.logo
+                          ? pitch.logo.startsWith("<svg") ||
+                            pitch.logo.includes("<svg")
+                            ? processSvgLogo(pitch.logo)
+                            : pitch.logo
+                          : null;
+
                         setCompanyData({
                           companyName: pitch.startupName || "",
                           industry:
@@ -1107,7 +1777,7 @@ export function PitchDashboard({
                             "#252952",
                           teamSize:
                             pitch.teamSize || companyData?.teamSize || "",
-                          logo: pitch.logo || null,
+                          logo: processedLogo,
                         });
 
                         setEditedData({
@@ -1126,19 +1796,54 @@ export function PitchDashboard({
                             "#252952",
                           teamSize:
                             pitch.teamSize || companyData?.teamSize || "",
-                          logo: pitch.logo || null,
+                          logo: processedLogo,
                         });
 
                         // Set logo preview if logo exists
-                        if (pitch.logo) {
-                          setEditLogoPreview(pitch.logo);
-                          setEditLogoFile(null); // No file, just existing logo
+                        if (processedLogo) {
+                          // Check if it's an SVG (generated) or a data URL (uploaded)
+                          if (
+                            processedLogo.startsWith("<svg") ||
+                            processedLogo.includes("<svg")
+                          ) {
+                            // It's a generated SVG
+                            setGeneratedLogoSvg(processedLogo);
+                            setEditLogoPreview(null);
+                            setEditLogoFile(null);
+                          } else {
+                            // It's an uploaded image (data URL)
+                            setEditLogoPreview(processedLogo);
+                            setEditLogoFile(null); // No file, just existing logo
+                            setGeneratedLogoSvg(null);
+                          }
                         } else {
                           setEditLogoPreview(null);
                           setEditLogoFile(null);
+                          setGeneratedLogoSvg(null);
                         }
                       } else if (companyData) {
                         setEditedData(companyData);
+                        // Initialize logo preview from existing company data
+                        if (companyData.logo) {
+                          if (
+                            companyData.logo.startsWith("<svg") ||
+                            companyData.logo.includes("<svg")
+                          ) {
+                            // It's a generated SVG
+                            setGeneratedLogoSvg(companyData.logo);
+                            setEditLogoPreview(null);
+                            setEditLogoFile(null);
+                          } else {
+                            // It's an uploaded image (data URL or base64)
+                            setEditLogoPreview(companyData.logo);
+                            setEditLogoFile(null);
+                            setGeneratedLogoSvg(null);
+                          }
+                        } else {
+                          setEditLogoPreview(null);
+                          setEditLogoFile(null);
+                          setGeneratedLogoSvg(null);
+                        }
                       }
                       setIsEditing(true);
                       setEditStep(0);
@@ -1146,6 +1851,27 @@ export function PitchDashboard({
                       console.error("Failed to load pitch details:", error);
                       if (companyData) {
                         setEditedData(companyData);
+                        // Initialize logo preview from existing company data
+                        if (companyData.logo) {
+                          if (
+                            companyData.logo.startsWith("<svg") ||
+                            companyData.logo.includes("<svg")
+                          ) {
+                            // It's a generated SVG
+                            setGeneratedLogoSvg(companyData.logo);
+                            setEditLogoPreview(null);
+                            setEditLogoFile(null);
+                          } else {
+                            // It's an uploaded image (data URL or base64)
+                            setEditLogoPreview(companyData.logo);
+                            setEditLogoFile(null);
+                            setGeneratedLogoSvg(null);
+                          }
+                        } else {
+                          setEditLogoPreview(null);
+                          setEditLogoFile(null);
+                          setGeneratedLogoSvg(null);
+                        }
                       }
                       toast.error("Failed to open company editor", {
                         description:
@@ -1207,59 +1933,42 @@ export function PitchDashboard({
                     Auto-generated from your company profile
                   </p>
                 </div>
-                <Button
-                  onClick={handleRegenerate}
-                  variant="outline"
-                  className="border-2 border-gray-200 hover:border-[#252952] rounded-[12px]"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Regenerate (Pitch)
-                </Button>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4" id="pitch-assets">
+              <div className="grid md:grid-cols-3 gap-6" id="pitch-assets">
                 {/* Pitch Deck */}
                 {pitches && pitches.length > 0 && (
-                  <div className="p-6 rounded-[16px] border-2 border-gray-200 bg-gradient-to-br from-white to-gray-50 hover:border-[#252952] transition-all cursor-pointer group">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-[12px] bg-gradient-to-br from-[#252952] to-[#4A90E2] flex items-center justify-center flex-shrink-0">
-                        <FileText className="w-6 h-6 text-white" />
+                  <div className="p-8 rounded-[20px] border-2 border-gray-200 bg-white hover:border-[#252952] hover:shadow-lg transition-all group h-full flex flex-col">
+                    <div className="flex flex-col items-center text-center gap-4 flex-1">
+                      <div className="w-20 h-20 rounded-[16px] bg-gradient-to-br from-[#252952] to-[#4A90E2] flex items-center justify-center shadow-lg">
+                        <FileText className="w-10 h-10 text-white" />
                       </div>
-                      <div className="flex-1">
-                        <h4 className="text-[20px] font-semibold text-[#252952] mb-1">
+                      <div className="flex-1 flex flex-col">
+                        <h4 className="text-[22px] font-bold text-[#252952] mb-2">
                           Pitch Deck
                         </h4>
-                        <p className="text-[16px] text-gray-600 mb-3">
+                        <p className="text-[15px] text-gray-600 mb-6">
                           Professional presentation
                         </p>
-                        <div className="flex gap-2">
-                          {/* <Button
-                            size="sm"
-                            className="bg-[#eef0ff] text-[#252952] hover:bg-[#252952] hover:text-white rounded-[8px]"
-                            onClick={() => {
-                              const pitch = pitches[0];
-                              if (pitch) {
-                                // Open pitch in a new window/modal
-                                const newWindow = window.open();
-                                if (newWindow) {
-                                  newWindow.document.write(pitch.pitchContent);
-                                }
-                              }
-                            }}
-                          >
-                            <Eye className="w-3 h-3 mr-1" />
-                            View
-                          </Button> */}
+                        <div className="mt-auto flex flex-col gap-2 w-full">
                           <Button
-                            size="sm"
+                            size="default"
                             variant="outline"
-                            className="border-2 border-gray-200 rounded-[8px]"
+                            className="border-2 border-gray-200 rounded-[12px] hover:bg-gray-50 w-full"
+                            onClick={handleRegenerate}
+                          >
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            Regenerate Pitch
+                          </Button>
+                          <Button
+                            size="default"
+                            className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[12px] w-full"
                             onClick={() =>
                               pitches[0] && handleDownload(pitches[0])
                             }
                           >
-                            <Download className="w-3 h-3 mr-1" />
-                            PDF
+                            <Download className="w-4 h-4 mr-2" />
+                            Download PDF
                           </Button>
                         </div>
                       </div>
@@ -1269,67 +1978,141 @@ export function PitchDashboard({
 
                 {/* Landing Page */}
                 {firstPitchMeta && (
-                  <div className="p-6 rounded-[16px] border-2 border-gray-200 bg-gradient-to-br from-white to-blue-50 hover:border-[#4A90E2] transition-all cursor-pointer group">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-[12px] bg-gradient-to-br from-[#4A90E2] to-[#7DD3FC] flex items-center justify-center flex-shrink-0">
-                        <Globe className="w-6 h-6 text-white" />
+                  <div className="p-8 rounded-[20px] border-2 border-gray-200 bg-white hover:border-[#4A90E2] hover:shadow-lg transition-all group h-full flex flex-col">
+                    <div className="flex flex-col items-center text-center gap-4 flex-1">
+                      <div className="w-20 h-20 rounded-[16px] bg-gradient-to-br from-[#4A90E2] to-[#7DD3FC] flex items-center justify-center shadow-lg">
+                        <Globe className="w-10 h-10 text-white" />
                       </div>
-                      <div className="flex-1">
-                        <h4 className="text-[20px] font-semibold text-[#252952] mb-1">
+                      <div className="flex-1 flex flex-col">
+                        <h4 className="text-[22px] font-bold text-[#252952] mb-2">
                           Live Landing Page
                         </h4>
                         {firstPitchHasPremiumLanding ? (
-                          <>
-                            <p className="text-[16px] text-gray-600 mb-3">
-                              foundify.app/
-                              {firstPitchMeta.startupName
-                                ?.toLowerCase()
-                                .replace(/\s+/g, "-") || "your-company"}
-                            </p>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                className="bg-[#4A90E2] hover:bg-[#357ABD] text-white rounded-[8px]"
-                                onClick={openLandingPage}
-                              >
-                                <ExternalLink className="w-3 h-3 mr-1" />
-                                Open
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-2 border-gray-200 rounded-[8px]"
-                                onClick={handleCopyUrl}
-                              >
-                                <Copy className="w-3 h-3 mr-1" />
-                                Copy
-                              </Button>
-                            </div>
-                          </>
+                          <p className="text-[15px] text-gray-600 mb-6 break-all">
+                            foundify.app/
+                            {firstPitchMeta.startupName
+                              ?.toLowerCase()
+                              .replace(/\s+/g, "-") || "your-company"}
+                          </p>
                         ) : (
-                          <>
-                            <p className="text-sm text-gray-600 mb-3">
-                              Generate your landing page
-                            </p>
+                          <p className="text-[15px] text-gray-600 mb-6">
+                            Generate your landing page
+                          </p>
+                        )}
+                        {firstPitchHasPremiumLanding ? (
+                          <div className="mt-auto flex flex-col gap-2 w-full">
                             <Button
-                              size="sm"
-                              className="bg-[#4A90E2] hover:bg-[#357ABD] text-white rounded-[8px]"
+                              size="default"
+                              className="bg-[#4A90E2] hover:bg-[#357ABD] text-white rounded-[12px] w-full"
+                              onClick={openLandingPage}
+                            >
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              Open Page
+                            </Button>
+                            <Button
+                              size="default"
+                              variant="outline"
+                              className="border-2 border-gray-200 rounded-[12px] hover:bg-gray-50 w-full"
+                              onClick={handleCopyUrl}
+                            >
+                              <Copy className="w-4 h-4 mr-2" />
+                              Copy URL
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="mt-auto w-full">
+                            <Button
+                              size="default"
+                              className="bg-[#4A90E2] hover:bg-[#357ABD] text-white rounded-[12px] w-full"
                               onClick={generateLandingPage}
                               disabled={isGeneratingLanding}
                             >
                               {isGeneratingLanding ? (
                                 <>
-                                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                                   Generating...
                                 </>
                               ) : (
                                 <>
-                                  <Sparkles className="w-3 h-3 mr-1" />
+                                  <Sparkles className="w-4 h-4 mr-2" />
                                   Generate Landing Page
                                 </>
                               )}
                             </Button>
-                          </>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Logo & Brand Assets */}
+                {companyData && (
+                  <div className="p-8 rounded-[20px] border-2 border-gray-200 bg-white hover:border-[#8B5CF6] hover:shadow-lg transition-all group h-full flex flex-col">
+                    <div className="flex flex-col items-center text-center gap-4 flex-1">
+                      <div className="w-20 h-20 rounded-[16px] bg-gradient-to-br from-[#8B5CF6] to-[#4C1D95] flex items-center justify-center shadow-lg">
+                        <Palette className="w-10 h-10 text-white" />
+                      </div>
+                      <div className="flex-1 flex flex-col">
+                        <h4 className="text-[22px] font-bold text-[#252952] mb-2">
+                          Logo & Brand
+                        </h4>
+                        {companyData.logo ? (
+                          <p className="text-[15px] text-gray-600 mb-6">
+                            Logo generated
+                          </p>
+                        ) : (
+                          <p className="text-[15px] text-gray-600 mb-6">
+                            Generate your logo
+                          </p>
+                        )}
+                        {companyData.logo ? (
+                          <div className="mt-auto flex flex-col gap-2 w-full">
+                            <Button
+                              size="default"
+                              className="bg-[#8B5CF6] hover:bg-[#6D28D9] text-white rounded-[12px] w-full"
+                              onClick={() => {
+                                openLogoPreview(
+                                  companyData.logo!,
+                                  companyData.logo.startsWith("<svg") ||
+                                    companyData.logo.includes("<svg")
+                                );
+                              }}
+                            >
+                              <Eye className="w-4 h-4 mr-2" />
+                              Preview
+                            </Button>
+                            <Button
+                              size="default"
+                              variant="outline"
+                              className="border-2 border-gray-200 rounded-[12px] hover:bg-gray-50 w-full"
+                              onClick={() => {
+                                downloadLogo(
+                                  companyData.logo!,
+                                  companyData.logo.startsWith("<svg") ||
+                                    companyData.logo.includes("<svg"),
+                                  `${companyData.companyName || "logo"}-logo`
+                                );
+                              }}
+                            >
+                              <Download className="w-4 h-4 mr-2" />
+                              Download
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="mt-auto w-full">
+                            <Button
+                              size="default"
+                              className="bg-[#8B5CF6] hover:bg-[#6D28D9] text-white rounded-[12px] w-full"
+                              onClick={() => {
+                                setEditStep(3);
+                                setIsEditing(true);
+                              }}
+                            >
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              Generate Logo
+                            </Button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -1340,7 +2123,7 @@ export function PitchDashboard({
           </Card>
         )}
 
-        {/* Powers All Your Tools */}
+        {/* Powers All Your Tools
         {companyData && (
           <Card className="border-2 border-gray-200 rounded-[20px] bg-gradient-to-br from-[#f8faff] to-white overflow-hidden">
             <CardContent className="p-8">
@@ -1397,7 +2180,7 @@ export function PitchDashboard({
               </div>
             </CardContent>
           </Card>
-        )}
+        )} */}
       </div>
 
       {/* Original Pitches List Section (Hidden but kept for functionality) */}
@@ -1539,7 +2322,11 @@ export function PitchDashboard({
                 return (
                   <button
                     key={step.id}
-                    onClick={() => setEditStep(index)}
+                    onClick={() => {
+                      if (index === editStep) return;
+                      // Tabs should never send requests - just switch tabs
+                      setEditStep(index);
+                    }}
                     className={`flex-1 p-3 rounded-[12px] border-2 transition-all ${
                       editStep === index
                         ? "border-[#252952] bg-[#f8faff]"
@@ -1614,23 +2401,15 @@ export function PitchDashboard({
                   <Label className="text-base font-semibold text-[#252952]">
                     Industry
                   </Label>
-                  <Select
+                  <Combobox
+                    options={industryOptions}
                     value={editedData.industry}
                     onValueChange={(value) =>
                       setEditedData({ ...editedData, industry: value })
                     }
-                  >
-                    <SelectTrigger className="h-14 text-base border-2 border-gray-200 rounded-[12px]">
-                      <SelectValue placeholder="Select your industry" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {industryOptions.map((industry) => (
-                        <SelectItem key={industry} value={industry}>
-                          {industry}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    placeholder="Select your industry"
+                    className="h-14 text-base border-2 border-gray-200 rounded-[12px]"
+                  />
                 </div>
               </div>
             )}
@@ -1727,64 +2506,200 @@ export function PitchDashboard({
 
             {/* Step 4: Brand */}
             {editStep === 3 && (
-              <div className="space-y-6">
+              <div className="space-y-8">
+                {/* Section 1: Upload Logo */}
                 <div className="space-y-3">
                   <Label className="text-base font-semibold text-[#252952]">
-                    Upload Logo
+                    Upload your logo
                   </Label>
                   <label
                     htmlFor="edit-logo-upload"
                     onDragOver={handleDragOver}
                     onDrop={handleDrop}
-                    className="border-2 border-dashed border-gray-300 rounded-[16px] p-12 text-center hover:border-[#4A90E2] transition-all cursor-pointer bg-gradient-to-br from-white to-gray-50 block"
+                    className="border-2 border-dashed border-gray-300 rounded-[16px] p-12 text-center bg-gradient-to-br from-white to-gray-50 block transition-all hover:border-[#4A90E2] cursor-pointer"
                   >
                     <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-base text-gray-600 mb-2">
-                      Click to upload or drag and drop
+                      Click to upload or drag and drop your existing logo
                     </p>
-                    <p className="text-sm text-gray-500">SVG, PNG (max. 2MB)</p>
+                    <p className="text-sm text-gray-500">SVG only (max. 2MB)</p>
                     <Input
                       id="edit-logo-upload"
                       type="file"
-                      accept=".svg,.png,.jpg,.jpeg,image/svg+xml,image/png,image/jpeg"
+                      accept=".svg,image/svg+xml"
                       onChange={handleEditLogoUpload}
                       className="hidden"
                     />
                   </label>
 
-                  {/* Show uploaded file */}
+                  {/* Show uploaded file (takes precedence if present) */}
                   {editLogoFile && (
-                    <div className="flex items-center justify-between bg-purple-50 p-3 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <FileCheck className="h-5 w-5 text-purple-600" />
-                        <span className="text-sm text-gray-700">
-                          {editLogoFile.name}
-                        </span>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between bg-purple-50 p-3 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <FileCheck className="h-5 w-5 text-purple-600" />
+                          <span className="text-sm text-gray-700">
+                            {editLogoFile.name}
+                          </span>
+                        </div>
+                        <button
+                          onClick={clearEditLogo}
+                          className="text-gray-500 hover:text-red-500"
+                          type="button"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
                       </div>
-                      <button
-                        onClick={clearEditLogo}
-                        className="text-gray-500 hover:text-red-500"
-                        type="button"
-                      >
-                        <X className="h-5 w-5" />
-                      </button>
                     </div>
                   )}
 
-                  {/* Show preview */}
+                  {/* Show logo preview (for both newly uploaded and existing logos) */}
                   {editLogoPreview && (
-                    <div className="mt-3 p-4 bg-white rounded-lg border border-gray-200">
-                      <p className="text-sm font-semibold text-[#252952] mb-2">
+                    <div className="p-4 bg-white rounded-lg border-2 border-gray-200">
+                      <p className="text-sm font-semibold text-[#252952] mb-3">
                         Preview:
                       </p>
-                      <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
-                        <div className="w-32 h-32 rounded-full flex items-center justify-center bg-white p-1 border-2 border-gray-200 overflow-hidden shadow-md">
-                          <img
-                            src={editLogoPreview}
-                            alt="Logo preview"
-                            className="w-full h-full object-cover rounded-full"
-                          />
+                      <div className="flex items-center justify-center p-6 bg-gradient-to-br from-gray-50 to-white rounded-lg border border-gray-100">
+                          <div
+                            className="w-32 h-32 rounded-full flex items-center justify-center bg-white p-1 border-2 border-gray-200 overflow-hidden shadow-md cursor-pointer hover:scale-105 transition-transform"
+                            onClick={() =>
+                              openLogoPreview(
+                                editLogoPreview,
+                                editLogoPreview.startsWith("<svg") ||
+                                  editLogoPreview.includes("<svg")
+                              )
+                            }
+                          >
+                            {editLogoPreview.startsWith("<svg") ||
+                            editLogoPreview.includes("<svg") ? (
+                              <div
+                                className="w-full h-full flex items-center justify-center [&_svg]:w-full [&_svg]:h-full [&_svg]:max-w-full [&_svg]:max-h-full"
+                                dangerouslySetInnerHTML={{
+                                  __html: editLogoPreview,
+                                }}
+                              />
+                            ) : (
+                              <img
+                                src={editLogoPreview}
+                                alt="Logo preview"
+                                className="w-full h-full object-cover rounded-full"
+                              />
+                            )}
+                          </div>
+                      </div>
+                      <div className="flex gap-2 mt-3">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 border-2 border-gray-200 rounded-[8px]"
+                          onClick={() =>
+                            openLogoPreview(
+                              editLogoPreview,
+                              editLogoPreview.startsWith("<svg") ||
+                                editLogoPreview.includes("<svg")
+                            )
+                          }
+                        >
+                          <Eye className="w-3 h-3 mr-1" />
+                          Preview
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 border-2 border-gray-200 rounded-[8px]"
+                          onClick={() =>
+                            downloadLogo(
+                              editLogoPreview,
+                              editLogoPreview.startsWith("<svg") ||
+                                editLogoPreview.includes("<svg"),
+                              `${editedData.companyName || "logo"}-logo`
+                            )
+                          }
+                        >
+                          <Download className="w-3 h-3 mr-1" />
+                          Download
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2 text-center">
+                        This logo will be saved to your company profile
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Show generated logo preview when there is no uploaded logo */}
+                  {generatedLogoSvg && !editLogoFile && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between bg-green-50 p-3 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="h-5 w-5 text-green-600" />
+                          <span className="text-sm text-gray-700">
+                            Logo generated successfully
+                          </span>
                         </div>
+                        <button
+                          onClick={() => {
+                            setGeneratedLogoSvg(null);
+                            if (editedData.logo === generatedLogoSvg) {
+                              setEditedData({ ...editedData, logo: null });
+                            }
+                          }}
+                          className="text-gray-500 hover:text-red-500"
+                          type="button"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+                      </div>
+                      {/* Logo Preview */}
+                      <div className="p-4 bg-white rounded-lg border-2 border-gray-200">
+                        <p className="text-sm font-semibold text-[#252952] mb-3">
+                          Preview:
+                        </p>
+                        <div className="flex items-center justify-center p-6 bg-gradient-to-br from-gray-50 to-white rounded-lg border border-gray-100">
+                          <div
+                            className="w-32 h-32 rounded-full flex items-center justify-center bg-white p-1 border-2 border-gray-200 overflow-hidden shadow-md cursor-pointer hover:scale-105 transition-transform"
+                            onClick={() =>
+                              openLogoPreview(generatedLogoSvg, true)
+                            }
+                          >
+                            <div
+                              className="w-full h-full flex items-center justify-center [&_svg]:w-full [&_svg]:h-full [&_svg]:max-w-full [&_svg]:max-h-full"
+                              dangerouslySetInnerHTML={{
+                                __html: generatedLogoSvg,
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-2 mt-3">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 border-2 border-gray-200 rounded-[8px]"
+                            onClick={() =>
+                              openLogoPreview(generatedLogoSvg, true)
+                            }
+                          >
+                            <Eye className="w-3 h-3 mr-1" />
+                            Preview
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 border-2 border-gray-200 rounded-[8px]"
+                            onClick={() =>
+                              downloadLogo(
+                                generatedLogoSvg,
+                                true,
+                                `${editedData.companyName || "logo"}-logo`
+                              )
+                            }
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            Download
+                          </Button>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2 text-center">
+                          This logo will be saved to your company profile
+                        </p>
                       </div>
                     </div>
                   )}
@@ -1797,146 +2712,46 @@ export function PitchDashboard({
                   )}
                 </div>
 
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-200"></div>
-                  </div>
-                  <div className="relative flex justify-center">
-                    <span className="bg-white px-4 text-sm text-gray-500 font-medium">
-                      or
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
+                {/* Section 2: Generate Logo */}
+                <div className="space-y-3">
                   <Label className="text-base font-semibold text-[#252952]">
-                    Choose Brand Color
+                    Generate a logo for your company
                   </Label>
-                  <div className="grid grid-cols-4 gap-3">
-                    {BRAND_COLORS.map((color) => (
-                      <button
-                        key={color.value}
-                        onClick={() =>
-                          setEditedData({
-                            ...editedData,
-                            brandColor: color.value,
-                          })
-                        }
-                        className={`relative h-24 rounded-[16px] transition-all hover:scale-105 ${
-                          editedData.brandColor === color.value
-                            ? "ring-4 ring-[#252952] ring-offset-2"
-                            : "ring-2 ring-gray-200 hover:ring-gray-300"
-                        }`}
-                        style={{ backgroundColor: color.value }}
-                      >
-                        {editedData.brandColor === color.value && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-10 h-10 rounded-full bg-white shadow-2xl flex items-center justify-center">
-                              <Check className="w-6 h-6 text-[#252952]" />
-                            </div>
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    Selected:{" "}
-                    <span className="font-semibold text-[#252952]">
-                      {
-                        BRAND_COLORS.find(
-                          (c) => c.value === editedData.brandColor
-                        )?.name
-                      }
-                    </span>
-                  </p>
-                </div>
-
-                {/* Preview */}
-                <div className="mt-8 p-6 rounded-[16px] bg-gradient-to-br from-gray-50 to-white border-2 border-gray-200">
-                  <h4 className="text-sm font-semibold text-[#252952] mb-4">
-                    Preview
-                  </h4>
-                  <div className="space-y-4">
-                    {/* Button Preview */}
-                    <div>
-                      <p className="text-xs font-medium text-gray-500 mb-2">
-                        Button Style
-                      </p>
-                      <div
-                        className="h-12 rounded-[12px] flex items-center justify-center font-semibold text-white shadow-lg transition-all"
-                        style={{ backgroundColor: editedData.brandColor }}
-                      >
-                        Get Started
+                  <div className="border-2 border-purple-200 rounded-[16px] p-6 bg-gradient-to-br from-white to-purple-50 flex items-center justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#4C1D95] flex items-center justify-center flex-shrink-0">
+                        <Sparkles className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-700">
+                          Don&apos;t have a logo yet? Let Foundify help you create
+                          one that matches your brand.
+                        </p>
                       </div>
                     </div>
-
-                    {/* Company Card Preview */}
-                    <div>
-                      <p className="text-xs font-medium text-gray-500 mb-2">
-                        Company Profile Card
-                      </p>
-                      <div
-                        className="rounded-[20px] p-5 border-2 transition-all shadow-sm"
-                        style={{
-                          backgroundColor: "white",
-                          borderColor: `${editedData.brandColor}30`,
-                        }}
-                      >
-                        {/* Brand accent bar */}
-                        <div
-                          className="h-1.5 rounded-t-[20px] -mx-5 -mt-5 mb-4"
-                          style={{
-                            background: `linear-gradient(90deg, ${editedData.brandColor} 0%, ${editedData.brandColor}80 100%)`,
-                          }}
-                        />
-
-                        <div className="flex items-start gap-4">
-                          {/* Logo/Icon - Avatar Style */}
-                          {editLogoPreview || editedData.logo ? (
-                            <div className="w-24 h-24 rounded-full flex items-center justify-center flex-shrink-0 shadow-md bg-white p-1 border-2 border-gray-100 overflow-hidden">
-                              <img
-                                src={editLogoPreview || editedData.logo || ""}
-                                alt="Logo preview"
-                                className="w-full h-full object-cover rounded-full"
-                              />
-                            </div>
-                          ) : (
-                            <div
-                              className="w-24 h-24 rounded-full flex items-center justify-center flex-shrink-0 shadow-md"
-                              style={{
-                                background: `linear-gradient(135deg, ${editedData.brandColor} 0%, ${editedData.brandColor}dd 100%)`,
-                              }}
-                            >
-                              <Building2 className="w-12 h-12 text-white" />
-                            </div>
-                          )}
-
-                          {/* Company Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="text-xl font-bold text-[#252952] truncate">
-                                {editedData.companyName || "Your Company"}
-                              </h3>
-                            </div>
-                            {editedData.oneLiner && (
-                              <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
-                                {editedData.oneLiner}
-                              </p>
-                            )}
-                            {editedData.industry && (
-                              <div className="flex items-center gap-2 mt-2">
-                                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-full">
-                                  <BarChart3 className="w-3 h-3 text-gray-600" />
-                                  <span className="text-xs text-gray-700 font-medium">
-                                    {editedData.industry}
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <Button
+                      size="sm"
+                      className="bg-[#8B5CF6] hover:bg-[#6D28D9] text-white rounded-[999px] px-5 disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={handleGenerateLogo}
+                      disabled={isGeneratingLogo || !editedData.companyName || firstPitchMeta?.logoGenerated}
+                    >
+                      {isGeneratingLogo ? (
+                        <>
+                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                          Generating...
+                        </>
+                      ) : firstPitchMeta?.logoGenerated ? (
+                        <>
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          Logo Already Generated
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          Generate Logo
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -1970,14 +2785,23 @@ export function PitchDashboard({
               </div>
 
               <Button
-                onClick={() => {
+                onClick={async () => {
                   if (editStep < editSteps.length - 1) {
+                    // Continue button should never auto-save - just move to next step
+                    // Only the final "Save Changes" button will save
                     setEditStep(editStep + 1);
                   } else {
-                    handleSaveEdit();
+                    // Final step - only save if there are actual changes
+                    if (hasCompanyChanges()) {
+                      await handleSaveEdit();
+                    } else {
+                      // No changes, just close the modal
+                      handleCancelEdit();
+                      toast.info("No changes to save");
+                    }
                   }
                 }}
-                disabled={isSaving}
+                disabled={isSaving || isStepSaving}
                 className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[12px] shadow-lg px-8 disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {editStep === editSteps.length - 1 ? (
@@ -1996,8 +2820,17 @@ export function PitchDashboard({
                   </>
                 ) : (
                   <>
-                    Continue
-                    <ArrowRight className="w-4 h-4 ml-2" />
+                    {isStepSaving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        Continue
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </>
+                    )}
                   </>
                 )}
               </Button>
@@ -2198,6 +3031,76 @@ export function PitchDashboard({
         type="landing"
         progress={landingProgress}
       />
+      <LoadingModal
+        isOpen={showLogoLoading}
+        type="logo"
+        progress={logoProgress}
+      />
+
+      {/* Logo Preview Modal */}
+      <Dialog
+        open={logoPreviewModal.isOpen}
+        onOpenChange={(open) =>
+          setLogoPreviewModal({ ...logoPreviewModal, isOpen: open })
+        }
+      >
+        <DialogContent className="max-w-2xl rounded-[24px] p-0">
+          <DialogHeader className="p-6 pb-4">
+            <DialogTitle className="text-[32px] font-bold text-[#252952]">
+              Logo Preview
+            </DialogTitle>
+            <DialogDescription className="text-base">
+              Preview and download your company logo
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-6 pt-0">
+            <div className="flex items-center justify-center p-8 bg-gradient-to-br from-gray-50 to-white rounded-[16px] border-2 border-gray-200 mb-4">
+              <div className="w-full max-w-md bg-white p-4 border-2 border-gray-200 rounded-[20px] overflow-hidden shadow-lg flex items-center justify-center">
+                {logoPreviewModal.isSvg && logoPreviewModal.logo ? (
+                  <div
+                    className="w-full h-full flex items-center justify-center [&_svg]:w-full [&_svg]:h-auto [&_svg]:max-w-full [&_svg]:max-h-[260px]"
+                    dangerouslySetInnerHTML={{
+                      __html: logoPreviewModal.logo,
+                    }}
+                  />
+                ) : logoPreviewModal.logo ? (
+                  <img
+                    src={logoPreviewModal.logo}
+                    alt="Logo preview"
+                    className="w-full h-auto max-h-[260px] object-contain"
+                  />
+                ) : null}
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1 border-2 border-gray-200 rounded-[12px]"
+                onClick={() =>
+                  setLogoPreviewModal({ ...logoPreviewModal, isOpen: false })
+                }
+              >
+                Close
+              </Button>
+              <Button
+                className="flex-1 bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[12px]"
+                onClick={() => {
+                  if (logoPreviewModal.logo) {
+                    downloadLogo(
+                      logoPreviewModal.logo,
+                      logoPreviewModal.isSvg,
+                      `${editedData.companyName || companyData?.companyName || "logo"}-logo`
+                    );
+                  }
+                }}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download Logo
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

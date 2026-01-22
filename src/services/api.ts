@@ -3,6 +3,9 @@ import { useCallback } from "react";
 import useAxios from "../hooks/useAxios";
 export const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || "";
 
+// Logo generation is now part of the main API, so we use the same base URL
+// No separate LOGO_API_BASE_URL needed
+
 interface ApiResponse<T> {
   success: boolean;
   user?: T;
@@ -117,6 +120,7 @@ interface PitchDetails {
   primaryColor?: string;
   secondaryColor?: string;
   logo?: string | null;
+  logoGenerated?: boolean;
 }
 
 interface PitchDetailsResponse {
@@ -609,12 +613,99 @@ export const useApiService = () => {
         teamSize?: string;
         brandColor?: string;
         logo?: string | null;
+        logoGenerated?: boolean; // Track if logo was AI-generated
       }
     ): Promise<PitchDetailsResponse> => {
       try {
-        // Reuse the same helper logic as the builder for secondary color
-        const primaryColor = data.brandColor || "#252952";
-        const secondaryColor = primaryColor;
+        // Extract colors from logo SVG if provided, otherwise use brandColor
+        let primaryColor = data.brandColor || "#252952";
+        let secondaryColor = primaryColor;
+
+        if (data.logo && typeof data.logo === "string" && data.logo.includes("<svg")) {
+          // Extract colors from SVG
+          const extractColorsFromSVG = (svgString: string): { primaryColor: string; secondaryColor: string } | null => {
+            if (!svgString || typeof svgString !== "string") {
+              return null;
+            }
+
+            const colors: string[] = [];
+            const hexColorRegex = /#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})\b/g;
+            const rgbColorRegex = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/g;
+
+            // Extract hex colors from fill, stroke, and style attributes
+            const fillMatches = svgString.match(/fill=["']([^"']+)["']/gi) || [];
+            const strokeMatches = svgString.match(/stroke=["']([^"']+)["']/gi) || [];
+            const styleMatches = svgString.match(/style=["']([^"']+)["']/gi) || [];
+
+            const allMatches = [...fillMatches, ...strokeMatches, ...styleMatches];
+
+            allMatches.forEach((match) => {
+              // Extract hex colors
+              const hexMatches = match.match(hexColorRegex);
+              if (hexMatches) {
+                colors.push(...hexMatches);
+              }
+
+              // Extract RGB colors and convert to hex
+              const rgbMatches = match.match(rgbColorRegex);
+              if (rgbMatches) {
+                rgbMatches.forEach((rgb) => {
+                  const rgbValues = rgb.match(/\d+/g);
+                  if (rgbValues && rgbValues.length === 3) {
+                    const r = parseInt(rgbValues[0]).toString(16).padStart(2, "0");
+                    const g = parseInt(rgbValues[1]).toString(16).padStart(2, "0");
+                    const b = parseInt(rgbValues[2]).toString(16).padStart(2, "0");
+                    colors.push(`#${r}${g}${b}`);
+                  }
+                });
+              }
+            });
+
+            // Normalize hex colors (convert 3-digit to 6-digit)
+            const normalizeHexColor = (color: string): string | null => {
+              if (typeof color !== "string") return null;
+              const trimmed = color.trim();
+              if (!/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(trimmed)) return null;
+              if (trimmed.length === 4) {
+                const [hash, r, g, b] = trimmed.toUpperCase().split("");
+                return `${hash}${r}${r}${g}${g}${b}${b}`;
+              }
+              return trimmed.toUpperCase();
+            };
+
+            // Remove common non-color values and duplicates
+            const validColors = colors
+              .map((color) => normalizeHexColor(color))
+              .filter((color): color is string => {
+                if (!color) return false;
+                // Filter out white, black, transparent-like colors
+                const lower = color.toLowerCase();
+                return (
+                  lower !== "#ffffff" &&
+                  lower !== "#000000" &&
+                  lower !== "#fff" &&
+                  lower !== "#000" &&
+                  lower !== "#transparent"
+                );
+              })
+              .filter((color, index, self) => self.indexOf(color) === index);
+
+            if (validColors.length === 0) {
+              return null;
+            }
+
+            return {
+              primaryColor: validColors[0],
+              secondaryColor: validColors[1] || validColors[0],
+            };
+          };
+
+          const extractedColors = extractColorsFromSVG(data.logo);
+          if (extractedColors) {
+            primaryColor = extractedColors.primaryColor;
+            secondaryColor = extractedColors.secondaryColor;
+          }
+        }
 
         const payload = {
           startupName: data.companyName,
@@ -628,6 +719,7 @@ export const useApiService = () => {
           primaryColor,
           secondaryColor,
           logo: data.logo || null,
+          logoGenerated: data.logoGenerated,
         };
 
         const response = await axiosInstance.put(`/pitch/history/${id}`, payload);
@@ -639,6 +731,152 @@ export const useApiService = () => {
       }
     },
     [axiosInstance]
+  );
+
+  /**
+   * Generate a logo via the OpenAI logo service and immediately
+   * save it on the company info for the given pitch.
+   *
+   * Returns both the raw SVG string and the updated pitch details.
+   */
+  const generateAndSaveCompanyLogo = useCallback(
+    async (
+      id: string,
+      data: {
+        companyName: string;
+        industry: string;
+        oneLiner: string;
+        problem: string;
+        value: string;
+        status?: string;
+        teamSize?: string;
+        brandColor?: string;
+      }
+    ): Promise<{ svg: string; pitch: PitchDetailsResponse }> => {
+      try {
+        // 1) Ask the main API to generate an SVG via the logo endpoint
+        const primaryColor = data.brandColor || "#4A90E2";
+        const styleHint = [
+          "modern, premium brand identity logo",
+          "distinctive, memorable icon plus optional wordmark",
+          "subtle depth (not just a flat shape)",
+          "clean, contemporary typography",
+          `use ${primaryColor} as the primary accent color`,
+          "designed to look great on a light background",
+          "avoid generic clip-art or obvious stock icons",
+        ].join(", ");
+
+        const response = await axiosInstance.post("/logo/generate", {
+          companyName: data.companyName,
+          tagline: data.oneLiner,
+          industry: data.industry,
+          stylePrompt: styleHint,
+          pitchId: id, // Pass pitch ID to check generation limit
+        });
+
+        const payload = response.data as { success?: boolean; svg?: string };
+        const svg = (payload.svg || "").trim();
+
+        if (!svg || !svg.includes("<svg")) {
+          throw new Error("Logo service did not return valid SVG");
+        }
+
+        // Extract colors from the generated SVG
+        const extractColorsFromSVG = (svgString: string): { primaryColor: string; secondaryColor: string } | null => {
+          if (!svgString || typeof svgString !== "string") {
+            return null;
+          }
+
+          const colors: string[] = [];
+          const hexColorRegex = /#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})\b/g;
+          const rgbColorRegex = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/g;
+
+          const fillMatches = svgString.match(/fill=["']([^"']+)["']/gi) || [];
+          const strokeMatches = svgString.match(/stroke=["']([^"']+)["']/gi) || [];
+          const styleMatches = svgString.match(/style=["']([^"']+)["']/gi) || [];
+
+          const allMatches = [...fillMatches, ...strokeMatches, ...styleMatches];
+
+          allMatches.forEach((match) => {
+            const hexMatches = match.match(hexColorRegex);
+            if (hexMatches) {
+              colors.push(...hexMatches);
+            }
+
+            const rgbMatches = match.match(rgbColorRegex);
+            if (rgbMatches) {
+              rgbMatches.forEach((rgb) => {
+                const rgbValues = rgb.match(/\d+/g);
+                if (rgbValues && rgbValues.length === 3) {
+                  const r = parseInt(rgbValues[0]).toString(16).padStart(2, "0");
+                  const g = parseInt(rgbValues[1]).toString(16).padStart(2, "0");
+                  const b = parseInt(rgbValues[2]).toString(16).padStart(2, "0");
+                  colors.push(`#${r}${g}${b}`);
+                }
+              });
+            }
+          });
+
+          const normalizeHexColor = (color: string): string | null => {
+            if (typeof color !== "string") return null;
+            const trimmed = color.trim();
+            if (!/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(trimmed)) return null;
+            if (trimmed.length === 4) {
+              const [hash, r, g, b] = trimmed.toUpperCase().split("");
+              return `${hash}${r}${r}${g}${g}${b}${b}`;
+            }
+            return trimmed.toUpperCase();
+          };
+
+          const validColors = colors
+            .map((color) => normalizeHexColor(color))
+            .filter((color): color is string => {
+              if (!color) return false;
+              const lower = color.toLowerCase();
+              return (
+                lower !== "#ffffff" &&
+                lower !== "#000000" &&
+                lower !== "#fff" &&
+                lower !== "#000" &&
+                lower !== "#transparent"
+              );
+            })
+            .filter((color, index, self) => self.indexOf(color) === index);
+
+          if (validColors.length === 0) {
+            return null;
+          }
+
+          return {
+            primaryColor: validColors[0],
+            secondaryColor: validColors[1] || validColors[0],
+          };
+        };
+
+        const extractedColors = extractColorsFromSVG(svg);
+        const brandColor = extractedColors?.primaryColor || data.brandColor || "#4A90E2";
+
+        // 2) Save the logo on the existing pitch/company info with extracted colors
+        // Set logo_generated to true to mark that this logo was AI-generated
+        const updatedPitch = await updatePitchCompany(id, {
+          ...data,
+          brandColor: brandColor,
+          logo: svg,
+          logoGenerated: true, // Mark as generated
+        });
+
+        return { svg, pitch: updatedPitch };
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.error ||
+            error.response?.data?.message ||
+            error.response?.data?.details ||
+            error.message ||
+            "Failed to generate and save company logo"
+        );
+      }
+    },
+    [axiosInstance, updatePitchCompany]
   );
 
   /**
@@ -1300,6 +1538,7 @@ export const useApiService = () => {
     getCurrentUserProfile,
     getFirstPitch,
     updatePitchCompany,
+    generateAndSaveCompanyLogo,
     regeneratePitch,
     // Email generator methods
     getEmailTemplates,
