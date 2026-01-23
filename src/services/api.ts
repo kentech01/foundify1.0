@@ -391,6 +391,63 @@ interface FeedbackExportRequest {
   additionalNotes?: string;
 }
 
+// Team Insights interfaces
+export type TeamMemberStatus = "Active" | "Probation" | "Contractor";
+export type TeamFeedbackType = "Quarterly" | "Yearly" | "Probation" | "Custom";
+
+export interface TeamFeedbackEntry {
+  id: string;
+  memberId: string;
+  type: TeamFeedbackType;
+  summary?: string | null;
+  strengths: string;
+  improvements: string;
+  goals: string;
+  teamCollaboration?: string | null;
+  additionalNotes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TeamMemberWithFeedback {
+  id: string;
+  name: string;
+  role: string;
+  status: TeamMemberStatus;
+  createdAt: string;
+  updatedAt: string;
+  lastFeedbackDate?: string | null;
+  lastFeedbackType?: TeamFeedbackType | null;
+  feedbackHistory: TeamFeedbackEntry[];
+}
+
+export interface TeamInsightsListResponse {
+  success: boolean;
+  data: TeamMemberWithFeedback[];
+}
+
+export interface CreateTeamMemberRequest {
+  name: string;
+  role: string;
+  status: TeamMemberStatus;
+}
+
+export interface UpdateTeamMemberRequest {
+  name?: string;
+  role?: string;
+  status?: TeamMemberStatus;
+}
+
+export interface AddTeamFeedbackRequest {
+  type: TeamFeedbackType;
+  strengths: string;
+  improvements: string;
+  goals: string;
+  summary?: string;
+  teamCollaboration?: string;
+  additionalNotes?: string;
+}
+
 // Subscription interfaces
 interface CreateSubscriptionCheckoutResponse {
   success: boolean;
@@ -1489,6 +1546,86 @@ export const useApiService = () => {
     [axiosInstance]
   );
 
+  // Team Insights API methods
+  const getTeamInsights = useCallback(
+    async (): Promise<TeamInsightsListResponse> => {
+      try {
+        const response = await axiosInstance.get("/team-insights");
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message ||
+            error.response?.data?.error ||
+            "Failed to load team insights"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const createTeamMember = useCallback(
+    async (payload: CreateTeamMemberRequest): Promise<TeamMemberWithFeedback> => {
+      try {
+        const response = await axiosInstance.post(
+          "/team-insights/members",
+          payload
+        );
+        return response.data.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message ||
+            error.response?.data?.error ||
+            "Failed to create team member"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const addTeamFeedback = useCallback(
+    async (
+      memberId: string,
+      payload: AddTeamFeedbackRequest
+    ): Promise<TeamFeedbackEntry> => {
+      try {
+        const response = await axiosInstance.post(
+          `/team-insights/members/${memberId}/feedback`,
+          payload
+        );
+        return response.data.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message ||
+            error.response?.data?.error ||
+            "Failed to add feedback"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const updateTeamMember = useCallback(
+    async (
+      memberId: string,
+      payload: UpdateTeamMemberRequest
+    ): Promise<TeamMemberWithFeedback> => {
+      try {
+        const response = await axiosInstance.put(
+          `/team-insights/members/${memberId}`,
+          payload
+        );
+        return response.data.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message ||
+            error.response?.data?.error ||
+            "Failed to update team member"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
   // Subscription API methods
   const createSubscriptionCheckout = useCallback(
     async (
@@ -1570,6 +1707,11 @@ export const useApiService = () => {
     previewContractPdf,
     // Feedback methods
     exportFeedbackPdf,
+    // Team Insights methods
+    getTeamInsights,
+    createTeamMember,
+    addTeamFeedback,
+    updateTeamMember,
     // Subscription methods
     createSubscriptionCheckout,
     getSubscriptionStatus,

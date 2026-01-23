@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -27,23 +27,34 @@ import {
   Plus,
   Eye,
   Calendar,
-  Sparkles,
   TrendingUp,
   FileText,
   X,
-  Trash2,
   CheckCircle2,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AddTeamFeedbackRequest,
+  CreateTeamMemberRequest,
+  UpdateTeamMemberRequest,
+  FeedbackExportRequest,
+  TeamFeedbackType,
+  TeamMemberStatus,
+  TeamMemberWithFeedback,
+  useApiService,
+} from "../services/api";
 
 interface FeedbackEntry {
   id: string;
   date: string;
-  type: "Quarterly" | "Yearly" | "Probation" | "Custom";
+  type: TeamFeedbackType;
   summary: string;
   strengths: string;
   improvements: string;
   goals: string;
+  teamCollaboration?: string;
+  additionalNotes?: string;
 }
 
 interface RecordItem {
@@ -59,170 +70,172 @@ interface Employee {
   id: string;
   name: string;
   role: string;
-  status: "Active" | "Probation" | "Contractor";
+  status: TeamMemberStatus;
   lastFeedback: string;
-  feedbackType: "Quarterly" | "Yearly" | "Probation" | "Custom";
+  feedbackType: TeamFeedbackType;
   feedbackHistory: FeedbackEntry[];
   records: RecordItem[];
 }
 
 export function TeamInsightsPage() {
-  const [employees, setEmployees] = useState<Employee[]>([
-    {
-      id: "1",
-      name: "Sarah Johnson",
-      role: "Senior Engineer",
-      status: "Active",
-      lastFeedback: "Dec 15, 2024",
-      feedbackType: "Quarterly",
-      feedbackHistory: [
-        {
-          id: "f1",
-          date: "Dec 15, 2024",
-          type: "Quarterly",
-          summary:
-            "Excellent performance on Q4 projects. Strong technical leadership and mentorship.",
-          strengths:
-            "Consistently delivers high-quality code, excellent problem-solving skills, great team collaboration and mentorship to junior developers.",
-          improvements:
-            "Time management on multiple concurrent projects could be improved. Consider using task prioritization frameworks.",
-          goals:
-            "Lead architecture for new platform migration, mentor 2 junior developers, improve code review turnaround time.",
-        },
-        {
-          id: "f2",
-          date: "Sep 10, 2024",
-          type: "Quarterly",
-          summary:
-            "Strong quarter with consistent delivery and quality improvements.",
-          strengths:
-            "Technical expertise in backend systems, proactive in identifying potential issues.",
-          improvements: "Documentation practices could be more thorough.",
-          goals:
-            "Improve system documentation, take ownership of critical infrastructure projects.",
-        },
-      ],
-      records: [
-        {
-          id: "r1",
-          date: "Dec 1, 2024",
-          startDate: "Dec 20, 2024",
-          endDate: "Jan 3, 2025",
-          type: "Vacation",
-          description: "2 weeks annual leave - Holiday break",
-        },
-        {
-          id: "r2",
-          date: "Aug 15, 2024",
-          startDate: "Aug 20, 2024",
-          endDate: "Aug 22, 2024",
-          type: "Leave",
-          description: "Personal leave",
-        },
-      ],
-    },
-    {
-      id: "2",
-      name: "Marcus Chen",
-      role: "Product Designer",
-      status: "Active",
-      lastFeedback: "Nov 30, 2024",
-      feedbackType: "Yearly",
-      feedbackHistory: [
-        {
-          id: "f3",
-          date: "Nov 30, 2024",
-          type: "Yearly",
-          summary:
-            "Outstanding design work throughout the year. Consistently delivers user-centric solutions.",
-          strengths:
-            "Strong user research skills, beautiful visual design, excellent cross-functional collaboration with engineering team.",
-          improvements:
-            "Could be more proactive in stakeholder communication, especially during early design phases.",
-          goals:
-            "Establish comprehensive design system, mentor junior designers, lead major product redesign initiative.",
-        },
-      ],
-      records: [],
-    },
-    {
-      id: "3",
-      name: "Emma Williams",
-      role: "Junior Developer",
-      status: "Probation",
-      lastFeedback: "Dec 10, 2024",
-      feedbackType: "Probation",
-      feedbackHistory: [
-        {
-          id: "f4",
-          date: "Dec 10, 2024",
-          type: "Probation",
-          summary:
-            "Good progress during first 60 days. Shows eagerness to learn and adapt.",
-          strengths:
-            "Quick learner, asks good questions, proactive in seeking feedback, positive attitude.",
-          improvements:
-            "Understanding of code review process, testing practices need development.",
-          goals:
-            "Complete onboarding modules, ship first feature independently, improve test coverage knowledge.",
-        },
-      ],
-      records: [],
-    },
-  ]);
+  const {
+    getTeamInsights,
+    createTeamMember,
+    addTeamFeedback,
+    updateTeamMember,
+    exportFeedbackPdf,
+  } = useApiService();
+  const [employees, setEmployees] = useState<Employee[]>([]);
 
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
     null
   );
   const [showAddEmployee, setShowAddEmployee] = useState(false);
   const [showAddFeedback, setShowAddFeedback] = useState(false);
-  const [showAddRecord, setShowAddRecord] = useState(false);
   const [showEmployeeProfile, setShowEmployeeProfile] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
-  const [newEmployee, setNewEmployee] = useState({
+  const [newEmployee, setNewEmployee] = useState<{
+    name: string;
+    role: string;
+    status: TeamMemberStatus;
+  }>({
     name: "",
     role: "",
-    status: "Active" as const,
+    status: "Active",
   });
 
-  const [newFeedback, setNewFeedback] = useState({
-    type: "Quarterly" as const,
+  const [newFeedback, setNewFeedback] = useState<{
+    type: TeamFeedbackType;
+    strengths: string;
+    improvements: string;
+    goals: string;
+    teamCollaboration: string;
+    additionalNotes: string;
+  }>({
+    type: "Quarterly",
     strengths: "",
     improvements: "",
     goals: "",
+    teamCollaboration: "",
+    additionalNotes: "",
   });
 
-  const [newRecord, setNewRecord] = useState({
-    type: "Vacation" as const,
-    startDate: "",
-    endDate: "",
-    description: "",
+  // Helper to format dates consistently
+  const formatDate = (value: string | Date | null | undefined): string => {
+    if (!value) return "Not yet";
+    const d = typeof value === "string" ? new Date(value) : value;
+    if (Number.isNaN(d.getTime())) return "Not yet";
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  // Map backend shape into UI Employee
+  const mapApiMemberToEmployee = (m: TeamMemberWithFeedback): Employee => ({
+    id: m.id,
+    name: m.name,
+    role: m.role,
+    status: m.status,
+    lastFeedback: formatDate(m.lastFeedbackDate || null),
+    feedbackType: (m.lastFeedbackType as TeamFeedbackType) || "Quarterly",
+    feedbackHistory: (m.feedbackHistory || []).map((f) => ({
+      id: f.id,
+      date: formatDate(f.createdAt),
+      type: f.type,
+      summary:
+        f.summary ||
+        `${f.type} feedback for ${m.name}`,
+      strengths: f.strengths,
+      improvements: f.improvements,
+      goals: f.goals,
+      teamCollaboration: f.teamCollaboration || "",
+      additionalNotes: f.additionalNotes || "",
+    })),
+    // Records are currently UI-only; keep empty until backend supports them
+    records: [],
   });
 
-  const [generatedSummary, setGeneratedSummary] = useState("");
-  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  // Initial load from backend
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const response = await getTeamInsights();
+        const loaded = (response.data || []).map(mapApiMemberToEmployee);
+        setEmployees(loaded);
+      } catch (error: any) {
+        console.error("Failed to load team insights", error);
+        toast.error(
+          error?.message || "Failed to load team insights. Please try again."
+        );
+      }
+    };
 
-  const handleAddEmployee = () => {
+    load();
+  }, [getTeamInsights]);
+
+  const handleAddEmployee = async () => {
     if (!newEmployee.name || !newEmployee.role) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    const employee: Employee = {
-      id: Date.now().toString(),
+    // If editing existing member
+    if (editingEmployee) {
+      const payload: UpdateTeamMemberRequest = {
+        name: newEmployee.name,
+        role: newEmployee.role,
+        status: newEmployee.status,
+      };
+
+      try {
+        const updated = await updateTeamMember(editingEmployee.id, payload);
+        const mapped = mapApiMemberToEmployee(updated);
+        const next = employees.map((e) =>
+          e.id === editingEmployee.id ? { ...e, ...mapped } : e
+        );
+        setEmployees(next);
+        setSelectedEmployee((prev) =>
+          prev && prev.id === editingEmployee.id ? { ...prev, ...mapped } : prev
+        );
+        setEditingEmployee(null);
+        setNewEmployee({ name: "", role: "", status: "Active" });
+        setShowAddEmployee(false);
+        toast.success("Team member updated successfully");
+      } catch (error: any) {
+        console.error("Failed to update team member", error);
+        toast.error(error?.message || "Failed to update team member");
+      }
+      return;
+    }
+
+    // Creating new member
+    const payload: CreateTeamMemberRequest = {
       name: newEmployee.name,
       role: newEmployee.role,
       status: newEmployee.status,
-      lastFeedback: "Not yet",
-      feedbackType: "Quarterly",
-      feedbackHistory: [],
-      records: [],
     };
 
-    setEmployees([...employees, employee]);
+    try {
+      const created = await createTeamMember(payload);
+      const employee = mapApiMemberToEmployee(created);
+      setEmployees([...employees, employee]);
+      setNewEmployee({ name: "", role: "", status: "Active" });
+      setShowAddEmployee(false);
+      toast.success("Team member added successfully");
+    } catch (error: any) {
+      console.error("Failed to add team member", error);
+      toast.error(error?.message || "Failed to add team member");
+    }
+  };
+
+  // Helper to open the Add Team Member dialog
+  const handleOpenCreateMember = () => {
+    setEditingEmployee(null);
     setNewEmployee({ name: "", role: "", status: "Active" });
-    setShowAddEmployee(false);
-    toast.success("Team member added successfully");
+    setShowAddEmployee(true);
   };
 
   const handleGenerateSummary = () => {
@@ -256,7 +269,7 @@ Looking ahead, focus on: ${newFeedback.goals
     }, 1500);
   };
 
-  const handleSaveFeedback = () => {
+  const handleSaveFeedback = async () => {
     if (
       !selectedEmployee ||
       !newFeedback.strengths ||
@@ -267,24 +280,34 @@ Looking ahead, focus on: ${newFeedback.goals
       return;
     }
 
-    const feedback: FeedbackEntry = {
-      id: Date.now().toString(),
-      date: new Date().toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
+    const payload: AddTeamFeedbackRequest = {
       type: newFeedback.type,
-      summary:
-        generatedSummary ||
-        `${newFeedback.type} feedback for ${selectedEmployee.name}`,
       strengths: newFeedback.strengths,
       improvements: newFeedback.improvements,
       goals: newFeedback.goals,
+      summary: `${newFeedback.type} feedback for ${selectedEmployee.name}`,
+      teamCollaboration: newFeedback.teamCollaboration,
+      additionalNotes: newFeedback.additionalNotes,
     };
 
-    setEmployees(
-      employees.map((emp) =>
+    try {
+      const created = await addTeamFeedback(selectedEmployee.id, payload);
+
+      const feedback: FeedbackEntry = {
+        id: created.id,
+        date: formatDate(created.createdAt),
+        type: created.type,
+        summary:
+          created.summary ||
+          `${created.type} feedback for ${selectedEmployee.name}`,
+        strengths: created.strengths,
+        improvements: created.improvements,
+        goals: created.goals,
+        teamCollaboration: created.teamCollaboration || "",
+        additionalNotes: created.additionalNotes || "",
+      };
+
+      const updatedEmployees = employees.map((emp) =>
         emp.id === selectedEmployee.id
           ? {
               ...emp,
@@ -293,82 +316,78 @@ Looking ahead, focus on: ${newFeedback.goals
               feedbackHistory: [feedback, ...emp.feedbackHistory],
             }
           : emp
-      )
-    );
+      );
 
-    setNewFeedback({
-      type: "Quarterly",
-      strengths: "",
-      improvements: "",
-      goals: "",
-    });
-    setGeneratedSummary("");
-    setShowAddFeedback(false);
-    setShowEmployeeProfile(true);
-    toast.success("Feedback saved successfully");
+      setEmployees(updatedEmployees);
+
+      // Also update selected employee state if open
+      const updatedSelected = updatedEmployees.find(
+        (e) => e.id === selectedEmployee.id
+      );
+      if (updatedSelected) {
+        setSelectedEmployee(updatedSelected);
+      }
+
+      setNewFeedback({
+        type: "Quarterly",
+        strengths: "",
+        improvements: "",
+        goals: "",
+        teamCollaboration: "",
+        additionalNotes: "",
+      });
+      setShowAddFeedback(false);
+      setShowEmployeeProfile(true);
+      toast.success("Feedback saved successfully");
+    } catch (error: any) {
+      console.error("Failed to save feedback", error);
+      toast.error(error?.message || "Failed to save feedback");
+    }
   };
 
-  const handleSaveRecord = () => {
-    if (!selectedEmployee || !newRecord.startDate || !newRecord.endDate) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
+  // Records are currently not persisted in the backend; keep helpers removed for now
 
-    const record: RecordItem = {
-      id: Date.now().toString(),
-      date: new Date().toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-      startDate: newRecord.startDate,
-      endDate: newRecord.endDate,
-      type: newRecord.type,
-      description: newRecord.description,
+  const handleOpenEditMember = (employee: Employee) => {
+    setEditingEmployee(employee);
+    setNewEmployee({
+      name: employee.name,
+      role: employee.role,
+      status: employee.status,
+    });
+    setShowAddEmployee(true);
+  };
+
+  const handleExportFeedbackPdf = async (
+    employee: Employee,
+    feedback: FeedbackEntry
+  ) => {
+    const payload: FeedbackExportRequest = {
+      employeeName: employee.name,
+      role: employee.role,
+      feedbackCycle: feedback.type,
+      strengthsObserved: feedback.strengths,
+      areasForGrowth: feedback.improvements,
+      teamCollaboration: feedback.teamCollaboration || "",
+      goalsNext6Months: feedback.goals,
+      additionalNotes:
+        feedback.additionalNotes ||
+        feedback.summary,
     };
 
-    setEmployees(
-      employees.map((emp) =>
-        emp.id === selectedEmployee.id
-          ? {
-              ...emp,
-              records: [record, ...emp.records],
-            }
-          : emp
-      )
-    );
-
-    setNewRecord({
-      type: "Vacation",
-      startDate: "",
-      endDate: "",
-      description: "",
-    });
-    setShowAddRecord(false);
-    setShowEmployeeProfile(true);
-    toast.success("Record added successfully");
-  };
-
-  const handleDeleteRecord = (recordId: string) => {
-    if (!selectedEmployee) return;
-
-    setEmployees(
-      employees.map((emp) =>
-        emp.id === selectedEmployee.id
-          ? {
-              ...emp,
-              records: emp.records.filter((r) => r.id !== recordId),
-            }
-          : emp
-      )
-    );
-
-    setSelectedEmployee({
-      ...selectedEmployee,
-      records: selectedEmployee.records.filter((r) => r.id !== recordId),
-    });
-
-    toast.success("Record deleted");
+    try {
+      const blob = await exportFeedbackPdf(payload);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Feedback_${employee.name.replace(/\s+/g, "_")}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error: any) {
+      console.error("Failed to export feedback PDF", error);
+      toast.error(error?.message || "Failed to export feedback PDF");
+    }
   };
 
   const getStatusColor = (status: Employee["status"]) => {
@@ -404,7 +423,7 @@ Looking ahead, focus on: ${newFeedback.goals
       {/* Header */}
       <div className="mb-8">
         <p className="text-gray-600 mt-2 text-base">
-          Structured feedback, growth tracking, and team records
+          Structured feedback and growth tracking
         </p>
       </div>
 
@@ -467,7 +486,7 @@ Looking ahead, focus on: ${newFeedback.goals
               Team Overview
             </CardTitle>
             <Button
-              onClick={() => setShowAddEmployee(true)}
+              onClick={handleOpenCreateMember}
               className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[10px] h-[48px] px-6"
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -529,6 +548,14 @@ Looking ahead, focus on: ${newFeedback.goals
                     <div className="flex items-center gap-2">
                       <Button
                         variant="outline"
+                        onClick={() => handleOpenEditMember(employee)}
+                        className="rounded-[10px] border-2 border-gray-200 hover:border-[#252952] hover:bg-[#eef0ff]"
+                      >
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline"
                         onClick={() => {
                           setSelectedEmployee(employee);
                           setShowEmployeeProfile(true);
@@ -578,12 +605,21 @@ Looking ahead, focus on: ${newFeedback.goals
         </CardContent>
       </Card>
 
-      {/* Add Employee Dialog */}
-      <Dialog open={showAddEmployee} onOpenChange={setShowAddEmployee}>
+      {/* Add / Edit Employee Dialog */}
+      <Dialog
+        open={showAddEmployee}
+        onOpenChange={(open) => {
+          setShowAddEmployee(open);
+          if (!open) {
+            setEditingEmployee(null);
+            setNewEmployee({ name: "", role: "", status: "Active" });
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-md h-auto max-h-[90vh] overflow-y-auto rounded-[10px]">
           <DialogHeader>
             <DialogTitle className="text-[20px] font-semibold text-[#252952]">
-              Add Team Member
+              {editingEmployee ? "Edit Team Member" : "Add Team Member"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
@@ -640,7 +676,7 @@ Looking ahead, focus on: ${newFeedback.goals
                 onClick={handleAddEmployee}
                 className="flex-1 bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[10px]"
               >
-                Add Member
+                {editingEmployee ? "Update Member" : "Add Member"}
               </Button>
             </div>
           </div>
@@ -720,136 +756,44 @@ Looking ahead, focus on: ${newFeedback.goals
               />
             </div>
 
-            {generatedSummary && (
-              <div className="p-4 bg-[#f8fafc] rounded-[10px] border border-gray-200">
-                <div className="flex items-start gap-2 mb-2">
-                  <Sparkles className="h-5 w-5 text-[#252952] flex-shrink-0 mt-0.5" />
-                  <Label className="text-sm font-medium">AI Summary</Label>
-                </div>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                  {generatedSummary}
-                </p>
-              </div>
-            )}
-
-            <div className="flex gap-2 pt-4">
-              <Button
-                variant="outline"
-                onClick={handleGenerateSummary}
-                disabled={
-                  isGeneratingSummary ||
-                  !newFeedback.strengths ||
-                  !newFeedback.improvements
-                }
-                className="flex-1 rounded-[10px] border-2 border-[#252952] text-[#252952] hover:bg-[#eef0ff]"
-              >
-                {isGeneratingSummary ? (
-                  <>
-                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-[#252952] border-t-transparent" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Generate AI Summary
-                  </>
-                )}
-              </Button>
-              <Button
-                onClick={handleSaveFeedback}
-                className="flex-1 bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[10px]"
-              >
-                Save Feedback
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Add Record Dialog */}
-      <Dialog open={showAddRecord} onOpenChange={setShowAddRecord}>
-        <DialogContent className="sm:max-w-md h-auto max-h-[90vh] overflow-y-auto rounded-[10px]">
-          <DialogHeader>
-            <DialogTitle className="text-[20px] font-semibold text-[#252952]">
-              Add Record
-            </DialogTitle>
-            <p className="text-sm text-gray-600 mt-1">
-              Add administrative record for {selectedEmployee?.name}
-            </p>
-          </DialogHeader>
-          <div className="space-y-4 mt-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Record Type</Label>
-              <select
-                value={newRecord.type}
+              <Label className="text-sm font-medium">Team Collaboration (optional)</Label>
+              <Textarea
+                placeholder="How do they collaborate with their team? Any notable examples..."
+                value={newFeedback.teamCollaboration}
                 onChange={(e) =>
-                  setNewRecord({
-                    ...newRecord,
-                    type: e.target.value as typeof newRecord.type,
+                  setNewFeedback({
+                    ...newFeedback,
+                    teamCollaboration: e.target.value,
                   })
                 }
-                className="w-full p-2 border-2 border-gray-200 rounded-[10px] focus:border-[#252952] focus:outline-none"
-              >
-                <option value="Vacation">Vacation / Time Off</option>
-                <option value="Leave">Leave</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Start Date *</Label>
-                <Input
-                  type="date"
-                  value={newRecord.startDate}
-                  onChange={(e) =>
-                    setNewRecord({ ...newRecord, startDate: e.target.value })
-                  }
-                  className="rounded-[10px] border-2 border-gray-200 focus:border-[#252952]"
-                  autoComplete="off"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">End Date *</Label>
-                <Input
-                  type="date"
-                  value={newRecord.endDate}
-                  onChange={(e) =>
-                    setNewRecord({ ...newRecord, endDate: e.target.value })
-                  }
-                  className="rounded-[10px] border-2 border-gray-200 focus:border-[#252952]"
-                  autoComplete="off"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Description (optional)</Label>
-              <Textarea
-                placeholder="Add notes about this record..."
-                value={newRecord.description}
-                onChange={(e) =>
-                  setNewRecord({ ...newRecord, description: e.target.value })
-                }
-                className="rounded-[10px] border-2 border-gray-200 focus:border-[#252952]"
-                rows={3}
+                className="rounded-[10px] border-2 border-gray-200 focus:border-[#252952] min-h-[80px]"
                 autoComplete="off"
               />
             </div>
 
-            <div className="flex gap-2 pt-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Additional Notes (optional)</Label>
+              <Textarea
+                placeholder="Any extra context or notes you'd like to keep on record..."
+                value={newFeedback.additionalNotes}
+                onChange={(e) =>
+                  setNewFeedback({
+                    ...newFeedback,
+                    additionalNotes: e.target.value,
+                  })
+                }
+                className="rounded-[10px] border-2 border-gray-200 focus:border-[#252952] min-h-[80px]"
+                autoComplete="off"
+              />
+            </div>
+
+            <div className="flex pt-4">
               <Button
-                variant="outline"
-                onClick={() => setShowAddRecord(false)}
-                className="flex-1 rounded-[10px] border-2"
+                onClick={handleSaveFeedback}
+                className="w-full bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[10px]"
               >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSaveRecord}
-                className="flex-1 bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[10px]"
-              >
-                Save Record
+                Save Feedback
               </Button>
             </div>
           </div>
@@ -892,18 +836,12 @@ Looking ahead, focus on: ${newFeedback.goals
 
           {/* Tabs */}
           <Tabs defaultValue="feedback" className="px-6 pb-6">
-            <TabsList className="grid w-full grid-cols-2 rounded-[10px] bg-[#f8fafc] p-1 mb-6">
+            <TabsList className="grid w-full grid-cols-1 rounded-[10px] bg-[#f8fafc] p-1 mb-6">
               <TabsTrigger
                 value="feedback"
                 className="rounded-[8px] data-[state=active]:bg-white data-[state=active]:text-[#252952] data-[state=active]:shadow-sm text-gray-600 font-medium"
               >
                 Feedback
-              </TabsTrigger>
-              <TabsTrigger
-                value="records"
-                className="rounded-[8px] data-[state=active]:bg-white data-[state=active]:text-[#252952] data-[state=active]:shadow-sm text-gray-600 font-medium"
-              >
-                Records
               </TabsTrigger>
             </TabsList>
 
@@ -949,6 +887,18 @@ Looking ahead, focus on: ${newFeedback.goals
                               {feedback.date}
                             </span>
                           </div>
+                          {selectedEmployee && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                handleExportFeedbackPdf(selectedEmployee, feedback)
+                              }
+                              className="rounded-[8px] border-gray-200 text-xs text-[#252952] hover:bg-[#eef0ff]"
+                            >
+                              Download PDF
+                            </Button>
+                          )}
                         </div>
 
                         {/* AI Summary */}
@@ -984,85 +934,6 @@ Looking ahead, focus on: ${newFeedback.goals
                               {feedback.goals}
                             </p>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-
-            {/* Records Tab */}
-            <TabsContent value="records" className="space-y-4 mt-0">
-              <div className="flex justify-end mb-4">
-                <Button
-                  onClick={() => {
-                    setShowEmployeeProfile(false);
-                    setShowAddRecord(true);
-                  }}
-                  className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[10px]"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Record
-                </Button>
-              </div>
-
-              {selectedEmployee?.records.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <FileText className="h-12 w-12 mx-auto mb-3 text-gray-400" />
-                  <p className="text-sm">No records yet</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {selectedEmployee?.records.map((record) => (
-                    <Card
-                      key={record.id}
-                      className="border border-gray-200 rounded-[10px] bg-white"
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <Badge
-                                variant="outline"
-                                className="text-xs border-gray-300 bg-gray-50"
-                              >
-                                {record.type}
-                              </Badge>
-                              <span className="text-xs text-gray-500">
-                                {new Date(record.startDate).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    month: "short",
-                                    day: "numeric",
-                                    year: "numeric",
-                                  }
-                                )}{" "}
-                                -{" "}
-                                {new Date(record.endDate).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    month: "short",
-                                    day: "numeric",
-                                    year: "numeric",
-                                  }
-                                )}
-                              </span>
-                            </div>
-                            {record.description && (
-                              <p className="text-sm text-gray-700">
-                                {record.description}
-                              </p>
-                            )}
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteRecord(record.id)}
-                            className="text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-[8px]"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
                         </div>
                       </CardContent>
                     </Card>
