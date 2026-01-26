@@ -19,9 +19,6 @@ import {
   Building2,
   Target,
   TrendingUp,
-  Palette,
-  Upload,
-  Check,
   X,
 } from "lucide-react";
 import {
@@ -38,74 +35,8 @@ import SignInModal from "./signIn/SignInModal";
 import { useApiService } from "../services/api";
 import React from "react";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
-
-const BRAND_COLORS = [
-  {
-    name: "Navy Blue",
-    value: "#252952",
-    gradient: "from-[#252952] to-[#1a1d3a]",
-  },
-  {
-    name: "Ocean Blue",
-    value: "#4A90E2",
-    gradient: "from-[#4A90E2] to-[#357ABD]",
-  },
-  {
-    name: "Purple",
-    value: "#8B5CF6",
-    gradient: "from-purple-600 to-purple-700",
-  },
-  {
-    name: "Emerald",
-    value: "#10B981",
-    gradient: "from-emerald-500 to-emerald-600",
-  },
-  { name: "Rose", value: "#F43F5E", gradient: "from-rose-500 to-rose-600" },
-  { name: "Amber", value: "#F59E0B", gradient: "from-amber-500 to-amber-600" },
-  { name: "Slate", value: "#475569", gradient: "from-slate-600 to-slate-700" },
-  { name: "Teal", value: "#14B8A6", gradient: "from-teal-500 to-teal-600" },
-];
-
-const INDUSTRIES = [
-  "AI/ML",
-  "Analytics",
-  "B2B SaaS",
-  "B2C Consumer",
-  "Blockchain / Crypto",
-  "Climate / CleanTech",
-  "Construction / Real Estate",
-  "Creator Economy",
-  "Cybersecurity",
-  "Developer Tools",
-  "E-commerce / Marketplaces",
-  "EdTech",
-  "Energy",
-  "Enterprise Software",
-  "Fintech",
-  "Gaming",
-  "Government / Public Sector",
-  "Hardware / IoT",
-  "Healthcare",
-  "HR / Future of Work",
-  "LegalTech",
-  "Logistics / Supply Chain",
-  "Manufacturing",
-  "Media / Entertainment",
-  "Productivity",
-  "PropTech",
-  "Retail",
-  "Sales / Marketing Tech",
-  "Social / Community",
-  "Travel / Hospitality",
-  "Other",
-];
+import { Combobox } from "./ui/combobox";
+import { INDUSTRIES } from "../constants/industries";
 
 interface BuilderFormData {
   companyName: string;
@@ -125,6 +56,8 @@ export function PitchBuilder() {
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [isLimitModalOpen, setIsLimitModalOpen] = useState(false);
   const [limitModalMessage, setLimitModalMessage] = useState("");
+  const [search, setSearch] = useState("");
+  
   const [currentStep, setCurrentStep] = useState(0);
   const [shouldAutoSubmit, setShouldAutoSubmit] = useState(false);
   const [formData, setFormData] = useState<BuilderFormData>({
@@ -225,13 +158,6 @@ export function PitchBuilder() {
         },
       ],
     },
-    {
-      id: "brand",
-      title: "Brand Identity",
-      subtitle: "How your company looks everywhere",
-      icon: Palette,
-      fields: [],
-    },
   ];
 
   const currentStepData = steps[currentStep];
@@ -281,12 +207,6 @@ export function PitchBuilder() {
       case "status":
         // Optional field, no validation needed
         break;
-
-      case "brandColor":
-        if (!value.trim()) return "Brand color is required";
-        if (!/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(value))
-          return "Please provide a valid hex color";
-        break;
     }
     return undefined;
   };
@@ -295,11 +215,6 @@ export function PitchBuilder() {
     // Step 2 (status/traction) is optional, always valid
     if (currentStep === 2) {
       return true;
-    }
-
-    // Step 3 (brand) - check if there's a validation error for brandColor
-    if (currentStep === 3) {
-      return !errors.brandColor;
     }
 
     // For other steps, check both that required fields have values AND no validation errors
@@ -331,26 +246,11 @@ export function PitchBuilder() {
     }
   };
 
-  const handleColorSelect = (color: string) => {
-    setFormData({
-      ...formData,
-      brandColor: color,
-    });
-    // Only clear error if one exists - don't show new errors until Continue is clicked
-    if (errors.brandColor) {
-      setErrors((prev) => ({ ...prev, brandColor: undefined }));
-    }
-  };
-
   const handleNext = () => {
     // Step 2 (status/traction) is optional, skip validation
     if (currentStep === 2) {
-      // Proceed directly to next step
-      if (currentStep < steps.length - 1) {
-        setCurrentStep(currentStep + 1);
-      } else {
-        handleCreatePitch();
-      }
+      // Proceed directly to pitch creation
+      handleCreatePitch();
       return;
     }
 
@@ -358,28 +258,19 @@ export function PitchBuilder() {
     const stepErrors: Record<string, string | undefined> = {};
     let hasStepErrors = false;
 
-    if (currentStep === 3) {
-      // Validate brand color
-      const brandColorErr = validateField("brandColor", formData.brandColor);
-      if (brandColorErr) {
-        stepErrors.brandColor = brandColorErr;
-        hasStepErrors = true;
-      }
-    } else {
-      // Validate all required fields in current step
-      currentStepData.fields.forEach((field) => {
-        if (field.required) {
-          const value = String(
-            formData[field.id as keyof BuilderFormData] ?? ""
-          );
-          const err = validateField(field.id, value);
-          if (err) {
-            stepErrors[field.id] = err;
-            hasStepErrors = true;
-          }
+    // Validate all required fields in current step
+    currentStepData.fields.forEach((field) => {
+      if (field.required) {
+        const value = String(
+          formData[field.id as keyof BuilderFormData] ?? ""
+        );
+        const err = validateField(field.id, value);
+        if (err) {
+          stepErrors[field.id] = err;
+          hasStepErrors = true;
         }
-      });
-    }
+      }
+    });
 
     // Update errors state - don't proceed if there are errors
     if (hasStepErrors) {
@@ -388,21 +279,13 @@ export function PitchBuilder() {
     }
 
     // Clear any errors for this step if validation passed
-    if (currentStep === 3) {
+    currentStepData.fields.forEach((field) => {
       setErrors((prev) => {
         const newErrors = { ...prev };
-        delete newErrors.brandColor;
+        delete newErrors[field.id];
         return newErrors;
       });
-    } else {
-      currentStepData.fields.forEach((field) => {
-        setErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors[field.id];
-          return newErrors;
-        });
-      });
-    }
+    });
 
     // If validation passes, proceed to next step
     if (currentStep < steps.length - 1) {
@@ -450,12 +333,6 @@ export function PitchBuilder() {
       });
     });
 
-    // Validate brand color
-    const brandColorErr = validateField("brandColor", data.brandColor);
-    if (brandColorErr) {
-      allErrors.brandColor = brandColorErr;
-      if (firstInvalidIndex === -1) firstInvalidIndex = 3;
-    }
 
     if (firstInvalidIndex !== -1) {
       setErrors((prev) => ({ ...prev, ...allErrors }));
@@ -623,200 +500,66 @@ export function PitchBuilder() {
 
         <CardContent className="pt-8 pb-8">
           {/* Regular form fields */}
-          {currentStep < 3 && (
-            <div className="space-y-6">
-              {currentStepData.fields.map((field) => (
-                <div key={field.id} className="space-y-3">
-                  <Label className="text-lg font-semibold text-[#252952]">
-                    {field.label}
-                    {field.required && (
-                      <span className="text-red-500 ml-1">*</span>
-                    )}
-                  </Label>
-
-                  {field.id === "industry" ? (
-                    <Select
-                      value={formData.industry}
-                      onValueChange={(value) => handleChange("industry", value)}
-                    >
-                      <SelectTrigger className="text-base h-14 border-2 border-gray-200 focus:border-[#252952] rounded-[12px]">
-                        <SelectValue placeholder={field.placeholder} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {INDUSTRIES.map((industry) => (
-                          <SelectItem key={industry} value={industry}>
-                            {industry}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : field.type === "input" ? (
-                    <Input
-                      placeholder={field.placeholder}
-                      value={
-                        (formData[
-                          field.id as keyof BuilderFormData
-                        ] as string) || ""
-                      }
-                      onChange={(e) => handleChange(field.id, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(e, "input")}
-                      className="text-base h-14 border-2 border-gray-200 focus:border-[#252952] rounded-[12px]"
-                      autoFocus={field.id === currentStepData.fields[0]?.id}
-                      autoComplete="off"
-                    />
-                  ) : (
-                    <Textarea
-                      placeholder={field.placeholder}
-                      value={
-                        (formData[
-                          field.id as keyof BuilderFormData
-                        ] as string) || ""
-                      }
-                      onChange={(e) => handleChange(field.id, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(e, "textarea")}
-                      className="text-base min-h-[140px] border-2 border-gray-200 focus:border-[#252952] rounded-[12px] resize-none"
-                      autoFocus={field.id === currentStepData.fields[0]?.id}
-                      autoComplete="off"
-                    />
+          <div className="space-y-6">
+            {currentStepData.fields.map((field) => (
+              <div key={field.id} className="space-y-3">
+                <Label className="text-lg font-semibold text-[#252952]">
+                  {field.label}
+                  {field.required && (
+                    <span className="text-red-500 ml-1">*</span>
                   )}
-
-                  {field.helperText && (
-                    <p className="text-sm text-gray-500 mt-2">
-                      {field.helperText}
-                    </p>
-                  )}
-
-                  {errors[field.id] && (
-                    <p className="text-sm text-red-600">{errors[field.id]}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Brand Identity Step */}
-          {currentStep === 3 && (
-            <div className="space-y-8">
-              <div className="bg-[#f8fafc] rounded-[16px] p-6 border border-gray-200">
-                <div className="flex items-start gap-3 mb-4">
-                  <Sparkles className="w-5 h-5 text-[#4A90E2] mt-1" />
-                  <div>
-                    <h3 className="font-semibold text-[#252952] mb-2">
-                      Choose one option
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      Upload your logo or pick a primary brand color. Foundify
-                      will auto-generate the rest.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Logo Upload Option */}
-              <div className="space-y-3">
-                <Label className="text-base font-semibold text-[#252952]">
-                  Upload Logo (SVG / PNG)
                 </Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-[12px] p-8 text-center hover:border-[#4A90E2] transition-colors cursor-pointer">
-                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-3" />
-                  <p className="text-sm text-gray-600 mb-1">
-                    Click to upload or drag and drop
-                  </p>
-                  <p className="text-xs text-gray-500">SVG, PNG (max. 2MB)</p>
-                </div>
-              </div>
 
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200"></div>
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-white px-4 text-sm text-gray-500">
-                    or
-                  </span>
-                </div>
-              </div>
-
-              {/* Color Picker */}
-              <div className="space-y-4">
-                <Label className="text-base font-semibold text-[#252952]">
-                  Pick a Primary Brand Color
-                </Label>
-                <div className="grid grid-cols-4 gap-3">
-                  {BRAND_COLORS.map((color) => (
-                    <button
-                      key={color.value}
-                      onClick={() => handleColorSelect(color.value)}
-                      className={`relative h-20 rounded-[12px] bg-gradient-to-br ${
-                        color.gradient
-                      } transition-all hover:scale-105 ${
-                        formData.brandColor === color.value
-                          ? "ring-4 ring-[#252952] ring-offset-2"
-                          : "ring-2 ring-gray-200"
-                      }`}
-                    >
-                      {formData.brandColor === color.value && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center">
-                            <Check className="w-5 h-5 text-[#252952]" />
-                          </div>
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-sm text-gray-500">
-                  Selected:{" "}
-                  <span className="font-semibold text-[#252952]">
-                    {
-                      BRAND_COLORS.find((c) => c.value === formData.brandColor)
-                        ?.name
+                {field.id === "industry" ? (
+                  <Combobox
+                    options={INDUSTRIES}
+                    value={formData.industry}
+                    onValueChange={(value) => handleChange("industry", value)}
+                    placeholder={field.placeholder}
+                    className="text-base h-14 border-2 border-gray-200 focus:border-[#252952] rounded-[12px]"
+                  />
+                ) : field.type === "input" ? (
+                  <Input
+                    placeholder={field.placeholder}
+                    value={
+                      (formData[
+                        field.id as keyof BuilderFormData
+                      ] as string) || ""
                     }
-                  </span>
-                </p>
-                {errors.brandColor && (
-                  <p className="text-sm text-red-600">{errors.brandColor}</p>
+                    onChange={(e) => handleChange(field.id, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, "input")}
+                    className="text-base h-14 border-2 border-gray-200 focus:border-[#252952] rounded-[12px]"
+                    autoFocus={field.id === currentStepData.fields[0]?.id}
+                    autoComplete="off"
+                  />
+                ) : (
+                  <Textarea
+                    placeholder={field.placeholder}
+                    value={
+                      (formData[
+                        field.id as keyof BuilderFormData
+                      ] as string) || ""
+                    }
+                    onChange={(e) => handleChange(field.id, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, "textarea")}
+                    className="text-base min-h-[140px] border-2 border-gray-200 focus:border-[#252952] rounded-[12px] resize-none"
+                    autoFocus={field.id === currentStepData.fields[0]?.id}
+                    autoComplete="off"
+                  />
+                )}
+
+                {field.helperText && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    {field.helperText}
+                  </p>
+                )}
+
+                {errors[field.id] && (
+                  <p className="text-sm text-red-600">{errors[field.id]}</p>
                 )}
               </div>
-
-              {/* Preview */}
-              <div className="bg-[#f8fafc] rounded-[16px] p-6 border border-gray-200">
-                <h3 className="text-sm font-semibold text-[#252952] mb-4">
-                  Preview
-                </h3>
-                <p className="text-xs text-gray-600 mb-4">
-                  Used across pitches, emails, landing pages, and documents.
-                </p>
-                <div className="space-y-3">
-                  {/* Preview button */}
-                  <div
-                    className="h-12 rounded-[10px] flex items-center justify-center font-semibold text-white shadow-lg"
-                    style={{ background: formData.brandColor }}
-                  >
-                    Primary Button
-                  </div>
-                  {/* Preview card */}
-                  <div
-                    className="h-24 rounded-[12px] p-4 border-2"
-                    style={{
-                      backgroundColor: `${formData.brandColor}15`,
-                      borderColor: `${formData.brandColor}40`,
-                    }}
-                  >
-                    <div className="text-xs text-gray-600 mb-1">
-                      Company Card
-                    </div>
-                    <div
-                      className="font-semibold"
-                      style={{ color: formData.brandColor }}
-                    >
-                      {formData.companyName || "Your Company"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+            ))}
+          </div>
         </CardContent>
 
         {/* Navigation */}
