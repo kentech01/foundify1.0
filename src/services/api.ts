@@ -391,6 +391,53 @@ interface FeedbackExportRequest {
   additionalNotes?: string;
 }
 
+// Digital Card interfaces
+interface DigitalCardCreateData {
+  fullName: string;
+  role: string;
+  email?: string;
+  phone?: string;
+  linkedin?: string;
+  twitter?: string;
+  companyName?: string;
+  companyDescription?: string;
+  companyWebsite?: string;
+  companyLogo?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+}
+
+interface DigitalCard {
+  id: string;
+  firebaseUid: string;
+  userId: string;
+  fullName: string;
+  role: string;
+  email?: string;
+  phone?: string;
+  linkedin?: string;
+  twitter?: string;
+  companyName?: string;
+  companyDescription?: string;
+  companyWebsite?: string;
+  companyLogo?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  cardId: string;
+  qrCode?: string;
+  status: string;
+  viewCount: number;
+  publicUrl: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface DigitalCardResponse {
+  success: boolean;
+  data: DigitalCard;
+  message?: string;
+}
+
 // Subscription interfaces
 interface CreateSubscriptionCheckoutResponse {
   success: boolean;
@@ -1526,6 +1573,66 @@ export const useApiService = () => {
       }
     }, [axiosInstance]);
 
+  // Digital Card API methods
+  const createDigitalCard = useCallback(
+    async (cardData: DigitalCardCreateData): Promise<DigitalCardResponse> => {
+      try {
+        const response = await axiosInstance.post("/digital-card", cardData);
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to create digital card"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const getDigitalCard = useCallback(async (): Promise<DigitalCardResponse> => {
+    try {
+      const response = await axiosInstance.get("/digital-card");
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message || "Failed to get digital card"
+      );
+    }
+  }, [axiosInstance]);
+
+  const updateDigitalCard = useCallback(
+    async (
+      cardId: string,
+      cardData: DigitalCardCreateData
+    ): Promise<DigitalCardResponse> => {
+      try {
+        const response = await axiosInstance.put(
+          `/digital-card/${cardId}`,
+          cardData
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to update digital card"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const deleteDigitalCard = useCallback(
+    async (cardId: string): Promise<{ success: boolean; message: string }> => {
+      try {
+        const response = await axiosInstance.delete(`/digital-card/${cardId}`);
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to delete digital card"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
   return {
     generatePitch,
     getUserStats,
@@ -1573,6 +1680,11 @@ export const useApiService = () => {
     // Subscription methods
     createSubscriptionCheckout,
     getSubscriptionStatus,
+    // Digital Card methods
+    createDigitalCard,
+    getDigitalCard,
+    updateDigitalCard,
+    deleteDigitalCard,
   };
 };
 
@@ -1879,4 +1991,8 @@ export type {
   CreateSubscriptionCheckoutResponse,
   GetSubscriptionStatusResponse,
   SubscriptionRecord,
+  // Digital Card types
+  DigitalCardCreateData,
+  DigitalCard,
+  DigitalCardResponse,
 };

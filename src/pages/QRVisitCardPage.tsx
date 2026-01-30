@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -15,64 +15,186 @@ import {
   Linkedin,
   Twitter,
   Check,
-  Sparkles
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
-
-// Mock startup data (from Foundify)
-const mockStartupData = {
-  name: 'TechVenture AI',
-  description: 'AI-powered startup toolkit for founders',
-  website: 'techventure.ai',
-  logo: '🚀'
-};
+import { useApiService } from '../services/api';
+import { UserAuth } from '../context/AuthContext';
 
 export function QRVisitCardPage() {
+  const { user } = UserAuth();
+  const apiService = useApiService();
+  
   const [formData, setFormData] = useState({
-    fullName: 'Sarah Chen',
-    role: 'Founder & CEO',
-    email: 'sarah@techventure.ai',
-    phone: '+1 (555) 123-4567',
-    linkedin: 'linkedin.com/in/sarahchen',
-    twitter: '@sarahchen'
+    fullName: user?.displayName || '',
+    role: '',
+    email: user?.email || '',
+    phone: '',
+    linkedin: '',
+    twitter: ''
   });
 
-  const [isGenerated, setIsGenerated] = useState(false);
+  const [startupData, setStartupData] = useState({
+    name: '',
+    description: '',
+    website: '',
+    logo: '🚀',
+    primaryColor: '#252952',
+    secondaryColor: '#4A90E2'
+  });
 
-  const handleGenerate = () => {
+  const [existingCard, setExistingCard] = useState<any>(null);
+  const [isGenerated, setIsGenerated] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingCard, setIsLoadingCard] = useState(true);
+
+  // Load existing card and startup data on mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoadingCard(true);
+        
+        // Try to load existing digital card (silently fail if not found)
+        try {
+          const cardResponse = await apiService.getDigitalCard();
+          if (cardResponse.success && cardResponse.data) {
+            setExistingCard(cardResponse.data);
+            setFormData({
+              fullName: cardResponse.data.fullName,
+              role: cardResponse.data.role,
+              email: cardResponse.data.email || '',
+              phone: cardResponse.data.phone || '',
+              linkedin: cardResponse.data.linkedin || '',
+              twitter: cardResponse.data.twitter || '',
+            });
+            setStartupData({
+              name: cardResponse.data.companyName || '',
+              description: cardResponse.data.companyDescription || '',
+              website: cardResponse.data.companyWebsite || '',
+              logo: cardResponse.data.companyLogo || '🚀',
+              primaryColor: cardResponse.data.primaryColor || '#252952',
+              secondaryColor: cardResponse.data.secondaryColor || '#4A90E2',
+            });
+            setIsGenerated(true);
+          }
+        } catch (err: any) {
+          // Silently handle 404 (no card exists yet)
+          // Only log other errors
+          if (err?.response?.status !== 404) {
+            console.error('Error loading digital card:', err);
+          }
+        }
+
+        // Load startup data from first pitch if no card exists
+        if (!existingCard) {
+          try {
+            const pitchResponse = await apiService.getFirstPitch();
+            if (pitchResponse) {
+              setStartupData({
+                name: pitchResponse.startupName || '',
+                description: pitchResponse.pitchContent?.mainProduct || '',
+                website: pitchResponse.pitchContent?.email || '',
+                logo: pitchResponse.logo || '🚀',
+                primaryColor: pitchResponse.pitchContent?.primaryColor || '#252952',
+                secondaryColor: pitchResponse.pitchContent?.secondaryColor || '#4A90E2',
+              });
+            }
+          } catch (err) {
+            // No pitch data, use defaults
+          }
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setIsLoadingCard(false);
+      }
+    };
+
+    if (user) {
+      loadData();
+    }
+  }, [user]);
+
+  const handleGenerate = async () => {
     if (!formData.fullName || !formData.role) {
       toast.error('Please fill in your name and role');
       return;
     }
-    setIsGenerated(true);
-    toast.success('Smart Digital Card generated!');
+
+    try {
+      setIsLoading(true);
+      
+      const cardData = {
+        fullName: formData.fullName,
+        role: formData.role,
+        email: formData.email || undefined,
+        phone: formData.phone || undefined,
+        linkedin: formData.linkedin || undefined,
+        twitter: formData.twitter || undefined,
+        companyName: startupData.name || undefined,
+        companyDescription: startupData.description || undefined,
+        companyWebsite: startupData.website || undefined,
+        companyLogo: startupData.logo || undefined,
+        primaryColor: startupData.primaryColor || undefined,
+        secondaryColor: startupData.secondaryColor || undefined,
+      };
+
+      const response = existingCard
+        ? await apiService.updateDigitalCard(existingCard.id, cardData)
+        : await apiService.createDigitalCard(cardData);
+
+      if (response.success) {
+        setExistingCard(response.data);
+        setIsGenerated(true);
+        toast.success(existingCard ? 'Digital card updated!' : 'Smart Digital Card generated!');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to generate digital card');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDownload = () => {
+    if (!existingCard?.qrCode) {
+      toast.error('No QR code available');
+      return;
+    }
+
+    // Convert base64 to blob and download
+    const link = document.createElement('a');
+    link.href = existingCard.qrCode;
+    link.download = `${formData.fullName.replace(/\s+/g, '_')}_QR.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     toast.success('QR code downloaded!');
   };
 
   const handleShare = () => {
-    toast.success('Share link copied to clipboard!');
+    if (!existingCard?.publicUrl) {
+      toast.error('No card URL available');
+      return;
+    }
+
+    navigator.clipboard.writeText(existingCard.publicUrl);
+    toast.success('Card link copied to clipboard!');
   };
 
-  // Generate a simple QR code placeholder (in production, use a real QR library)
-  const QRCodePlaceholder = () => (
-    <div className="w-full h-full bg-white p-6 rounded-2xl border-4 border-gray-900">
-      <div className="grid grid-cols-[repeat(15,minmax(0,1fr))] gap-1 aspect-square">
-        {/* Simplified QR code pattern */}
-        {Array.from({ length: 225 }).map((_, i) => {
-          const shouldFill = Math.random() > 0.5;
-          return (
-            <div
-              key={i}
-              className={`${shouldFill ? 'bg-gray-900' : 'bg-white'} rounded-sm`}
-            />
-          );
-        })}
+  // Show loading state while fetching data
+  if (isLoadingCard) {
+    return (
+      <div className="p-4 lg:p-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-[#4A90E2] mx-auto mb-4" />
+            <p className="text-gray-600">Loading your information...</p>
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 
   return (
     <div className="p-4 lg:p-8">
@@ -196,31 +318,64 @@ export function QRVisitCardPage() {
 
                 <div className="pt-4 border-t border-gray-200">
                   <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                    <Check className="h-4 w-4 text-green-600" />
-                    <span>Auto-filled from your Foundify profile:</span>
+                    <Building className="h-4 w-4 text-gray-500" />
+                    <span className="font-medium">Company Information</span>
                   </div>
-                  <div className="space-y-2 text-sm bg-gray-50 p-4 rounded-xl">
-                    <div className="flex items-center gap-2">
-                      <Building className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-700">{mockStartupData.name}</span>
+                  
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Company Name</Label>
+                      <div className="relative">
+                        <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          placeholder="Your company name"
+                          value={startupData.name}
+                          onChange={(e) => setStartupData({ ...startupData, name: e.target.value })}
+                          className="pl-10 rounded-xl border-2 border-gray-200 focus:border-[#4A90E2]"
+                          autoComplete="off"
+                        />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Briefcase className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-700">{mockStartupData.description}</span>
+
+                    <div className="space-y-2">
+                      <Label>Company Description</Label>
+                      <div className="relative">
+                        <Briefcase className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <textarea
+                          placeholder="Brief description of your company"
+                          value={startupData.description}
+                          onChange={(e) => setStartupData({ ...startupData, description: e.target.value })}
+                          className="w-full pl-10 pr-4 py-2 rounded-xl border-2 border-gray-200 focus:border-[#4A90E2] focus:outline-none focus:ring-2 focus:ring-[#4A90E2]/20 resize-none min-h-[80px]"
+                          rows={3}
+                        />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Globe className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-700">{mockStartupData.website}</span>
-                    </div>
+
+                    {startupData.website && (
+                      <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
+                        <Globe className="h-3.5 w-3.5" />
+                        <span>{startupData.website}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <Button
                   onClick={handleGenerate}
+                  disabled={isLoading}
                   className="w-full bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-xl"
                 >
-                  <QrCode className="mr-2 h-4 w-4" />
-                  Generate Smart Digital Card
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {existingCard ? 'Updating...' : 'Generating...'}
+                    </>
+                  ) : (
+                    <>
+                      <QrCode className="mr-2 h-4 w-4" />
+                      {existingCard ? 'Update Smart Digital Card' : 'Generate Smart Digital Card'}
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>
@@ -243,12 +398,27 @@ export function QRVisitCardPage() {
             <>
               {/* Digital Card Preview */}
               <Card className="border-2 border-gray-100 rounded-2xl overflow-hidden">
-                <div className="bg-gradient-to-br from-[#252952] via-[#4A90E2] to-[#7DD3FC] p-8 text-white">
+                <div 
+                  className="p-8 text-white"
+                  style={{
+                    background: `linear-gradient(to bottom right, ${startupData.primaryColor}, ${startupData.secondaryColor}, ${startupData.secondaryColor}dd)`
+                  }}
+                >
                   <div className="flex items-start justify-between mb-8">
-                    <div className="text-5xl">{mockStartupData.logo}</div>
+                    <div>
+                      {startupData.logo && (
+                        startupData.logo.length <= 4 ? (
+                          <div className="text-5xl">{startupData.logo}</div>
+                        ) : (
+                          <div className="w-16 h-16" dangerouslySetInnerHTML={{ __html: startupData.logo }} />
+                        )
+                      )}
+                    </div>
                     <div className="text-right">
-                      <div className="text-3xl font-bold mb-1">{mockStartupData.name}</div>
-                      <div className="text-sm opacity-90">{mockStartupData.website}</div>
+                      <div className="text-3xl font-bold mb-1">{startupData.name}</div>
+                      {startupData.website && (
+                        <div className="text-sm opacity-90">{startupData.website}</div>
+                      )}
                     </div>
                   </div>
                   
@@ -273,9 +443,11 @@ export function QRVisitCardPage() {
                       )}
                     </div>
                     
-                    <div className="pt-4 border-t border-white/20">
-                      <div className="text-sm opacity-90 mb-2">{mockStartupData.description}</div>
-                    </div>
+                    {startupData.description && (
+                      <div className="pt-4 border-t border-white/20">
+                        <div className="text-sm opacity-90 mb-2">{startupData.description}</div>
+                      </div>
+                    )}
 
                     <div className="flex gap-3 pt-2">
                       {formData.linkedin && (
@@ -305,7 +477,17 @@ export function QRVisitCardPage() {
                 </CardHeader>
                 <CardContent className="p-8">
                   <div className="max-w-xs mx-auto">
-                    <QRCodePlaceholder />
+                    {existingCard?.qrCode ? (
+                      <img 
+                        src={existingCard.qrCode} 
+                        alt="QR Code" 
+                        className="w-full h-auto rounded-2xl border-4 border-gray-900"
+                      />
+                    ) : (
+                      <div className="w-full aspect-square bg-gray-100 rounded-2xl flex items-center justify-center">
+                        <QrCode className="h-20 w-20 text-gray-300" />
+                      </div>
+                    )}
                   </div>
                   
                   <div className="mt-6 space-y-3">
