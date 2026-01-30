@@ -97,6 +97,7 @@ export function PublicDigitalCard() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
           >
+          
             <span>Powered by</span>
             <span className="font-semibold text-[#252952]">Foundify</span>
           </a>
