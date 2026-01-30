@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SparklesCore, SparkleButton } from "@/components/ui/sparkles";
+import React from "react";
 
 const ROTATION_INTERVAL = 3000;
 
@@ -88,7 +89,7 @@ export function Hero({ onGetStarted }: HeroProps) {
   const CurrentIcon = activities[index].icon;
 
   return (
-    <section className="relative pt-24 pb-0 md:pt-32 overflow-hidden bg-white selection:bg-indigo-50 selection:text-indigo-600">
+    <section className="relative pt-24 pb-24 md:pt-44 overflow-hidden bg-white selection:bg-indigo-50 selection:text-indigo-600">
       
       {/* Background Gradients (Light) */}
       <div className="absolute inset-0 pointer-events-none">
@@ -100,9 +101,9 @@ export function Hero({ onGetStarted }: HeroProps) {
       <div className="container mx-auto px-6 relative z-10 flex flex-col items-center">
         
         {/* Centered Content */}
-        <div className="max-w-4xl w-full text-center flex flex-col items-center mb-16">
+        <div className="max-w-6xl w-full text-center flex flex-col items-center mb-16">
 
-            <h1 className="text-5xl md:text-7xl lg:text-[80px] font-bold tracking-tighter text-slate-900 leading-[1.1] md:leading-[1.05] mb-2 px-2 md:px-0">
+            <h1 className="text-5xl md:text-7xl lg:text-[60px] font-bold tracking-tighter text-slate-900 leading-[1.1] md:leading-[1.05] mb-8 px-2 md:px-0">
               One platform built for founders.
             </h1>
 
@@ -117,7 +118,7 @@ export function Hero({ onGetStarted }: HeroProps) {
                     transition={{ duration: 0.5, ease: "easeOut" }}
                     className="absolute w-full flex justify-center"
                   >
-                     <span className={cn("text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r py-4 leading-normal", 
+                     <span className={cn("text-5xl md:text-7xl lg:text-[80px] font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r py-4 leading-normal", 
                         index === 0 ? "from-indigo-600 to-violet-600" :
                         index === 1 ? "from-blue-600 to-indigo-600" :
                         index === 2 ? "from-sky-600 to-blue-600" :

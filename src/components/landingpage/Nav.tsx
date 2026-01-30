@@ -11,6 +11,7 @@ interface NavProps {
 }
 
 export function Nav({ onDashboardClick, onSignInClick }: NavProps) {
+const logo = new URL("../../assets/logo.svg", import.meta.url).href;
   const navigate = useNavigate();
   const { user } = UserAuth();
   const [scrolled, setScrolled] = useState(false);
@@ -74,25 +75,7 @@ export function Nav({ onDashboardClick, onSignInClick }: NavProps) {
     >
       <div className="container mx-auto px-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <button onClick={handleLogoClick} className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-5 h-5"
-              >
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                <path d="M2 17l10 5 10-5" />
-                <path d="M2 12l10 5 10-5" />
-              </svg>
-            </div>
-            Foundify
-          </button>
+          <img src={logo} onClick={handleLogoClick} alt="foundify logo" />
         </div>
 
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
