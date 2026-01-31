@@ -40,7 +40,7 @@ export default function Landing() {
       <Nav onDashboardClick={handleDashboardClick} onSignInClick={() => setIsSignInModalOpen(true)} />
       <main>
         <Hero onGetStarted={handleGetStarted} />
-        <LogoMarquee />
+        {/* <LogoMarquee /> */}
         <HowItWorks />
         <AiWorkflows onGetStarted={handleGetStarted} />
         <Pricing onGetStarted={handleGetStarted} />

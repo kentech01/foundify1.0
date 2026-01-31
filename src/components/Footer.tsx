@@ -1,8 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
+import React from "react";
 
 export function Footer() {
   const navigate = useNavigate();
+const logo = new URL("./../assets/logo.svg", import.meta.url).href;
+  
   
   return (
     <footer className="bg-white border-t border-slate-100 py-16 text-slate-900 relative overflow-hidden">
@@ -10,10 +13,8 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-6 h-6 rounded bg-indigo-600 flex items-center justify-center text-white">
-                <Sparkles size={12} />
-              </div>
-              <span className="text-lg font-bold text-slate-900">Foundify</span>
+            <img src={logo} alt="foundify logo" />
+
             </div>
             <p className="text-slate-500 text-sm leading-relaxed">
               The AI-powered company brain that organizes, analyzes, and assists your entire operation.

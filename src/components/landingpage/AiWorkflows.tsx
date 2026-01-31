@@ -45,7 +45,7 @@ export function AiWorkflows({ onGetStarted }: AiWorkflowsProps) {
         <div className="text-center mb-20 relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 mb-6 shadow-sm backdrop-blur-md">
             <Brain size={12} className="text-indigo-600" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600">THE COMPANY BRAIN</span>
+            {/* <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600">THE COMPANY BRAIN</span> */}
           </div>
           
           <h2 className="text-4xl md:text-5xl font-extrabold tracking-tighter mb-6 leading-[1.1] text-slate-900">
