@@ -20,6 +20,7 @@ import {
   Zap,
   Activity
 } from "lucide-react";
+import React from "react";
 
 const steps = [
   {
@@ -295,9 +296,9 @@ export function HowItWorks() {
           <div className="container mx-auto px-6 h-full flex flex-col justify-center">
             
             <div className="mb-12 max-w-2xl mx-auto text-center">
-              <span className="text-[#0B0F19] font-bold uppercase tracking-[0.2em] text-[10px] mb-4 block">
+              {/* <span className="text-[#0B0F19] font-bold uppercase tracking-[0.2em] text-[10px] mb-4 block">
                 SEAMLESS WORKFLOW
-              </span>
+              </span> */}
               <h2 className="text-4xl md:text-5xl font-extrabold text-[#0B0F19] tracking-tighter mb-6 leading-[1.1]">
                 AI with full context – <br/>
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] to-[#3B82F6]">
