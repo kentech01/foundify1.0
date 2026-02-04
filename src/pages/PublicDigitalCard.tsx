@@ -145,7 +145,7 @@ export function PublicDigitalCard() {
                     />
                   ) : isSvgMarkup ? (
                     <div
-                      className="w-16 h-16 md:w-20 md:h-20"
+                      className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:w-auto [&>svg]:h-auto"
                       dangerouslySetInnerHTML={{ __html: companyLogo }}
                     />
                   ) : (

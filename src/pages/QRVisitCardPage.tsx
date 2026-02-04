@@ -96,8 +96,7 @@ export function QRVisitCardPage() {
           const pitchResponse = await apiService.getFirstPitch();
           if (pitchResponse) {
             setStartupData((prev) => ({
-              // Prefer any existing card-specific copy, but always
-              // take the latest brand colors from the pitch (from logo).
+              // Prefer pitch for logo, colors & company info (source of truth for brand).
               name: prev.name || pitchResponse.startupName || '',
               description:
                 prev.description ||
@@ -105,7 +104,7 @@ export function QRVisitCardPage() {
                 '',
               website:
                 prev.website || pitchResponse.pitchContent?.email || '',
-              logo: prev.logo || pitchResponse.logo || '🚀',
+              logo: pitchResponse.logo || prev.logo || '🚀',
               primaryColor:
                 pitchResponse.primaryColor ||
                 prev.primaryColor ||
@@ -423,7 +422,7 @@ export function QRVisitCardPage() {
                           if (isSvgMarkup) {
                             return (
                               <div
-                                className="w-16 h-16"
+                                className="w-16 h-16 flex items-center justify-center [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:w-auto [&>svg]:h-auto"
                                 dangerouslySetInnerHTML={{ __html: logo }}
                               />
                             );
@@ -540,7 +539,7 @@ export function QRVisitCardPage() {
                           if (isSvgMarkup) {
                             return (
                               <div
-                                className="w-16 h-16"
+                                className="w-16 h-16 flex items-center justify-center [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:w-auto [&>svg]:h-auto"
                                 dangerouslySetInnerHTML={{ __html: logo }}
                               />
                             );
