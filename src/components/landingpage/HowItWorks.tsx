@@ -130,45 +130,45 @@ const steps = [
   {
     id: "insights",
     title: "Team Insights",
-    subtitle: "Company Health",
-    description: "The pulse of your organization. Track performance, feedback, and team health with data-driven visuals.",
+    subtitle: "Feedback & Growth",
+    description: "Structured feedback management for your team. Track performance reviews, growth goals, and team records with organized insights.",
     icon: Users,
     color: "bg-violet-600",
     mockup: {
-      title: "Team Pulse",
-      subtitle: "Real-time health indicators",
+      title: "Team Insights",
+      subtitle: "Feedback & performance tracking",
       content: (
         <div className="space-y-4">
           <div className="flex gap-3">
             <div className="flex-1 p-3 bg-blue-50/50 rounded-xl border border-blue-100 flex flex-col items-center justify-center text-center relative overflow-hidden">
-               <div className="absolute inset-0 bg-blue-100/20 animate-pulse" />
                <p className="text-xl font-black text-blue-600 relative z-10">12</p>
                <p className="text-[9px] font-bold text-blue-400 uppercase relative z-10">Members</p>
             </div>
-            <div className="flex-1 p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 flex flex-col items-center justify-center text-center relative overflow-hidden">
-               <div className="absolute bottom-0 left-0 w-full h-1 bg-emerald-500" />
-               <p className="text-xl font-black text-emerald-600">98%</p>
-               <p className="text-[9px] font-bold text-emerald-400 uppercase">Health</p>
+            <div className="flex-1 p-3 bg-violet-50/50 rounded-xl border border-violet-100 flex flex-col items-center justify-center text-center relative overflow-hidden">
+               <p className="text-xl font-black text-violet-600">24</p>
+               <p className="text-[9px] font-bold text-violet-400 uppercase">Reviews</p>
             </div>
           </div>
           <div className="space-y-2">
             {[
-              { name: "Sarah J.", role: "Engineer", status: "bg-emerald-500", mood: "High" },
-              { name: "Marcus C.", role: "Designer", status: "bg-amber-500", mood: "Avg" }
+              { name: "Sarah J.", role: "Engineer", type: "Quarterly", date: "Q1 2024" },
+              { name: "Marcus C.", role: "Designer", type: "Yearly", date: "2024" }
             ].map((m, i) => (
               <div key={i} className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100 shadow-sm hover:border-violet-100 transition-colors">
                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 relative">
+                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">
                       {m.name[0]}
-                      <div className={cn("absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white", m.status)} />
                     </div>
                     <div>
                        <p className="text-xs font-bold text-slate-900">{m.name}</p>
                        <p className="text-[9px] text-slate-400">{m.role}</p>
                     </div>
                  </div>
-                 <div className="px-2 py-1 rounded bg-slate-50 text-[9px] font-bold text-slate-500 flex items-center gap-1">
-                    Mood: {m.mood} <Sparkles size={8} className="text-violet-400" />
+                 <div className="flex flex-col items-end gap-1">
+                   <div className="px-2 py-0.5 rounded bg-violet-50 border border-violet-100 text-[9px] font-bold text-violet-700">
+                     {m.type}
+                   </div>
+                   <p className="text-[8px] text-slate-400">{m.date}</p>
                  </div>
               </div>
             ))}
