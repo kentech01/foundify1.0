@@ -346,9 +346,16 @@ export function PitchDashboard({
         logoData = generatedLogoSvg;
       }
 
-      // If user uploaded a logo (not generated), reset logoGenerated flag
-      const isUploadedLogo = editLogoFile && editLogoPreview;
-      const logoGenerated = isUploadedLogo ? false : undefined; // Don't change if not uploading
+      // If user uploaded a logo (not generated), only clear logoGenerated
+      // if it has never been set before. Once a logo has been generated
+      // for this pitch, that flag stays true for lifetime.
+      const isUploadedLogo = Boolean(editLogoFile && editLogoPreview);
+      const logoGenerated =
+        generatedLogoSvg
+          ? true
+          : !firstPitchMeta?.logoGenerated && isUploadedLogo
+          ? false
+          : undefined; // don't change when already true
 
       await apiService.updatePitchCompany(firstPitchMeta.id, {
         companyName: editedData.companyName,
@@ -424,9 +431,16 @@ export function PitchDashboard({
         logoData = generatedLogoSvg;
       }
 
-      // If user uploaded a logo (not generated), reset logoGenerated flag
-      const isUploadedLogo = editLogoFile && editLogoPreview;
-      const logoGenerated = isUploadedLogo ? false : (generatedLogoSvg ? true : undefined);
+      // If user uploaded a logo (not generated), only clear logoGenerated
+      // if it has never been set before. Once a logo has been generated,
+      // the flag should remain true even if the user uploads a new logo.
+      const isUploadedLogo = Boolean(editLogoFile && editLogoPreview);
+      const logoGenerated =
+        generatedLogoSvg
+          ? true
+          : !firstPitchMeta?.logoGenerated && isUploadedLogo
+          ? false
+          : undefined;
 
       await apiService.updatePitchCompany(firstPitchMeta.id, {
         companyName: editedData.companyName,
@@ -685,10 +699,25 @@ export function PitchDashboard({
   };
 
   // Process SVG to remove black backgrounds
-  // Extract colors from SVG
-  const extractColorsFromSVG = (svgString: string): { primaryColor: string; secondaryColor: string } | null => {
-    if (!svgString || typeof svgString !== "string") {
+  // Extract colors from SVG (handles raw SVG and data URLs including base64)
+  const extractColorsFromSVG = (logoOrSvg: string): { primaryColor: string; secondaryColor: string } | null => {
+    if (!logoOrSvg || typeof logoOrSvg !== "string") {
       return null;
+    }
+
+    // Resolve SVG content from raw SVG or data URL (base64 or unencoded)
+    let svgString = logoOrSvg;
+    if (!logoOrSvg.includes("<svg") && logoOrSvg.startsWith("data:image/svg+xml")) {
+      const commaIdx = logoOrSvg.indexOf(",");
+      if (commaIdx === -1) return null;
+      const payload = logoOrSvg.slice(commaIdx + 1);
+      try {
+        svgString = logoOrSvg.includes("base64")
+          ? decodeURIComponent(escape(atob(payload)))
+          : decodeURIComponent(payload);
+      } catch {
+        return null;
+      }
     }
 
     const colors: string[] = [];
@@ -1638,7 +1667,7 @@ export function PitchDashboard({
                           setEditLogoFile(null);
                           setGeneratedLogoSvg(null);
                         }
-                        setEditStep(3);
+                        setEditStep(2);
                         setIsEditing(true);
                       }}
                       title="Click to add a logo"
@@ -2103,14 +2132,24 @@ export function PitchDashboard({
                           <div className="mt-auto w-full">
                             <Button
                               size="default"
-                              className="bg-[#8B5CF6] hover:bg-[#6D28D9] text-white rounded-[12px] w-full"
+                              className="bg-[#8B5CF6] hover:bg-[#6D28D9] text-white rounded-[12px] w-full disabled:opacity-60 disabled:cursor-not-allowed"
+                              disabled={Boolean(firstPitchMeta?.logoGenerated)}
                               onClick={() => {
+                                if (firstPitchMeta?.logoGenerated) {
+                                  toast.error("Logo generation limit reached", {
+                                    description:
+                                      "You can only generate one logo per pitch. Please upload a logo if you need a different one.",
+                                  });
+                                  return;
+                                }
                                 setEditStep(3);
                                 setIsEditing(true);
                               }}
                             >
                               <Sparkles className="w-4 h-4 mr-2" />
-                              Generate Logo
+                              {firstPitchMeta?.logoGenerated
+                                ? "Logo Already Generated"
+                                : "Generate Logo"}
                             </Button>
                           </div>
                         )}
@@ -2436,31 +2475,8 @@ export function PitchDashboard({
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-base font-semibold text-[#252952]">
-                    How do you solve it? *
-                  </Label>
-                  <Textarea
-                    value={editedData.value}
-                    onChange={(e) =>
-                      setEditedData({ ...editedData, value: e.target.value })
-                    }
-                    className="min-h-[140px] text-base border-2 border-gray-200 rounded-[12px] resize-none focus:border-[#252952]"
-                    autoComplete="off"
-                    placeholder="Explain the value you create and how you help..."
-                  />
-                  <p className="text-sm text-gray-500">
-                    Focus on benefits and outcomes you deliver
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Credibility */}
-            {editStep === 2 && (
-              <div className="space-y-6">
-                <div className="space-y-2">
                   <Label className="text-base font-semibold text-[#252952] flex items-center gap-2">
-                    Traction
+                    Current status or traction
                     <Badge className="bg-gray-100 text-gray-600 border-0 text-xs">
                       Optional
                     </Badge>
@@ -2478,33 +2494,10 @@ export function PitchDashboard({
                     Share your current metrics or stage
                   </p>
                 </div>
-
-                <div className="space-y-2">
-                  <Label className="text-base font-semibold text-[#252952]">
-                    Team Size
-                  </Label>
-                  <Select
-                    value={editedData.teamSize}
-                    onValueChange={(value) =>
-                      setEditedData({ ...editedData, teamSize: value })
-                    }
-                  >
-                    <SelectTrigger className="h-14 text-base border-2 border-gray-200 rounded-[12px]">
-                      <SelectValue placeholder="Select team size" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TEAM_SIZES.map((size) => (
-                        <SelectItem key={size} value={size}>
-                          {size}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
             )}
 
-            {/* Step 4: Brand */}
+            {/* Step 4: Brand (logo) */}
             {editStep === 3 && (
               <div className="space-y-8">
                 {/* Section 1: Upload Logo */}
@@ -2753,6 +2746,34 @@ export function PitchDashboard({
                       )}
                     </Button>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Credibility */}
+            {editStep === 2 && (
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold text-[#252952]">
+                    Team Size
+                  </Label>
+                  <Select
+                    value={editedData.teamSize}
+                    onValueChange={(value) =>
+                      setEditedData({ ...editedData, teamSize: value })
+                    }
+                  >
+                    <SelectTrigger className="h-14 text-base border-2 border-gray-200 rounded-[12px]">
+                      <SelectValue placeholder="Select team size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TEAM_SIZES.map((size) => (
+                        <SelectItem key={size} value={size}>
+                          {size}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             )}
