@@ -668,14 +668,35 @@ export const useApiService = () => {
         let primaryColor = data.brandColor || "#252952";
         let secondaryColor = primaryColor;
 
-        if (data.logo && typeof data.logo === "string" && data.logo.includes("<svg")) {
-          // Extract colors from SVG
-          const extractColorsFromSVG = (svgString: string): { primaryColor: string; secondaryColor: string } | null => {
-            if (!svgString || typeof svgString !== "string") {
-              return null;
+        if (data.logo && typeof data.logo === "string") {
+          // Resolve SVG content from raw SVG or data URL (base64 or unencoded)
+          const resolveSvgContent = (logo: string): string | null => {
+            if (!logo?.trim()) return null;
+            if (logo.includes("<svg")) return logo; // Raw SVG
+            if (logo.startsWith("data:image/svg+xml")) {
+              const commaIdx = logo.indexOf(",");
+              if (commaIdx === -1) return null;
+              const payload = logo.slice(commaIdx + 1);
+              if (logo.includes("base64")) {
+                try {
+                  return decodeURIComponent(escape(atob(payload)));
+                } catch {
+                  return null;
+                }
+              }
+              return decodeURIComponent(payload);
             }
+            return null;
+          };
 
-            const colors: string[] = [];
+          const svgContent = resolveSvgContent(data.logo);
+          if (svgContent) {
+            const extractColorsFromSVG = (svgString: string): { primaryColor: string; secondaryColor: string } | null => {
+              if (!svgString || typeof svgString !== "string") {
+                return null;
+              }
+
+              const colors: string[] = [];
             const hexColorRegex = /#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})\b/g;
             const rgbColorRegex = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/g;
 
@@ -747,10 +768,11 @@ export const useApiService = () => {
             };
           };
 
-          const extractedColors = extractColorsFromSVG(data.logo);
+          const extractedColors = extractColorsFromSVG(svgContent);
           if (extractedColors) {
             primaryColor = extractedColors.primaryColor;
             secondaryColor = extractedColors.secondaryColor;
+          }
           }
         }
 

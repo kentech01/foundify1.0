@@ -84,7 +84,15 @@ export function PublicDigitalCard() {
 
   // Prepare company logo
   const companyLogo = card.companyLogo || '🚀';
-  const isEmoji = companyLogo.length <= 4 && !companyLogo.includes('<');
+  const isDataUrl =
+    typeof companyLogo === 'string' && companyLogo.startsWith('data:');
+  const isSvgMarkup =
+    typeof companyLogo === 'string' && companyLogo.includes('<svg');
+  const isEmoji =
+    typeof companyLogo === 'string' &&
+    companyLogo.length <= 4 &&
+    !isDataUrl &&
+    !isSvgMarkup;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 flex items-center justify-center p-4">
@@ -129,10 +137,22 @@ export function PublicDigitalCard() {
                 <div className="ml-4">
                   {isEmoji ? (
                     <div className="text-5xl md:text-6xl">{companyLogo}</div>
-                  ) : (
-                    <div 
+                  ) : isDataUrl ? (
+                    <img
+                      src={companyLogo}
+                      alt="Company logo"
+                      className="w-16 h-16 md:w-20 md:h-20 rounded-full object-contain bg-white/10"
+                    />
+                  ) : isSvgMarkup ? (
+                    <div
                       className="w-16 h-16 md:w-20 md:h-20"
                       dangerouslySetInnerHTML={{ __html: companyLogo }}
+                    />
+                  ) : (
+                    <img
+                      src={companyLogo}
+                      alt="Company logo"
+                      className="w-16 h-16 md:w-20 md:h-20 rounded-full object-contain bg-white/10"
                     />
                   )}
                 </div>

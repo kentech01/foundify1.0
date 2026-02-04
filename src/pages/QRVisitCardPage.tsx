@@ -41,13 +41,17 @@ export function QRVisitCardPage() {
     website: '',
     logo: '🚀',
     primaryColor: '#252952',
-    secondaryColor: '#4A90E2'
+    secondaryColor: '#4A90E2',
   });
 
   const [existingCard, setExistingCard] = useState<any>(null);
   const [isGenerated, setIsGenerated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingCard, setIsLoadingCard] = useState(true);
+
+  // Derived brand colors for the Smart Digital Card UI, with safe defaults.
+  const primaryColor = startupData.primaryColor || '#252952';
+  const secondaryColor = startupData.secondaryColor || '#4A90E2';
 
   // Load existing card and startup data on mount
   useEffect(() => {
@@ -86,23 +90,34 @@ export function QRVisitCardPage() {
           }
         }
 
-        // Load startup data from first pitch if no card exists
-        if (!existingCard) {
-          try {
-            const pitchResponse = await apiService.getFirstPitch();
-            if (pitchResponse) {
-              setStartupData({
-                name: pitchResponse.startupName || '',
-                description: pitchResponse.pitchContent?.mainProduct || '',
-                website: pitchResponse.pitchContent?.email || '',
-                logo: pitchResponse.logo || '🚀',
-                primaryColor: pitchResponse.pitchContent?.primaryColor || '#252952',
-                secondaryColor: pitchResponse.pitchContent?.secondaryColor || '#4A90E2',
-              });
-            }
-          } catch (err) {
-            // No pitch data, use defaults
+        // Always refresh brand data from the latest pitch so that
+        // Smart Digital Card colors & UI stay in sync with the pitch.
+        try {
+          const pitchResponse = await apiService.getFirstPitch();
+          if (pitchResponse) {
+            setStartupData((prev) => ({
+              // Prefer any existing card-specific copy, but always
+              // take the latest brand colors from the pitch (from logo).
+              name: prev.name || pitchResponse.startupName || '',
+              description:
+                prev.description ||
+                pitchResponse.pitchContent?.mainProduct ||
+                '',
+              website:
+                prev.website || pitchResponse.pitchContent?.email || '',
+              logo: prev.logo || pitchResponse.logo || '🚀',
+              primaryColor:
+                pitchResponse.primaryColor ||
+                prev.primaryColor ||
+                '#252952',
+              secondaryColor:
+                pitchResponse.secondaryColor ||
+                prev.secondaryColor ||
+                '#4A90E2',
+            }));
           }
+        } catch (err) {
+          // No pitch data, keep whatever we already have
         }
       } catch (error) {
         console.error('Error loading data:', error);
@@ -316,49 +331,32 @@ export function QRVisitCardPage() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-gray-200">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                    <Building className="h-4 w-4 text-gray-500" />
-                    <span className="font-medium">Company Information</span>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Company Name</Label>
-                      <div className="relative">
-                        <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                          placeholder="Your company name"
-                          value={startupData.name}
-                          onChange={(e) => setStartupData({ ...startupData, name: e.target.value })}
-                          className="pl-10 rounded-xl border-2 border-gray-200 focus:border-[#4A90E2]"
-                          autoComplete="off"
-                        />
-                      </div>
+                {startupData.name && (
+                  <div className="pt-4 border-t border-gray-200">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                      <Check className="h-4 w-4 text-green-600" />
+                      <span>Auto-filled from your Foundify profile:</span>
                     </div>
-
-                    <div className="space-y-2">
-                      <Label>Company Description</Label>
-                      <div className="relative">
-                        <Briefcase className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <textarea
-                          placeholder="Brief description of your company"
-                          value={startupData.description}
-                          onChange={(e) => setStartupData({ ...startupData, description: e.target.value })}
-                          className="w-full pl-10 pr-4 py-2 rounded-xl border-2 border-gray-200 focus:border-[#4A90E2] focus:outline-none focus:ring-2 focus:ring-[#4A90E2]/20 resize-none min-h-[80px]"
-                          rows={3}
-                        />
+                    <div className="space-y-2 text-sm bg-gray-50 p-4 rounded-xl">
+                      <div className="flex items-center gap-2">
+                        <Building className="h-4 w-4 text-gray-500" />
+                        <span className="text-gray-700">{startupData.name}</span>
                       </div>
+                      {startupData.description && (
+                        <div className="flex items-center gap-2">
+                          <Briefcase className="h-4 w-4 text-gray-500" />
+                          <span className="text-gray-700">{startupData.description}</span>
+                        </div>
+                      )}
+                      {startupData.website && (
+                        <div className="flex items-center gap-2">
+                          <Globe className="h-4 w-4 text-gray-500" />
+                          <span className="text-gray-700">{startupData.website}</span>
+                        </div>
+                      )}
                     </div>
-
-                    {startupData.website && (
-                      <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
-                        <Globe className="h-3.5 w-3.5" />
-                        <span>{startupData.website}</span>
-                      </div>
-                    )}
                   </div>
-                </div>
+                )}
 
                 <Button
                   onClick={handleGenerate}
@@ -385,33 +383,181 @@ export function QRVisitCardPage() {
         {/* Right: Preview & QR */}
         <div className="space-y-6">
           {!isGenerated ? (
-            <Card className="border-2 border-dashed border-gray-300 rounded-2xl">
-              <CardContent className="p-12 text-center">
-                <QrCode className="h-20 w-20 mx-auto mb-4 text-gray-300" />
-                <h3 className="font-semibold text-gray-900 mb-2">Preview Your Card</h3>
-                <p className="text-gray-500">
-                  Fill in your details and generate your Smart Digital Card
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
             <>
-              {/* Digital Card Preview */}
+              {/* Live preview with logo-derived colors */}
               <Card className="border-2 border-gray-100 rounded-2xl overflow-hidden">
-                <div 
+                <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
+                  <h3 className="font-semibold text-gray-700 text-sm">Card Preview</h3>
+                </div>
+                <div
                   className="p-8 text-white"
                   style={{
-                    background: `linear-gradient(to bottom right, ${startupData.primaryColor}, ${startupData.secondaryColor}, ${startupData.secondaryColor}dd)`
+                    background: `linear-gradient(to bottom right, ${primaryColor}, ${secondaryColor}, ${secondaryColor}dd)`,
                   }}
                 >
                   <div className="flex items-start justify-between mb-8">
                     <div>
                       {startupData.logo && (
-                        startupData.logo.length <= 4 ? (
-                          <div className="text-5xl">{startupData.logo}</div>
-                        ) : (
-                          <div className="w-16 h-16" dangerouslySetInnerHTML={{ __html: startupData.logo }} />
-                        )
+                        (() => {
+                          const logo = startupData.logo;
+                          const isDataUrl =
+                            typeof logo === 'string' && logo.startsWith('data:');
+                          const isSvgMarkup =
+                            typeof logo === 'string' && logo.includes('<svg');
+                          const isEmojiOrShort =
+                            typeof logo === 'string' &&
+                            logo.length <= 4 &&
+                            !isDataUrl &&
+                            !isSvgMarkup;
+
+                          if (isDataUrl) {
+                            return (
+                              <img
+                                src={logo}
+                                alt="Company logo"
+                                className="w-16 h-16 rounded-full object-contain bg-white/10"
+                              />
+                            );
+                          }
+
+                          if (isSvgMarkup) {
+                            return (
+                              <div
+                                className="w-16 h-16"
+                                dangerouslySetInnerHTML={{ __html: logo }}
+                              />
+                            );
+                          }
+
+                          if (isEmojiOrShort) {
+                            return <div className="text-5xl">{logo}</div>;
+                          }
+
+                          return (
+                            <img
+                              src={logo}
+                              alt="Company logo"
+                              className="w-16 h-16 rounded-full object-contain bg-white/10"
+                            />
+                          );
+                        })()
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <div className="text-3xl font-bold mb-1">{startupData.name || 'Company'}</div>
+                      {startupData.website && (
+                        <div className="text-sm opacity-90">{startupData.website}</div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <div className="text-3xl font-bold mb-1">{formData.fullName || 'Your Name'}</div>
+                      <div className="text-xl opacity-90">{formData.role || 'Your Role'}</div>
+                    </div>
+
+                    <div className="pt-4 border-t border-white/20 space-y-2 text-sm">
+                      {formData.email && (
+                        <div className="flex items-center gap-2 opacity-90">
+                          <Mail className="h-4 w-4" />
+                          <span>{formData.email}</span>
+                        </div>
+                      )}
+                      {formData.phone && (
+                        <div className="flex items-center gap-2 opacity-90">
+                          <Phone className="h-4 w-4" />
+                          <span>{formData.phone}</span>
+                        </div>
+                      )}
+                      {!formData.email && !formData.phone && (
+                        <div className="text-sm opacity-70">Add email & phone to see them here</div>
+                      )}
+                    </div>
+
+                    {startupData.description && (
+                      <div className="pt-4 border-t border-white/20">
+                        <div className="text-sm opacity-90 mb-2">{startupData.description}</div>
+                      </div>
+                    )}
+
+                    <div className="flex gap-3 pt-2">
+                      {formData.linkedin && (
+                        <div className="flex items-center gap-1.5 text-xs bg-white/20 px-3 py-1.5 rounded-lg">
+                          <Linkedin className="h-3.5 w-3.5" />
+                          <span className="opacity-90">LinkedIn</span>
+                        </div>
+                      )}
+                      {formData.twitter && (
+                        <div className="flex items-center gap-1.5 text-xs bg-white/20 px-3 py-1.5 rounded-lg">
+                          <Twitter className="h-3.5 w-3.5" />
+                          <span className="opacity-90">Twitter</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+              <p className="text-sm text-gray-500 text-center">
+                Generate your card to get the QR code and shareable link
+              </p>
+            </>
+          ) : (
+            <>
+              {/* Digital Card Preview */}
+              <Card className="border-2 border-gray-100 rounded-2xl overflow-hidden">
+                <div
+                  className="p-8 text-white"
+                  style={{
+                    background: `linear-gradient(to bottom right, ${primaryColor}, ${secondaryColor}, ${secondaryColor}dd)`,
+                  }}
+                >
+                  <div className="flex items-start justify-between mb-8">
+                    <div>
+                      {startupData.logo && (
+                        (() => {
+                          const logo = startupData.logo;
+                          const isDataUrl =
+                            typeof logo === 'string' && logo.startsWith('data:');
+                          const isSvgMarkup =
+                            typeof logo === 'string' && logo.includes('<svg');
+                          const isEmojiOrShort =
+                            typeof logo === 'string' &&
+                            logo.length <= 4 &&
+                            !isDataUrl &&
+                            !isSvgMarkup;
+
+                          if (isDataUrl) {
+                            return (
+                              <img
+                                src={logo}
+                                alt="Company logo"
+                                className="w-16 h-16 rounded-full object-contain bg-white/10"
+                              />
+                            );
+                          }
+
+                          if (isSvgMarkup) {
+                            return (
+                              <div
+                                className="w-16 h-16"
+                                dangerouslySetInnerHTML={{ __html: logo }}
+                              />
+                            );
+                          }
+
+                          if (isEmojiOrShort) {
+                            return <div className="text-5xl">{logo}</div>;
+                          }
+
+                          return (
+                            <img
+                              src={logo}
+                              alt="Company logo"
+                              className="w-16 h-16 rounded-full object-contain bg-white/10"
+                            />
+                          );
+                        })()
                       )}
                     </div>
                     <div className="text-right">
