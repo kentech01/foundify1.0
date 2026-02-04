@@ -31,6 +31,10 @@ import {
   User,
   Plus,
   HomeIcon,
+  Brain,
+  Bot,
+  IdCard,
+  CreditCard,
 } from "lucide-react";
 import { UserAuth } from "../context/AuthContext";
 import SignInModal from "./signIn/SignInModal";
@@ -68,32 +72,32 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
     {
       path: "/dashboard/invoices",
       label: "Invoice Generator",
-      icon: FileText,
+      icon: CreditCard,
     },
     {
       path: "/dashboard/contracts",
       label: "Contract Templates",
-      icon: FileCheck,
+      icon: FileText,
     },
     {
       path: "/dashboard/investor-email-draft",
-      label: "Email Templates",
+      label: "Email Generation",
       icon: Mail,
     },
     {
       path: "/dashboard/qr-card",
       label: "Smart Digital Card",
-      icon: QrCode,
+      icon: IdCard,
     },
     {
       path: "/dashboard/feedbackCoach",
       label: "Team Insights",
-      icon: MessageSquare,
+      icon: Users,
     },
     {
       path: "/dashboard/ai-hiring-assistant",
       label: "AI Hiring Assistant",
-      icon: Users,
+      icon: Bot,
     },
     // {
     //   path: "/dashboard/landing-page-generator",
@@ -160,7 +164,7 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
               : "text-white/60 hover:bg-white/10 hover:text-white"
           }`}
         >
-          <HomeIcon className="h-5 w-5 flex-shrink-0" />
+          <Brain className="h-5 w-5 flex-shrink-0" />
           <span className="flex-1 text-left font-semibold text-sm">
             Company Dashboard
           </span>
