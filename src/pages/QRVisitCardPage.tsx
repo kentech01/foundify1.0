@@ -96,8 +96,7 @@ export function QRVisitCardPage() {
           const pitchResponse = await apiService.getFirstPitch();
           if (pitchResponse) {
             setStartupData((prev) => ({
-              // Prefer any existing card-specific copy, but always
-              // take the latest brand colors from the pitch (from logo).
+              // Prefer pitch for logo, colors & company info (source of truth for brand).
               name: prev.name || pitchResponse.startupName || '',
               description:
                 prev.description ||
@@ -105,7 +104,7 @@ export function QRVisitCardPage() {
                 '',
               website:
                 prev.website || pitchResponse.pitchContent?.email || '',
-              logo: prev.logo || pitchResponse.logo || '🚀',
+              logo: pitchResponse.logo || prev.logo || '🚀',
               primaryColor:
                 pitchResponse.primaryColor ||
                 prev.primaryColor ||
@@ -385,70 +384,21 @@ export function QRVisitCardPage() {
           {!isGenerated ? (
             <>
               {/* Live preview with logo-derived colors */}
-              <Card className="border-2 border-gray-100 rounded-2xl overflow-hidden">
+              <Card className="border-2 border-gray-100 rounded-2xl overflow-hidden gap-0">
                 <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
                   <h3 className="font-semibold text-gray-700 text-sm">Card Preview</h3>
                 </div>
                 <div
-                  className="p-8 text-white"
+                  className="p-8 pt-6 text-white"
                   style={{
                     background: `linear-gradient(to bottom right, ${primaryColor}, ${secondaryColor}, ${secondaryColor}dd)`,
                   }}
                 >
-                  <div className="flex items-start justify-between mb-8">
-                    <div>
-                      {startupData.logo && (
-                        (() => {
-                          const logo = startupData.logo;
-                          const isDataUrl =
-                            typeof logo === 'string' && logo.startsWith('data:');
-                          const isSvgMarkup =
-                            typeof logo === 'string' && logo.includes('<svg');
-                          const isEmojiOrShort =
-                            typeof logo === 'string' &&
-                            logo.length <= 4 &&
-                            !isDataUrl &&
-                            !isSvgMarkup;
-
-                          if (isDataUrl) {
-                            return (
-                              <img
-                                src={logo}
-                                alt="Company logo"
-                                className="w-16 h-16 rounded-full object-contain bg-white/10"
-                              />
-                            );
-                          }
-
-                          if (isSvgMarkup) {
-                            return (
-                              <div
-                                className="w-16 h-16"
-                                dangerouslySetInnerHTML={{ __html: logo }}
-                              />
-                            );
-                          }
-
-                          if (isEmojiOrShort) {
-                            return <div className="text-5xl">{logo}</div>;
-                          }
-
-                          return (
-                            <img
-                              src={logo}
-                              alt="Company logo"
-                              className="w-16 h-16 rounded-full object-contain bg-white/10"
-                            />
-                          );
-                        })()
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <div className="text-3xl font-bold mb-1">{startupData.name || 'Company'}</div>
-                      {startupData.website && (
-                        <div className="text-sm opacity-90">{startupData.website}</div>
-                      )}
-                    </div>
+                  <div className="mb-8">
+                    <div className="text-3xl font-bold mb-1">{startupData.name || 'Company'}</div>
+                    {startupData.website && (
+                      <div className="text-sm opacity-90">{startupData.website}</div>
+                    )}
                   </div>
 
                   <div className="space-y-4">
@@ -512,60 +462,11 @@ export function QRVisitCardPage() {
                     background: `linear-gradient(to bottom right, ${primaryColor}, ${secondaryColor}, ${secondaryColor}dd)`,
                   }}
                 >
-                  <div className="flex items-start justify-between mb-8">
-                    <div>
-                      {startupData.logo && (
-                        (() => {
-                          const logo = startupData.logo;
-                          const isDataUrl =
-                            typeof logo === 'string' && logo.startsWith('data:');
-                          const isSvgMarkup =
-                            typeof logo === 'string' && logo.includes('<svg');
-                          const isEmojiOrShort =
-                            typeof logo === 'string' &&
-                            logo.length <= 4 &&
-                            !isDataUrl &&
-                            !isSvgMarkup;
-
-                          if (isDataUrl) {
-                            return (
-                              <img
-                                src={logo}
-                                alt="Company logo"
-                                className="w-16 h-16 rounded-full object-contain bg-white/10"
-                              />
-                            );
-                          }
-
-                          if (isSvgMarkup) {
-                            return (
-                              <div
-                                className="w-16 h-16"
-                                dangerouslySetInnerHTML={{ __html: logo }}
-                              />
-                            );
-                          }
-
-                          if (isEmojiOrShort) {
-                            return <div className="text-5xl">{logo}</div>;
-                          }
-
-                          return (
-                            <img
-                              src={logo}
-                              alt="Company logo"
-                              className="w-16 h-16 rounded-full object-contain bg-white/10"
-                            />
-                          );
-                        })()
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <div className="text-3xl font-bold mb-1">{startupData.name}</div>
-                      {startupData.website && (
-                        <div className="text-sm opacity-90">{startupData.website}</div>
-                      )}
-                    </div>
+                  <div className="mb-8">
+                    <div className="text-3xl font-bold mb-1">{startupData.name}</div>
+                    {startupData.website && (
+                      <div className="text-sm opacity-90">{startupData.website}</div>
+                    )}
                   </div>
                   
                   <div className="space-y-4">
