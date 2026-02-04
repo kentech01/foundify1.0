@@ -48,13 +48,13 @@ import {
   Target,
   Palette,
   Edit,
+  Zap,
   CheckCircle2,
   Mail,
   Receipt,
   Users,
   QrCode,
   Copy,
-  Zap,
   ArrowRight,
   BarChart3,
   RefreshCw,
@@ -346,9 +346,16 @@ export function PitchDashboard({
         logoData = generatedLogoSvg;
       }
 
-      // If user uploaded a logo (not generated), reset logoGenerated flag
-      const isUploadedLogo = editLogoFile && editLogoPreview;
-      const logoGenerated = isUploadedLogo ? false : undefined; // Don't change if not uploading
+      // If user uploaded a logo (not generated), only clear logoGenerated
+      // if it has never been set before. Once a logo has been generated
+      // for this pitch, that flag stays true for lifetime.
+      const isUploadedLogo = Boolean(editLogoFile && editLogoPreview);
+      const logoGenerated =
+        generatedLogoSvg
+          ? true
+          : !firstPitchMeta?.logoGenerated && isUploadedLogo
+          ? false
+          : undefined; // don't change when already true
 
       await apiService.updatePitchCompany(firstPitchMeta.id, {
         companyName: editedData.companyName,
@@ -424,9 +431,16 @@ export function PitchDashboard({
         logoData = generatedLogoSvg;
       }
 
-      // If user uploaded a logo (not generated), reset logoGenerated flag
-      const isUploadedLogo = editLogoFile && editLogoPreview;
-      const logoGenerated = isUploadedLogo ? false : (generatedLogoSvg ? true : undefined);
+      // If user uploaded a logo (not generated), only clear logoGenerated
+      // if it has never been set before. Once a logo has been generated,
+      // the flag should remain true even if the user uploads a new logo.
+      const isUploadedLogo = Boolean(editLogoFile && editLogoPreview);
+      const logoGenerated =
+        generatedLogoSvg
+          ? true
+          : !firstPitchMeta?.logoGenerated && isUploadedLogo
+          ? false
+          : undefined;
 
       await apiService.updatePitchCompany(firstPitchMeta.id, {
         companyName: editedData.companyName,
@@ -685,10 +699,25 @@ export function PitchDashboard({
   };
 
   // Process SVG to remove black backgrounds
-  // Extract colors from SVG
-  const extractColorsFromSVG = (svgString: string): { primaryColor: string; secondaryColor: string } | null => {
-    if (!svgString || typeof svgString !== "string") {
+  // Extract colors from SVG (handles raw SVG and data URLs including base64)
+  const extractColorsFromSVG = (logoOrSvg: string): { primaryColor: string; secondaryColor: string } | null => {
+    if (!logoOrSvg || typeof logoOrSvg !== "string") {
       return null;
+    }
+
+    // Resolve SVG content from raw SVG or data URL (base64 or unencoded)
+    let svgString = logoOrSvg;
+    if (!logoOrSvg.includes("<svg") && logoOrSvg.startsWith("data:image/svg+xml")) {
+      const commaIdx = logoOrSvg.indexOf(",");
+      if (commaIdx === -1) return null;
+      const payload = logoOrSvg.slice(commaIdx + 1);
+      try {
+        svgString = logoOrSvg.includes("base64")
+          ? decodeURIComponent(escape(atob(payload)))
+          : decodeURIComponent(payload);
+      } catch {
+        return null;
+      }
     }
 
     const colors: string[] = [];
@@ -1563,37 +1592,18 @@ export function PitchDashboard({
       <div className="grid gap-6">
         {/* Company Profile Card - Primary */}
         {companyData ? (
-          <Card className="border-2 border-gray-200 rounded-[24px] overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
-            {/* Brand accent bar */}
-            <div
-              className="h-2"
-              style={{
-                background: `linear-gradient(90deg, ${companyData.brandColor} 0%, ${companyData.brandColor}80 100%)`,
-              }}
-            />
-
-            <CardContent className="p-8">
-              <div className="flex items-start justify-between mb-6">
-                <div className="flex items-start gap-6 flex-1">
-                  {/* Logo/Icon - Avatar Style */}
+          <Card className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:border-indigo-100 transition-colors">
+            <CardContent className="p-6">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
+                <div className="flex gap-5">
                   {companyData.logo ? (
-                    <div
-                      className="w-28 h-28 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg bg-white p-4 border-2 border-gray-100 overflow-hidden cursor-pointer hover:scale-105 transition-transform group relative"
-                      onClick={() =>
-                        openLogoPreview(
-                          companyData.logo!,
-                          companyData.logo.startsWith("<svg") ||
-                            companyData.logo.includes("<svg")
-                        )
-                      }
-                      title="Click to preview and download logo"
-                    >
+                    <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-lg border border-slate-100 overflow-hidden p-2">
                       {companyData.logo.startsWith("<svg") ||
                       companyData.logo.includes("<svg") ? (
                         <div
                           className="w-full h-full flex items-center justify-center"
                           style={{
-                            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
+                            filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.1))",
                           }}
                           dangerouslySetInnerHTML={{
                             __html: processSvgLogo(companyData.logo),
@@ -1606,9 +1616,6 @@ export function PitchDashboard({
                           className="w-full h-full object-contain"
                         />
                       )}
-                      {/* <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 rounded-full flex items-center justify-center transition-all">
-                        <Eye className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
-                      </div> */}
                     </div>
                   ) : (
                     <div
@@ -1638,7 +1645,7 @@ export function PitchDashboard({
                           setEditLogoFile(null);
                           setGeneratedLogoSvg(null);
                         }
-                        setEditStep(3);
+                        setEditStep(2);
                         setIsEditing(true);
                       }}
                       title="Click to add a logo"
@@ -1646,68 +1653,36 @@ export function PitchDashboard({
                       <Building2 className="w-14 h-14 text-white" />
                     </div>
                   )}
-
-                  {/* Company Info */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <h2 className="text-[50px] font-bold text-[#252952] leading-tight">
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <h2 className="text-lg font-bold text-slate-900">
                         {companyData.companyName}
                       </h2>
                       <Badge
-                        className={`border-0 ${
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border ${
                           isProfileComplete
-                            ? "bg-green-100 text-green-700"
-                            : "bg-amber-100 text-amber-700"
+                            ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                            : "bg-amber-50 text-amber-600 border-amber-100"
                         }`}
                       >
                         {isProfileComplete ? (
                           <>
-                            <CheckCircle2 className="w-3 h-3 mr-1" />
+                            <CheckCircle2 className="w-3 h-3 mr-1 inline" />
                             Complete
                           </>
                         ) : (
                           <>
-                            <AlertCircle className="w-3 h-3 mr-1" />
+                            <AlertCircle className="w-3 h-3 mr-1 inline" />
                             Needs Info
                           </>
                         )}
                       </Badge>
                     </div>
-
-                    <p className="text-gray-700 text-[18px] mb-4 leading-relaxed">
+                    <p className="text-sm text-slate-500 leading-relaxed max-w-md">
                       {companyData.oneLiner}
                     </p>
-
-                    <div className="flex items-center gap-4 text-sm">
-                      {companyData.industry && (
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full">
-                          <BarChart3 className="w-4 h-4 text-gray-600" />
-                          <span className="text-gray-700 font-medium">
-                            {companyData.industry}
-                          </span>
                         </div>
-                      )}
-                      {companyData.status && (
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-full">
-                          <TrendingUp className="w-4 h-4 text-blue-600" />
-                          <span className="text-blue-700 font-medium">
-                            {companyData.status}
-                          </span>
                         </div>
-                      )}
-                      {companyData.teamSize && (
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-full">
-                          <Users className="w-4 h-4 text-purple-600" />
-                          <span className="text-purple-700 font-medium">
-                            {companyData.teamSize} people
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Edit Button */}
                 <Button
                   onClick={async () => {
                     if (isOpeningEditor) return;
@@ -1882,17 +1857,17 @@ export function PitchDashboard({
                     }
                   }}
                   disabled={isOpeningEditor}
-                  className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[12px] shadow-lg hover:shadow-xl transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-colors whitespace-nowrap disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isOpeningEditor ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Loader2 className="w-3 h-3 mr-2 animate-spin" />
                       Loading...
                     </>
                   ) : (
                     <>
-                      <Edit className="w-4 h-4 mr-2" />
-                      Edit Company Info
+                      <Edit className="w-3 h-3 mr-2" />
+                      EDIT INFO
                     </>
                   )}
                 </Button>
@@ -1922,155 +1897,126 @@ export function PitchDashboard({
 
         {/* Pitch Assets - Merged Output Card */}
         {companyData && (
-          <Card className="border-2 border-gray-200 rounded-[24px] overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+          <Card className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all">
             <CardContent className="p-8">
               <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-[25px] font-bold text-[#252952] mb-1">
-                    Pitch Assets
-                  </h3>
-                  <p className="text-gray-600 text-[16px]">
-                    Auto-generated from your company profile
-                  </p>
-                </div>
+                <h4 className="font-bold text-slate-900 text-base">
+                  Pitch Assets
+                </h4>
               </div>
 
               <div className="grid md:grid-cols-3 gap-6" id="pitch-assets">
                 {/* Pitch Deck */}
                 {pitches && pitches.length > 0 && (
-                  <div className="p-8 rounded-[20px] border-2 border-gray-200 bg-white hover:border-[#252952] hover:shadow-lg transition-all group h-full flex flex-col">
-                    <div className="flex flex-col items-center text-center gap-4 flex-1">
-                      <div className="w-20 h-20 rounded-[16px] bg-gradient-to-br from-[#252952] to-[#4A90E2] flex items-center justify-center shadow-lg">
-                        <FileText className="w-10 h-10 text-white" />
+                  <div className="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 hover:border-indigo-100 transition-all group/asset">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-sm group-hover/asset:border-indigo-100 group-hover/asset:text-indigo-600 text-slate-400 transition-colors">
+                        <FileText size={20} />
                       </div>
-                      <div className="flex-1 flex flex-col">
-                        <h4 className="text-[22px] font-bold text-[#252952] mb-2">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                    </div>
+                    <h4 className="font-bold text-slate-900 text-sm mb-1">
                           Pitch Deck
                         </h4>
-                        <p className="text-[15px] text-gray-600 mb-6">
+                    <p className="text-xs text-slate-500 mb-4">
                           Professional presentation
                         </p>
-                        <div className="mt-auto flex flex-col gap-2 w-full">
-                          <Button
-                            size="default"
-                            variant="outline"
-                            className="border-2 border-gray-200 rounded-[12px] hover:bg-gray-50 w-full"
-                            onClick={handleRegenerate}
-                          >
-                            <RefreshCw className="w-4 h-4 mr-2" />
-                            Regenerate Pitch
-                          </Button>
-                          <Button
-                            size="default"
-                            className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[12px] w-full"
-                            onClick={() =>
-                              pitches[0] && handleDownload(pitches[0])
-                            }
-                          >
-                            <Download className="w-4 h-4 mr-2" />
-                            Download PDF
-                          </Button>
-                        </div>
-                      </div>
+                    <div className="flex flex-row gap-2">
+                      <button 
+                        onClick={handleRegenerate}
+                        className="flex-1 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer"
+                      >
+                        <RefreshCw size={12} /> Regenerate Pitch
+                      </button>
+                      <button 
+                        onClick={() => pitches[0] && handleDownload(pitches[0])}
+                        className="flex-1 py-2.5 bg-[#252952] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-[#1a1d3a] transition-colors shadow-lg shadow-[#252952]/10 cursor-pointer"
+                      >
+                        <div className="w-2.5 h-3 border border-white/30 rounded-sm" /> Download PDF
+                      </button>
                     </div>
                   </div>
                 )}
 
                 {/* Landing Page */}
                 {firstPitchMeta && (
-                  <div className="p-8 rounded-[20px] border-2 border-gray-200 bg-white hover:border-[#4A90E2] hover:shadow-lg transition-all group h-full flex flex-col">
-                    <div className="flex flex-col items-center text-center gap-4 flex-1">
-                      <div className="w-20 h-20 rounded-[16px] bg-gradient-to-br from-[#4A90E2] to-[#7DD3FC] flex items-center justify-center shadow-lg">
-                        <Globe className="w-10 h-10 text-white" />
+                  <div className="p-5 rounded-2xl border border-slate-100 bg-indigo-50/30 hover:bg-white hover:shadow-lg hover:shadow-indigo-100/50 hover:border-indigo-100 transition-all group/asset relative overflow-hidden">
+                    <div className="flex justify-between items-start mb-4 relative z-10">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-100 border border-indigo-200 flex items-center justify-center shadow-sm text-indigo-600">
+                        <Zap size={20} />
                       </div>
-                      <div className="flex-1 flex flex-col">
-                        <h4 className="text-[22px] font-bold text-[#252952] mb-2">
+                      <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+                    </div>
+                    <h4 className="font-bold text-slate-900 text-sm mb-1 relative z-10">
                           Live Landing Page
                         </h4>
                         {firstPitchHasPremiumLanding ? (
-                          <p className="text-[15px] text-gray-600 mb-6 break-all">
+                      <p className="text-xs text-slate-500 mb-4 relative z-10 break-all">
                             foundify.app/
                             {firstPitchMeta.startupName
                               ?.toLowerCase()
                               .replace(/\s+/g, "-") || "your-company"}
                           </p>
                         ) : (
-                          <p className="text-[15px] text-gray-600 mb-6">
+                      <p className="text-xs text-slate-500 mb-4 relative z-10">
                             Generate your landing page
                           </p>
                         )}
                         {firstPitchHasPremiumLanding ? (
-                          <div className="mt-auto flex flex-col gap-2 w-full">
-                            <Button
-                              size="default"
-                              className="bg-[#4A90E2] hover:bg-[#357ABD] text-white rounded-[12px] w-full"
+                      <button 
                               onClick={openLandingPage}
-                            >
-                              <ExternalLink className="w-4 h-4 mr-2" />
-                              Open Page
-                            </Button>
-                            <Button
-                              size="default"
-                              variant="outline"
-                              className="border-2 border-gray-200 rounded-[12px] hover:bg-gray-50 w-full"
-                              onClick={handleCopyUrl}
-                            >
-                              <Copy className="w-4 h-4 mr-2" />
-                              Copy URL
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="mt-auto w-full">
-                            <Button
-                              size="default"
-                              className="bg-[#4A90E2] hover:bg-[#357ABD] text-white rounded-[12px] w-full"
+                        className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 relative z-10 cursor-pointer"
+                      >
+                        <ExternalLink size={12} /> Open Page
+                      </button>
+                    ) : (
+                      <button 
                               onClick={generateLandingPage}
                               disabled={isGeneratingLanding}
+                        className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 relative z-10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {isGeneratingLanding ? (
                                 <>
-                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            <Loader2 size={12} className="animate-spin" />
                                   Generating...
                                 </>
                               ) : (
                                 <>
-                                  <Sparkles className="w-4 h-4 mr-2" />
-                                  Generate Landing Page
+                            <Sparkles size={12} /> Generate Page
                                 </>
                               )}
-                            </Button>
-                          </div>
+                      </button>
                         )}
-                      </div>
-                    </div>
+                    
+                    {/* Gradient Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-transparent opacity-0 group-hover/asset:opacity-100 transition-opacity" />
                   </div>
                 )}
 
                 {/* Logo & Brand Assets */}
                 {companyData && (
-                  <div className="p-8 rounded-[20px] border-2 border-gray-200 bg-white hover:border-[#8B5CF6] hover:shadow-lg transition-all group h-full flex flex-col">
-                    <div className="flex flex-col items-center text-center gap-4 flex-1">
-                      <div className="w-20 h-20 rounded-[16px] bg-gradient-to-br from-[#8B5CF6] to-[#4C1D95] flex items-center justify-center shadow-lg">
-                        <Palette className="w-10 h-10 text-white" />
+                  <div className="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg hover:shadow-purple-200/50 hover:border-purple-100 transition-all group/asset relative overflow-hidden">
+                    <div className="flex justify-between items-start mb-4 relative z-10">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#4C1D95] flex items-center justify-center shadow-sm text-white">
+                        <Palette size={20} />
                       </div>
-                      <div className="flex-1 flex flex-col">
-                        <h4 className="text-[22px] font-bold text-[#252952] mb-2">
+                      <div className="w-2 h-2 rounded-full bg-purple-500" />
+                    </div>
+                    <h4 className="font-bold text-slate-900 text-sm mb-1 relative z-10">
                           Logo & Brand
                         </h4>
                         {companyData.logo ? (
-                          <p className="text-[15px] text-gray-600 mb-6">
+                      <p className="text-xs text-slate-500 mb-4 relative z-10">
                             Logo generated
                           </p>
                         ) : (
-                          <p className="text-[15px] text-gray-600 mb-6">
+                      <p className="text-xs text-slate-500 mb-4 relative z-10">
                             Generate your logo
                           </p>
                         )}
                         {companyData.logo ? (
-                          <div className="mt-auto flex flex-col gap-2 w-full">
-                            <Button
-                              size="default"
-                              className="bg-[#8B5CF6] hover:bg-[#6D28D9] text-white rounded-[12px] w-full"
+                          <div className="flex flex-row gap-2 relative z-10">
+                            <button
                               onClick={() => {
                                 openLogoPreview(
                                   companyData.logo!,
@@ -2078,14 +2024,11 @@ export function PitchDashboard({
                                     companyData.logo.includes("<svg")
                                 );
                               }}
+                              className="flex-1 py-2.5 bg-[#8B5CF6] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-[#6D28D9] transition-colors shadow-lg shadow-purple-500/20 cursor-pointer"
                             >
-                              <Eye className="w-4 h-4 mr-2" />
-                              Preview
-                            </Button>
-                            <Button
-                              size="default"
-                              variant="outline"
-                              className="border-2 border-gray-200 rounded-[12px] hover:bg-gray-50 w-full"
+                              <Eye size={12} /> Preview
+                            </button>
+                            <button
                               onClick={() => {
                                 downloadLogo(
                                   companyData.logo!,
@@ -2094,28 +2037,39 @@ export function PitchDashboard({
                                   `${companyData.companyName || "logo"}-logo`
                                 );
                               }}
+                              className="flex-1 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer"
                             >
-                              <Download className="w-4 h-4 mr-2" />
-                              Download
-                            </Button>
+                              <Download size={12} /> Download
+                            </button>
                           </div>
                         ) : (
                           <div className="mt-auto w-full">
                             <Button
                               size="default"
-                              className="bg-[#8B5CF6] hover:bg-[#6D28D9] text-white rounded-[12px] w-full"
+                              className="bg-[#8B5CF6] hover:bg-[#6D28D9] text-white rounded-[12px] w-full disabled:opacity-60 disabled:cursor-not-allowed"
+                              disabled={Boolean(firstPitchMeta?.logoGenerated)}
                               onClick={() => {
+                                if (firstPitchMeta?.logoGenerated) {
+                                  toast.error("Logo generation limit reached", {
+                                    description:
+                                      "You can only generate one logo per pitch. Please upload a logo if you need a different one.",
+                                  });
+                                  return;
+                                }
                                 setEditStep(3);
                                 setIsEditing(true);
                               }}
                             >
                               <Sparkles className="w-4 h-4 mr-2" />
-                              Generate Logo
+                              {firstPitchMeta?.logoGenerated
+                                ? "Logo Already Generated"
+                                : "Generate Logo"}
                             </Button>
                           </div>
                         )}
-                      </div>
-                    </div>
+                    
+                    {/* Gradient Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 to-transparent opacity-0 group-hover/asset:opacity-100 transition-opacity" />
                   </div>
                 )}
               </div>
@@ -2436,31 +2390,8 @@ export function PitchDashboard({
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-base font-semibold text-[#252952]">
-                    How do you solve it? *
-                  </Label>
-                  <Textarea
-                    value={editedData.value}
-                    onChange={(e) =>
-                      setEditedData({ ...editedData, value: e.target.value })
-                    }
-                    className="min-h-[140px] text-base border-2 border-gray-200 rounded-[12px] resize-none focus:border-[#252952]"
-                    autoComplete="off"
-                    placeholder="Explain the value you create and how you help..."
-                  />
-                  <p className="text-sm text-gray-500">
-                    Focus on benefits and outcomes you deliver
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Credibility */}
-            {editStep === 2 && (
-              <div className="space-y-6">
-                <div className="space-y-2">
                   <Label className="text-base font-semibold text-[#252952] flex items-center gap-2">
-                    Traction
+                    Current status or traction
                     <Badge className="bg-gray-100 text-gray-600 border-0 text-xs">
                       Optional
                     </Badge>
@@ -2478,33 +2409,10 @@ export function PitchDashboard({
                     Share your current metrics or stage
                   </p>
                 </div>
-
-                <div className="space-y-2">
-                  <Label className="text-base font-semibold text-[#252952]">
-                    Team Size
-                  </Label>
-                  <Select
-                    value={editedData.teamSize}
-                    onValueChange={(value) =>
-                      setEditedData({ ...editedData, teamSize: value })
-                    }
-                  >
-                    <SelectTrigger className="h-14 text-base border-2 border-gray-200 rounded-[12px]">
-                      <SelectValue placeholder="Select team size" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TEAM_SIZES.map((size) => (
-                        <SelectItem key={size} value={size}>
-                          {size}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
             )}
 
-            {/* Step 4: Brand */}
+            {/* Step 4: Brand (logo) */}
             {editStep === 3 && (
               <div className="space-y-8">
                 {/* Section 1: Upload Logo */}
@@ -2753,6 +2661,34 @@ export function PitchDashboard({
                       )}
                     </Button>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Credibility */}
+            {editStep === 2 && (
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold text-[#252952]">
+                    Team Size
+                  </Label>
+                  <Select
+                    value={editedData.teamSize}
+                    onValueChange={(value) =>
+                      setEditedData({ ...editedData, teamSize: value })
+                    }
+                  >
+                    <SelectTrigger className="h-14 text-base border-2 border-gray-200 rounded-[12px]">
+                      <SelectValue placeholder="Select team size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TEAM_SIZES.map((size) => (
+                        <SelectItem key={size} value={size}>
+                          {size}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             )}

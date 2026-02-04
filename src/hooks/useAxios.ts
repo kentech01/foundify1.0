@@ -128,6 +128,7 @@ const useAxios = (): AxiosInstance => {
 
         // Global error toast so backend messages are always surfaced
         const status = error.response?.status;
+        const requestUrl = originalRequest?.url || '';
 
         // Try to extract a human-readable message from the backend payload
         const data: any = error.response?.data;
@@ -135,6 +136,10 @@ const useAxios = (): AxiosInstance => {
           (typeof data === "string" && data) ||
           data?.message ||
           data?.error;
+
+        // Don't show toast for 404 on digital-card endpoint (card doesn't exist yet)
+        const shouldSuppressToast = 
+          status === 404 && requestUrl.includes('/digital-card');
 
         if (!error.response) {
           // Network-level error (no response at all)
@@ -144,7 +149,7 @@ const useAxios = (): AxiosInstance => {
               error.message ||
               "We couldn't reach the server. Please check your connection and try again.",
           });
-        } else {
+        } else if (!shouldSuppressToast) {
           if (status && status >= 500) {
             console.error("Server error:", status);
           }

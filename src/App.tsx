@@ -14,6 +14,7 @@ import { UserAuth } from "./context/AuthContext";
 import LandingPagePreview from "./pages/LandingPagePreview";
 import React from "react";
 import Terms from "./pages/Terms";
+import { PublicDigitalCard } from "./pages/PublicDigitalCard";
 
 export default function App() {
   const { isGenerating, progress } = useApp();
@@ -55,6 +56,7 @@ export default function App() {
         <Route path="/builder" element={<PitchBuilder />} />
         <Route path="/dashboard/*" element={<DashboardMain username={user?.displayName ?? null} />} />
         <Route path="/upgrade" element={<UpgradePage />} />
+        <Route path="/card/:cardId" element={<PublicDigitalCard />} />
         <Route path="/:startupName" element={<LandingPagePreview />} />
         <Route path="/terms" element={<Terms />} />
       </Routes>

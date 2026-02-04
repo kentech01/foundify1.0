@@ -12,10 +12,12 @@ import {
   ChevronRight,
   CreditCard,
   Mail,
-  IdCard
+  IdCard,
+  Palette
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SparklesCore, SparkleButton } from "@/components/ui/sparkles";
+import React from "react";
 
 const ROTATION_INTERVAL = 3000;
 
@@ -88,7 +90,7 @@ export function Hero({ onGetStarted }: HeroProps) {
   const CurrentIcon = activities[index].icon;
 
   return (
-    <section className="relative pt-24 pb-0 md:pt-32 overflow-hidden bg-white selection:bg-indigo-50 selection:text-indigo-600">
+    <section className="relative pt-24 pb-24 md:pt-44 overflow-hidden bg-white selection:bg-indigo-50 selection:text-indigo-600">
       
       {/* Background Gradients (Light) */}
       <div className="absolute inset-0 pointer-events-none">
@@ -100,9 +102,9 @@ export function Hero({ onGetStarted }: HeroProps) {
       <div className="container mx-auto px-6 relative z-10 flex flex-col items-center">
         
         {/* Centered Content */}
-        <div className="max-w-4xl w-full text-center flex flex-col items-center mb-16">
+        <div className="max-w-6xl w-full text-center flex flex-col items-center mb-16">
 
-            <h1 className="text-5xl md:text-7xl lg:text-[80px] font-bold tracking-tighter text-slate-900 leading-[1.1] md:leading-[1.05] mb-2 px-2 md:px-0">
+            <h1 className="text-5xl md:text-7xl lg:text-[60px] font-bold tracking-tighter text-slate-900 leading-[1.1] md:leading-[1.05] mb-8 px-2 md:px-0">
               One platform built for founders.
             </h1>
 
@@ -117,7 +119,7 @@ export function Hero({ onGetStarted }: HeroProps) {
                     transition={{ duration: 0.5, ease: "easeOut" }}
                     className="absolute w-full flex justify-center"
                   >
-                     <span className={cn("text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r py-4 leading-normal", 
+                     <span className={cn("text-5xl md:text-7xl lg:text-[80px] font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r py-4 leading-normal", 
                         index === 0 ? "from-indigo-600 to-violet-600" :
                         index === 1 ? "from-blue-600 to-indigo-600" :
                         index === 2 ? "from-sky-600 to-blue-600" :
@@ -271,8 +273,8 @@ export function Hero({ onGetStarted }: HeroProps) {
                  {/* Sidebar */}
                  <div className="hidden md:flex w-64 bg-slate-50 border-r border-slate-100 p-6 flex-col gap-6 shrink-0">
                     <div className="flex items-center gap-2 mb-2">
-                       <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
-                          <Sparkles size={16} className="text-white" />
+                       <div className="w-6 h-6 bg-slate-900 rounded-lg flex items-center justify-center">
+                          <Sparkles size={12} className="text-white" />
                        </div>
                        <span className="font-bold text-slate-900 text-lg">foundify</span>
                     </div>
@@ -285,27 +287,27 @@ export function Hero({ onGetStarted }: HeroProps) {
                        
                        <div className="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider mt-4 mb-1">Founder Essentials</div>
                        
-                       <div className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">
+                       <div className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 transition-colors">
                           <CreditCard size={16} />
                           <span className="text-sm font-medium">Invoice Generator</span>
                        </div>
-                       <div className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">
+                       <div className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 transition-colors">
                           <FileText size={16} />
                           <span className="text-sm font-medium">Contract Templates</span>
                        </div>
-                       <div className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">
+                       <div className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 transition-colors">
                           <Users size={16} />
                           <span className="text-sm font-medium">Team Insights</span>
                        </div>
-                       <div className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">
+                       <div className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 transition-colors">
                           <Bot size={16} />
                           <span className="text-sm font-medium">AI Hiring Assistant</span>
                        </div>
-                       <div className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">
+                       <div className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 transition-colors">
                           <Mail size={16} />
                           <span className="text-sm font-medium">Email Generation</span>
                        </div>
-                       <div className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">
+                       <div className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 transition-colors">
                           <IdCard size={16} />
                           <span className="text-sm font-medium">Smart Digital Card</span>
                        </div>
@@ -322,7 +324,7 @@ export function Hero({ onGetStarted }: HeroProps) {
                     {/* Header Action */}
                     <div className="flex justify-between items-center mb-8">
                        <h2 className="text-2xl font-bold text-slate-900">Dashboard</h2>
-                       <div className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-full text-sm font-bold shadow-lg shadow-slate-900/10 cursor-pointer hover:bg-slate-800 transition-colors">
+                       <div className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-full text-sm font-bold shadow-lg shadow-slate-900/10">
                           <Sparkles size={14} />
                           Create New
                        </div>
@@ -351,12 +353,12 @@ export function Hero({ onGetStarted }: HeroProps) {
                     <div>
                        <div className="flex items-center justify-between mb-6">
                           <h4 className="font-bold text-slate-900 text-base">Pitch Assets</h4>
-                          <span className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 cursor-pointer transition-colors bg-indigo-50 px-3 py-1 rounded-full">REGENERATE ALL</span>
+                          <span className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 transition-colors bg-indigo-50 px-3 py-1 rounded-full">REGENERATE ALL</span>
                        </div>
                        
                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                           {/* Asset 1 */}
-                          <div className="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 hover:border-indigo-100 transition-all group/asset cursor-pointer">
+                          <div className="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 hover:border-indigo-100 transition-all group/asset">
                              <div className="flex justify-between items-start mb-4">
                                 <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-sm group-hover/asset:border-indigo-100 group-hover/asset:text-indigo-600 text-slate-400 transition-colors">
                                    <FileText size={20} />
@@ -371,7 +373,7 @@ export function Hero({ onGetStarted }: HeroProps) {
                           </div>
 
                           {/* Asset 2 */}
-                          <div className="p-5 rounded-2xl border border-slate-100 bg-indigo-50/30 hover:bg-white hover:shadow-lg hover:shadow-indigo-100/50 hover:border-indigo-100 transition-all group/asset cursor-pointer relative overflow-hidden">
+                          <div className="p-5 rounded-2xl border border-slate-100 bg-indigo-50/30 hover:bg-white hover:shadow-lg hover:shadow-indigo-100/50 hover:border-indigo-100 transition-all group/asset relative overflow-hidden">
                              <div className="flex justify-between items-start mb-4 relative z-10">
                                 <div className="w-10 h-10 rounded-xl bg-indigo-100 border border-indigo-200 flex items-center justify-center shadow-sm text-indigo-600">
                                    <Zap size={20} />
@@ -389,18 +391,21 @@ export function Hero({ onGetStarted }: HeroProps) {
                           </div>
 
                           {/* Asset 3 */}
-                          <div className="hidden lg:block p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 hover:border-indigo-100 transition-all group/asset cursor-pointer opacity-60 hover:opacity-100">
-                             <div className="flex justify-between items-start mb-4">
-                                <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-sm group-hover/asset:border-indigo-100 group-hover/asset:text-indigo-600 text-slate-400 transition-colors">
-                                   <Users size={20} />
+                          <div className="hidden lg:block p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg hover:shadow-purple-200/50 hover:border-purple-100 transition-all group/asset relative overflow-hidden">
+                             <div className="flex justify-between items-start mb-4 relative z-10">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#4C1D95] flex items-center justify-center shadow-sm text-white">
+                                   <Palette size={20} />
                                 </div>
-                                <div className="w-2 h-2 rounded-full bg-slate-300" />
+                                <div className="w-2 h-2 rounded-full bg-purple-500" />
                              </div>
-                             <h5 className="font-bold text-slate-900 text-sm mb-1">Team Structure</h5>
-                             <p className="text-xs text-slate-500 mb-4">Suggested hiring plan</p>
-                             <div className="w-full py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors">
-                                View Details
+                             <h5 className="font-bold text-slate-900 text-sm mb-1 relative z-10">Logo & Brand</h5>
+                             <p className="text-xs text-slate-500 mb-4 relative z-10">Generate your logo</p>
+                             <div className="w-full py-2.5 bg-[#8B5CF6] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-[#6D28D9] transition-colors shadow-lg shadow-purple-500/20 relative z-10">
+                                <Sparkles size={12} /> Generate Logo
                              </div>
+                             
+                             {/* Gradient Effect */}
+                             <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 to-transparent opacity-0 group-hover/asset:opacity-100 transition-opacity" />
                           </div>
                        </div>
                     </div>

@@ -1143,24 +1143,6 @@ export function InvoicesPage() {
       </div>*/}
 
       {/* Search Bar */}
-      <div className="flex gap-4 mb-8">
-        <div className="border-gray-300 rounded-xl border p-4 w-[200px]">
-          <p className="text-sm text-gray-600">Total Invoices</p>
-          <p className="text-xl sm:text-2xl mt-1 font-bold text-gray-900">{invoices.length}</p>
-        </div>
-        <div className="border-gray-300 flex justify-between items-center rounded-xl border p-4 w-[200px]">
-          <div>
-          <p className="text-sm text-gray-600">Total Revenue</p>
-          <p className="text-xl flex justify-between items-center sm:text-2xl mt-1 font-bold text-gray-900">
-            $564
-            
-          </p>
-          </div>
-          <div className="w-14 h-14 rounded-xl bg-green-50 flex items-center justify-center">
-              <DollarSign className="h-7 w-7 text-green-600" />
-            </div>
-        </div>
-      </div>
       <div className="mb-6">
         {invoices.length > 0 && (
           <div className="relative max-w-md">

@@ -20,6 +20,8 @@ import {
   Target,
   TrendingUp,
   X,
+  Upload,
+  Palette,
 } from "lucide-react";
 import {
   Dialog,
@@ -72,6 +74,9 @@ export function PitchBuilder() {
   });
 
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoError, setLogoError] = useState("");
+  const [wantsGeneratedLogo, setWantsGeneratedLogo] = useState(false);
 
   // Auto-submit after successful sign-in when user is ready
   useEffect(() => {
@@ -81,7 +86,8 @@ export function PitchBuilder() {
     }
   }, [shouldAutoSubmit, user, loading, formData]);
 
-  const { generatePitch } = useApiService();
+  const { generatePitch, updatePitchCompany, generateAndSaveCompanyLogo } =
+    useApiService();
 
   const steps = [
     {
@@ -130,23 +136,6 @@ export function PitchBuilder() {
           required: true,
         },
         {
-          id: "value",
-          label: "How do you create value?",
-          placeholder: "Explain how you help your customers...",
-          helperText: "Focus on the benefits and outcomes you deliver.",
-          type: "textarea" as const,
-          required: true,
-        },
-      ],
-    },
-    {
-      id: "status",
-      title: "Status / Traction",
-      subtitle: "Where you are today",
-      icon: TrendingUp,
-      optional: true,
-      fields: [
-        {
           id: "status",
           label: "Current status or traction",
           placeholder:
@@ -157,6 +146,14 @@ export function PitchBuilder() {
           required: false,
         },
       ],
+    },
+    {
+      id: "logo",
+      title: "Brand",
+      subtitle: "Upload or generate your logo",
+      icon: Palette,
+      optional: true,
+      fields: [], // Logo step uses custom UI below
     },
   ];
 
@@ -196,14 +193,6 @@ export function PitchBuilder() {
           return "Problem description cannot exceed 1000 characters";
         break;
 
-      case "value":
-        if (!value.trim()) return "Value proposition is required";
-        if (value.trim().length < 10)
-          return "Value proposition must be at least 10 characters long";
-        if (value.trim().length > 1000)
-          return "Value proposition cannot exceed 1000 characters";
-        break;
-
       case "status":
         // Optional field, no validation needed
         break;
@@ -212,7 +201,7 @@ export function PitchBuilder() {
   };
 
   const isStepValid = () => {
-    // Step 2 (status/traction) is optional, always valid
+    // Step 2 (logo) has no required fields, always valid
     if (currentStep === 2) {
       return true;
     }
@@ -247,9 +236,8 @@ export function PitchBuilder() {
   };
 
   const handleNext = () => {
-    // Step 2 (status/traction) is optional, skip validation
+    // Step 2 (logo) is optional, proceed to pitch creation
     if (currentStep === 2) {
-      // Proceed directly to pitch creation
       handleCreatePitch();
       return;
     }
@@ -352,21 +340,24 @@ export function PitchBuilder() {
         startupName: data.companyName,
         industry: data.industry,
         problemSolved: data.problem,
-        targetAudience: data.oneLiner, // Use oneLiner as target audience description
-        mainProduct: data.value, // Use value proposition as main product description
-        uniqueSellingPoint: data.value, // Use value as unique selling point
+        targetAudience: data.oneLiner,
+        mainProduct: data.oneLiner, // Use one-liner as main product after removing "value"
+        uniqueSellingPoint: data.oneLiner,
         primaryColor: data.brandColor,
         secondaryColor: secondaryColor,
-        email: user?.email || "", // Use email from authenticated user
+        email: user?.email || "",
       };
 
       setProgress(30);
       const response = await generatePitch(payload as any);
-      setProgress(80);
+      setProgress(60);
 
-      // Try to extract backend-created pitch details; fall back if minimal response
-      const generatedId =
-        response?.data?.id || response?.id || Date.now().toString();
+      // Backend returns the saved pitch ID as pitchId
+      const generatedId: string | null =
+        response?.data?.pitchId ||
+        response?.data?.id ||
+        response?.id ||
+        null;
 
       const startupName =
         response?.data?.startupName ||
@@ -377,8 +368,48 @@ export function PitchBuilder() {
         response?.data?.landingPage || response?.landingPage
       );
 
+      // Only attempt to update pitch/ logo if we have a valid pitch ID from backend
+      if (generatedId) {
+        // Update new pitch with traction/status and logo
+        try {
+          await updatePitchCompany(generatedId, {
+            companyName: data.companyName,
+            industry: data.industry,
+            oneLiner: data.oneLiner,
+            problem: data.problem,
+            value: data.oneLiner,
+            status: data.status,
+            brandColor: data.brandColor,
+            logo: data.logo || undefined,
+          });
+        } catch (updateErr) {
+          console.warn("Failed to update pitch with logo/traction:", updateErr);
+        }
+
+        if (wantsGeneratedLogo) {
+          setProgress(75);
+          try {
+            await generateAndSaveCompanyLogo(generatedId, {
+              companyName: data.companyName,
+              industry: data.industry,
+              oneLiner: data.oneLiner,
+              problem: data.problem,
+              value: data.oneLiner,
+              status: data.status,
+              brandColor: data.brandColor,
+            });
+          } catch (logoErr) {
+            console.warn("Failed to generate logo:", logoErr);
+          }
+        }
+      }
+
+      setProgress(100);
+
+      const clientPitchId = generatedId ?? Date.now().toString();
+
       const newPitch: Pitch = {
-        id: String(generatedId),
+        id: String(clientPitchId),
         name: startupName,
         createdAt: new Date().toLocaleDateString("en-US", {
           month: "short",
@@ -392,7 +423,6 @@ export function PitchBuilder() {
       };
 
       addPitch(newPitch);
-      setProgress(100);
       setIsGenerating(false);
       navigate("/dashboard");
     } catch (err: any) {
@@ -431,6 +461,66 @@ export function PitchBuilder() {
     } else {
       setIsSignInModalOpen(true);
     }
+  };
+
+  const handleBuilderLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const valid =
+      file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg");
+    if (!valid) {
+      setLogoError("Please upload SVG files only");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setLogoError("File size must be less than 2MB");
+      return;
+    }
+    setLogoError("");
+    setLogoFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const content = ev.target?.result as string;
+      setFormData((prev) => ({ ...prev, logo: content }));
+    };
+    reader.readAsText(file);
+  };
+
+  const handleBuilderLogoDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleBuilderLogoDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    const valid =
+      file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg");
+    if (!valid) {
+      setLogoError("Please upload SVG files only");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setLogoError("File size must be less than 2MB");
+      return;
+    }
+    setLogoError("");
+    setLogoFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const content = ev.target?.result as string;
+      setFormData((prev) => ({ ...prev, logo: content }));
+    };
+    reader.readAsText(file);
+  };
+
+  const clearBuilderLogo = () => {
+    setLogoFile(null);
+    setFormData((prev) => ({ ...prev, logo: undefined }));
+    setLogoError("");
+    setWantsGeneratedLogo(false);
   };
 
   const handleKeyDown = (
@@ -499,7 +589,81 @@ export function PitchBuilder() {
         </CardHeader>
 
         <CardContent className="pt-8 pb-8">
-          {/* Regular form fields */}
+          {/* Step 3: Logo (upload or generate) */}
+          {currentStepData.id === "logo" ? (
+            <div className="space-y-8">
+              <div className="space-y-3">
+                <Label className="text-base font-semibold text-[#252952]">
+                  Upload your logo
+                </Label>
+                <label
+                  htmlFor="builder-logo-upload"
+                  onDragOver={handleBuilderLogoDragOver}
+                  onDrop={handleBuilderLogoDrop}
+                  className="border-2 border-dashed border-gray-300 rounded-[16px] p-12 text-center bg-gradient-to-br from-white to-gray-50 block transition-all hover:border-[#4A90E2] cursor-pointer"
+                >
+                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-base text-gray-600 mb-2">
+                    Click to upload or drag and drop your existing logo
+                  </p>
+                  <p className="text-sm text-gray-500">SVG only (max. 2MB)</p>
+                  <Input
+                    id="builder-logo-upload"
+                    type="file"
+                    accept=".svg,image/svg+xml"
+                    onChange={handleBuilderLogoUpload}
+                    className="hidden"
+                  />
+                </label>
+                {logoFile && (
+                  <div className="flex items-center justify-between bg-purple-50 p-3 rounded-lg">
+                    <span className="text-sm text-gray-700">{logoFile.name}</span>
+                    <button
+                      type="button"
+                      onClick={clearBuilderLogo}
+                      className="text-gray-500 hover:text-red-500"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                )}
+                {logoError && (
+                  <p className="text-sm text-red-600">{logoError}</p>
+                )}
+              </div>
+              <div className="space-y-3">
+                <Label className="text-base font-semibold text-[#252952]">
+                  Generate a logo for your company
+                </Label>
+                <div className="border-2 border-purple-200 rounded-[16px] p-6 bg-gradient-to-br from-white to-purple-50 flex items-center justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#4C1D95] flex items-center justify-center flex-shrink-0">
+                      <Sparkles className="w-5 h-5 text-white" />
+                    </div>
+                    <p className="text-sm text-gray-700">
+                      Don&apos;t have a logo yet? We&apos;ll generate one after
+                      you complete setup.
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    type="button"
+                    className="bg-[#8B5CF6] hover:bg-[#6D28D9] text-white rounded-[999px] px-5"
+                    onClick={() => setWantsGeneratedLogo(!wantsGeneratedLogo)}
+                  >
+                    {wantsGeneratedLogo ? (
+                      <>✓ Generate after setup</>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        Generate after setup
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : (
           <div className="space-y-6">
             {currentStepData.fields.map((field) => (
               <div key={field.id} className="space-y-3">
@@ -560,6 +724,7 @@ export function PitchBuilder() {
               </div>
             ))}
           </div>
+          )}
         </CardContent>
 
         {/* Navigation */}
@@ -595,7 +760,7 @@ export function PitchBuilder() {
 
           {currentStep === 2 && (
             <p className="text-center text-sm text-gray-500 mt-4">
-              You can skip this step and add traction details later
+              You can skip this step and add a logo later from Company Profile
             </p>
           )}
         </div>
