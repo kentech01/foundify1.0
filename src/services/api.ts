@@ -379,6 +379,60 @@ interface ContractListResponse {
   message?: string;
 }
 
+// Team Insights interfaces
+interface TeamFeedbackEntryApi {
+  id: string;
+  memberId: string;
+  type: string;
+  summary: string | null;
+  strengths: string;
+  improvements: string;
+  goals: string;
+  teamCollaboration?: string | null;
+  additionalNotes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface TeamMemberApi {
+  id: string;
+  name: string;
+  role: string;
+  status: "Active" | "Probation" | "Contractor" | string;
+  createdAt: string;
+  updatedAt: string;
+  lastFeedbackDate: string | null;
+  lastFeedbackType: string | null;
+  feedbackHistory: TeamFeedbackEntryApi[];
+}
+
+interface TeamMemberListResponse {
+  success: boolean;
+  data: TeamMemberApi[];
+}
+
+interface CreateTeamMemberPayload {
+  name: string;
+  role: string;
+  status?: "Active" | "Probation" | "Contractor" | string;
+}
+
+interface UpdateTeamMemberPayload {
+  name?: string;
+  role?: string;
+  status?: "Active" | "Probation" | "Contractor" | string;
+}
+
+interface TeamFeedbackCreatePayload {
+  type: string;
+  summary?: string | null;
+  strengths: string;
+  improvements: string;
+  goals: string;
+  teamCollaboration?: string | null;
+  additionalNotes?: string | null;
+}
+
 // Feedback interfaces
 interface FeedbackExportRequest {
   employeeName: string;
@@ -982,6 +1036,92 @@ export const useApiService = () => {
       } catch (error: any) {
         throw new Error(
           error.response?.data?.message || "Failed to generate landing page"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  // Team Insights API methods
+  const getTeamMembers = useCallback(
+    async (): Promise<TeamMemberApi[]> => {
+      try {
+        const response =
+          await axiosInstance.get<TeamMemberListResponse>("/team-insights");
+        return response.data?.data || [];
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to load team members"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const createTeamMember = useCallback(
+    async (payload: CreateTeamMemberPayload): Promise<TeamMemberApi> => {
+      try {
+        const response = await axiosInstance.post<{ success: boolean; data: TeamMemberApi }>(
+          "/team-insights/members",
+          payload
+        );
+        return response.data.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to create team member"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const updateTeamMember = useCallback(
+    async (
+      memberId: string,
+      payload: UpdateTeamMemberPayload
+    ): Promise<TeamMemberApi> => {
+      try {
+        const response = await axiosInstance.put<{
+          success: boolean;
+          data: TeamMemberApi;
+        }>(`/team-insights/members/${memberId}`, payload);
+        return response.data.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to update team member"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const addTeamFeedback = useCallback(
+    async (
+      memberId: string,
+      payload: TeamFeedbackCreatePayload
+    ): Promise<TeamFeedbackEntryApi> => {
+      try {
+        const response = await axiosInstance.post<{
+          success: boolean;
+          data: TeamFeedbackEntryApi;
+        }>(`/team-insights/members/${memberId}/feedback`, payload);
+        return response.data.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to save feedback"
+        );
+      }
+    },
+    [axiosInstance]
+  );
+
+  const deleteTeamFeedback = useCallback(
+    async (feedbackId: string): Promise<void> => {
+      try {
+        await axiosInstance.delete(`/team-insights/feedback/${feedbackId}`);
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to delete feedback"
         );
       }
     },
@@ -1669,6 +1809,12 @@ export const useApiService = () => {
     updatePitchCompany,
     generateAndSaveCompanyLogo,
     regeneratePitch,
+    // Team Insights methods
+    getTeamMembers,
+    createTeamMember,
+    updateTeamMember,
+    addTeamFeedback,
+    deleteTeamFeedback,
     // Email generator methods
     getEmailTemplates,
     generateInvestorEmail,
