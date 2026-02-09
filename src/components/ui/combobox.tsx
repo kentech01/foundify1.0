@@ -12,11 +12,7 @@ import {
   CommandItem,
   CommandList,
 } from "./command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "./popover";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 interface ComboboxProps {
   options: string[];
@@ -57,26 +53,24 @@ export function Combobox({
           className={cn(
             "w-full justify-between bg-[#f7f7f7] hover:bg-[#f7f7f7] border-[#e5e5e5]",
             !value && "text-muted-foreground",
-            className
+            className,
           )}
           disabled={disabled}
         >
-          {value
-            ? options.find((option) => option === value)
-            : placeholder}
+          {value ? options.find((option) => option === value) : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent 
-        className="p-0 bg-white border-2 border-gray-200 rounded-[12px] shadow-lg" 
+      <PopoverContent
+        className="p-0 bg-white border-2 border-gray-200 rounded-[12px] shadow-lg"
         align="start"
         sideOffset={4}
-        style={{ width: triggerWidth ? `${triggerWidth}px` : '100%' }}
+        style={{ width: triggerWidth ? `${triggerWidth}px` : "100%" }}
       >
         <Command className="bg-white rounded-[12px]">
-          <CommandInput 
-            placeholder="Search..." 
-            className="bg-white border-0 focus:ring-0" 
+          <CommandInput
+            placeholder="Search..."
+            className="bg-white border-0 focus:ring-0"
           />
           <CommandList className="bg-white max-h-[300px]">
             <CommandEmpty className="bg-white">No results found.</CommandEmpty>
@@ -89,10 +83,12 @@ export function Combobox({
                   onSelect={(currentValue) => {
                     // Command normalizes values to lowercase, so we need to find the original option
                     const selectedOption = options.find(
-                      (opt) => opt.toLowerCase() === currentValue.toLowerCase()
+                      (opt) => opt.toLowerCase() === currentValue.toLowerCase(),
                     );
                     if (selectedOption) {
-                      onValueChange(selectedOption === value ? "" : selectedOption);
+                      onValueChange(
+                        selectedOption === value ? "" : selectedOption,
+                      );
                       setOpen(false);
                     }
                   }}
@@ -100,7 +96,7 @@ export function Combobox({
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === option ? "opacity-100" : "opacity-0"
+                      value === option ? "opacity-100" : "opacity-0",
                     )}
                   />
                   {option}

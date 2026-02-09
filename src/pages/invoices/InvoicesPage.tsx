@@ -196,8 +196,17 @@ export function InvoicesPage() {
     loadInvoices();
   }, []);
   const getCompanyName = async () => {
-    const result = await apiService.getPitchHistory();
-    setFetchedCompany(result.data[0].startupName);
+    try {
+      const result = await apiService.getPitchHistory();
+      const firstStartupName = result?.data?.[0]?.startupName || "";
+      setFetchedCompany(firstStartupName);
+
+      // If the user hasn't typed anything yet, prefill the company name
+      setCompanyName((prev) => (prev ? prev : firstStartupName));
+    } catch (error) {
+      // Silent fail – invoice creation still works without a prefilled company
+      console.error("Failed to preload company name for invoices:", error);
+    }
   };
   const loadInvoices = async () => {
     setIsLoading(true);
@@ -254,7 +263,8 @@ export function InvoicesPage() {
   };
 
   const resetForm = () => {
-    setCompanyName("");
+    // Default company name to fetchedCompany if available
+    setCompanyName(fetchedCompany || "");
     setClientName("");
     setInvoiceNumber(`INV-${Date.now().toString().slice(-6)}`);
     setCurrency("USD");
@@ -560,7 +570,7 @@ export function InvoicesPage() {
                     </Label>
                     <Input
                       id="company"
-                      value={companyName == "" ? fetchedCompany : companyName}
+                      value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
                       placeholder="Your Company Inc."
                       autoComplete="off"
