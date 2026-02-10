@@ -83,7 +83,7 @@ export function InvoicesPage() {
   const [companyName, setCompanyName] = useState("");
   const [clientName, setClientName] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState(
-    `INV-${Date.now().toString().slice(-6)}`
+    `INV-${Date.now().toString().slice(-6)}`,
   );
   const [currency, setCurrency] = useState<
     "USD" | "EUR" | "GBP" | "CAD" | "AUD"
@@ -104,7 +104,7 @@ export function InvoicesPage() {
   const [viewingId, setViewingId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<ApiInvoice | null>(
-    null
+    null,
   );
 
   const {
@@ -163,7 +163,7 @@ export function InvoicesPage() {
 
     // Validate line items
     const hasValidLineItem = lineItems.some(
-      (item) => item.description.trim().length > 0
+      (item) => item.description.trim().length > 0,
     );
     if (!hasValidLineItem) {
       errs.lineItems = "At least one item with description is required";
@@ -255,7 +255,7 @@ export function InvoicesPage() {
   const updateLineItem = (
     index: number,
     field: keyof LineItem,
-    value: string
+    value: string,
   ) => {
     const updatedItems = [...lineItems];
     updatedItems[index] = { ...updatedItems[index], [field]: value };
@@ -291,7 +291,7 @@ export function InvoicesPage() {
             quantity: String(item.quantity) || "1", // Use String
             rate: item.rate && item.rate > 0 ? String(item.rate) : "", // Use String, empty if 0 or invalid
           }))
-        : [{ description: "", quantity: "1", rate: "" }]
+        : [{ description: "", quantity: "1", rate: "" }],
     );
     setSubmitted(false);
     setErrors({});
@@ -341,7 +341,7 @@ export function InvoicesPage() {
         toast.success(
           editingInvoice
             ? "Invoice updated successfully!"
-            : "Invoice created successfully!"
+            : "Invoice created successfully!",
         );
 
         // Reset form and close modals
@@ -396,7 +396,7 @@ export function InvoicesPage() {
       if (response.success) {
         toast.success("Invoice deleted successfully");
         setInvoices(
-          invoices.filter((invoice) => invoice.id !== invoiceToDelete.id)
+          invoices.filter((invoice) => invoice.id !== invoiceToDelete.id),
         );
       } else {
         toast.error(response.message || "Failed to delete invoice");
@@ -440,7 +440,7 @@ export function InvoicesPage() {
     (invoice) =>
       invoice.invoiceNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       invoice.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.companyName?.toLowerCase().includes(searchTerm.toLowerCase())
+      invoice.companyName?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   // Update stats calculation to remove overdue-specific stat
@@ -1228,7 +1228,7 @@ export function InvoicesPage() {
                       <p className="text-sm sm:text-sm flex items-center gap-2 font-medium text-gray-600 h-[29px]">
                         <Calendar className="h-4 w-[14px] text-gray-600" />
                         {new Date(invoice.createdAt).toLocaleDateString(
-                          "en-GB"
+                          "en-GB",
                         )}
                       </p>
                     </div>

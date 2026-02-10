@@ -129,6 +129,17 @@ interface PitchDetailsResponse {
   timestamp: string;
 }
 
+interface PitchContentUpdateResponse {
+  success: boolean;
+  data: {
+    id: string;
+    content: string;
+    updatedAt: string;
+  };
+  message?: string;
+  timestamp?: string;
+}
+
 interface DeletePitchResponse {
   success: boolean;
   message: string;
@@ -531,7 +542,7 @@ const errorMessage = (error: any) => {
 // transparently refreshes it once if the backend reports it as invalid/expired.
 export const apiFetch = async (
   input: RequestInfo | URL,
-  init: RequestInit = {}
+  init: RequestInit = {},
 ): Promise<Response> => {
   const { auth } = await import("../../firebase");
   const user = auth.currentUser;
@@ -630,11 +641,11 @@ export const useApiService = () => {
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to generate pitch"
+          error.response?.data?.message || "Failed to generate pitch",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const getUserStats = useCallback(async (): Promise<any> => {
@@ -643,7 +654,7 @@ export const useApiService = () => {
       return response.data;
     } catch (error: any) {
       throw new Error(
-        error.response?.data?.message || "Failed to get user stats"
+        error.response?.data?.message || "Failed to get user stats",
       );
     }
   }, [axiosInstance]);
@@ -651,7 +662,7 @@ export const useApiService = () => {
   const getPitchHistory = useCallback(
     async (
       page: number = 1,
-      limit: number = 20
+      limit: number = 20,
     ): Promise<PitchHistoryResponse> => {
       try {
         const response = await axiosInstance.get("/pitch/history", {
@@ -663,11 +674,11 @@ export const useApiService = () => {
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to get pitch history"
+          error.response?.data?.message || "Failed to get pitch history",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const getPitchDetails = useCallback(
@@ -677,11 +688,11 @@ export const useApiService = () => {
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to get pitch details"
+          error.response?.data?.message || "Failed to get pitch details",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const deletePitch = useCallback(
@@ -691,11 +702,11 @@ export const useApiService = () => {
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to delete pitch"
+          error.response?.data?.message || "Failed to delete pitch",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   /**
@@ -715,7 +726,7 @@ export const useApiService = () => {
         brandColor?: string;
         logo?: string | null;
         logoGenerated?: boolean; // Track if logo was AI-generated
-      }
+      },
     ): Promise<PitchDetailsResponse> => {
       try {
         // Extract colors from logo SVG if provided, otherwise use brandColor
@@ -745,88 +756,104 @@ export const useApiService = () => {
 
           const svgContent = resolveSvgContent(data.logo);
           if (svgContent) {
-            const extractColorsFromSVG = (svgString: string): { primaryColor: string; secondaryColor: string } | null => {
+            const extractColorsFromSVG = (
+              svgString: string,
+            ): { primaryColor: string; secondaryColor: string } | null => {
               if (!svgString || typeof svgString !== "string") {
                 return null;
               }
 
               const colors: string[] = [];
-            const hexColorRegex = /#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})\b/g;
-            const rgbColorRegex = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/g;
+              const hexColorRegex = /#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})\b/g;
+              const rgbColorRegex = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/g;
 
-            // Extract hex colors from fill, stroke, and style attributes
-            const fillMatches = svgString.match(/fill=["']([^"']+)["']/gi) || [];
-            const strokeMatches = svgString.match(/stroke=["']([^"']+)["']/gi) || [];
-            const styleMatches = svgString.match(/style=["']([^"']+)["']/gi) || [];
+              // Extract hex colors from fill, stroke, and style attributes
+              const fillMatches =
+                svgString.match(/fill=["']([^"']+)["']/gi) || [];
+              const strokeMatches =
+                svgString.match(/stroke=["']([^"']+)["']/gi) || [];
+              const styleMatches =
+                svgString.match(/style=["']([^"']+)["']/gi) || [];
 
-            const allMatches = [...fillMatches, ...strokeMatches, ...styleMatches];
+              const allMatches = [
+                ...fillMatches,
+                ...strokeMatches,
+                ...styleMatches,
+              ];
 
-            allMatches.forEach((match) => {
-              // Extract hex colors
-              const hexMatches = match.match(hexColorRegex);
-              if (hexMatches) {
-                colors.push(...hexMatches);
+              allMatches.forEach((match) => {
+                // Extract hex colors
+                const hexMatches = match.match(hexColorRegex);
+                if (hexMatches) {
+                  colors.push(...hexMatches);
+                }
+
+                // Extract RGB colors and convert to hex
+                const rgbMatches = match.match(rgbColorRegex);
+                if (rgbMatches) {
+                  rgbMatches.forEach((rgb) => {
+                    const rgbValues = rgb.match(/\d+/g);
+                    if (rgbValues && rgbValues.length === 3) {
+                      const r = parseInt(rgbValues[0])
+                        .toString(16)
+                        .padStart(2, "0");
+                      const g = parseInt(rgbValues[1])
+                        .toString(16)
+                        .padStart(2, "0");
+                      const b = parseInt(rgbValues[2])
+                        .toString(16)
+                        .padStart(2, "0");
+                      colors.push(`#${r}${g}${b}`);
+                    }
+                  });
+                }
+              });
+
+              // Normalize hex colors (convert 3-digit to 6-digit)
+              const normalizeHexColor = (color: string): string | null => {
+                if (typeof color !== "string") return null;
+                const trimmed = color.trim();
+                if (!/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(trimmed))
+                  return null;
+                if (trimmed.length === 4) {
+                  const [hash, r, g, b] = trimmed.toUpperCase().split("");
+                  return `${hash}${r}${r}${g}${g}${b}${b}`;
+                }
+                return trimmed.toUpperCase();
+              };
+
+              // Remove common non-color values and duplicates
+              const validColors = colors
+                .map((color) => normalizeHexColor(color))
+                .filter((color): color is string => {
+                  if (!color) return false;
+                  // Filter out white, black, transparent-like colors
+                  const lower = color.toLowerCase();
+                  return (
+                    lower !== "#ffffff" &&
+                    lower !== "#000000" &&
+                    lower !== "#fff" &&
+                    lower !== "#000" &&
+                    lower !== "#transparent"
+                  );
+                })
+                .filter((color, index, self) => self.indexOf(color) === index);
+
+              if (validColors.length === 0) {
+                return null;
               }
 
-              // Extract RGB colors and convert to hex
-              const rgbMatches = match.match(rgbColorRegex);
-              if (rgbMatches) {
-                rgbMatches.forEach((rgb) => {
-                  const rgbValues = rgb.match(/\d+/g);
-                  if (rgbValues && rgbValues.length === 3) {
-                    const r = parseInt(rgbValues[0]).toString(16).padStart(2, "0");
-                    const g = parseInt(rgbValues[1]).toString(16).padStart(2, "0");
-                    const b = parseInt(rgbValues[2]).toString(16).padStart(2, "0");
-                    colors.push(`#${r}${g}${b}`);
-                  }
-                });
-              }
-            });
-
-            // Normalize hex colors (convert 3-digit to 6-digit)
-            const normalizeHexColor = (color: string): string | null => {
-              if (typeof color !== "string") return null;
-              const trimmed = color.trim();
-              if (!/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(trimmed)) return null;
-              if (trimmed.length === 4) {
-                const [hash, r, g, b] = trimmed.toUpperCase().split("");
-                return `${hash}${r}${r}${g}${g}${b}${b}`;
-              }
-              return trimmed.toUpperCase();
+              return {
+                primaryColor: validColors[0],
+                secondaryColor: validColors[1] || validColors[0],
+              };
             };
 
-            // Remove common non-color values and duplicates
-            const validColors = colors
-              .map((color) => normalizeHexColor(color))
-              .filter((color): color is string => {
-                if (!color) return false;
-                // Filter out white, black, transparent-like colors
-                const lower = color.toLowerCase();
-                return (
-                  lower !== "#ffffff" &&
-                  lower !== "#000000" &&
-                  lower !== "#fff" &&
-                  lower !== "#000" &&
-                  lower !== "#transparent"
-                );
-              })
-              .filter((color, index, self) => self.indexOf(color) === index);
-
-            if (validColors.length === 0) {
-              return null;
+            const extractedColors = extractColorsFromSVG(svgContent);
+            if (extractedColors) {
+              primaryColor = extractedColors.primaryColor;
+              secondaryColor = extractedColors.secondaryColor;
             }
-
-            return {
-              primaryColor: validColors[0],
-              secondaryColor: validColors[1] || validColors[0],
-            };
-          };
-
-          const extractedColors = extractColorsFromSVG(svgContent);
-          if (extractedColors) {
-            primaryColor = extractedColors.primaryColor;
-            secondaryColor = extractedColors.secondaryColor;
-          }
           }
         }
 
@@ -845,15 +872,18 @@ export const useApiService = () => {
           logoGenerated: data.logoGenerated,
         };
 
-        const response = await axiosInstance.put(`/pitch/history/${id}`, payload);
+        const response = await axiosInstance.put(
+          `/pitch/history/${id}`,
+          payload,
+        );
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to update company info"
+          error.response?.data?.message || "Failed to update company info",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   /**
@@ -874,7 +904,7 @@ export const useApiService = () => {
         status?: string;
         teamSize?: string;
         brandColor?: string;
-      }
+      },
     ): Promise<{ svg: string; pitch: PitchDetailsResponse }> => {
       try {
         // 1) Ask the main API to generate an SVG via the logo endpoint
@@ -905,7 +935,9 @@ export const useApiService = () => {
         }
 
         // Extract colors from the generated SVG
-        const extractColorsFromSVG = (svgString: string): { primaryColor: string; secondaryColor: string } | null => {
+        const extractColorsFromSVG = (
+          svgString: string,
+        ): { primaryColor: string; secondaryColor: string } | null => {
           if (!svgString || typeof svgString !== "string") {
             return null;
           }
@@ -915,10 +947,16 @@ export const useApiService = () => {
           const rgbColorRegex = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/g;
 
           const fillMatches = svgString.match(/fill=["']([^"']+)["']/gi) || [];
-          const strokeMatches = svgString.match(/stroke=["']([^"']+)["']/gi) || [];
-          const styleMatches = svgString.match(/style=["']([^"']+)["']/gi) || [];
+          const strokeMatches =
+            svgString.match(/stroke=["']([^"']+)["']/gi) || [];
+          const styleMatches =
+            svgString.match(/style=["']([^"']+)["']/gi) || [];
 
-          const allMatches = [...fillMatches, ...strokeMatches, ...styleMatches];
+          const allMatches = [
+            ...fillMatches,
+            ...strokeMatches,
+            ...styleMatches,
+          ];
 
           allMatches.forEach((match) => {
             const hexMatches = match.match(hexColorRegex);
@@ -931,9 +969,15 @@ export const useApiService = () => {
               rgbMatches.forEach((rgb) => {
                 const rgbValues = rgb.match(/\d+/g);
                 if (rgbValues && rgbValues.length === 3) {
-                  const r = parseInt(rgbValues[0]).toString(16).padStart(2, "0");
-                  const g = parseInt(rgbValues[1]).toString(16).padStart(2, "0");
-                  const b = parseInt(rgbValues[2]).toString(16).padStart(2, "0");
+                  const r = parseInt(rgbValues[0])
+                    .toString(16)
+                    .padStart(2, "0");
+                  const g = parseInt(rgbValues[1])
+                    .toString(16)
+                    .padStart(2, "0");
+                  const b = parseInt(rgbValues[2])
+                    .toString(16)
+                    .padStart(2, "0");
                   colors.push(`#${r}${g}${b}`);
                 }
               });
@@ -943,7 +987,8 @@ export const useApiService = () => {
           const normalizeHexColor = (color: string): string | null => {
             if (typeof color !== "string") return null;
             const trimmed = color.trim();
-            if (!/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(trimmed)) return null;
+            if (!/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(trimmed))
+              return null;
             if (trimmed.length === 4) {
               const [hash, r, g, b] = trimmed.toUpperCase().split("");
               return `${hash}${r}${r}${g}${g}${b}${b}`;
@@ -977,7 +1022,8 @@ export const useApiService = () => {
         };
 
         const extractedColors = extractColorsFromSVG(svg);
-        const brandColor = extractedColors?.primaryColor || data.brandColor || "#4A90E2";
+        const brandColor =
+          extractedColors?.primaryColor || data.brandColor || "#4A90E2";
 
         // 2) Save the logo on the existing pitch/company info with extracted colors
         // Set logo_generated to true to mark that this logo was AI-generated
@@ -995,11 +1041,11 @@ export const useApiService = () => {
             error.response?.data?.message ||
             error.response?.data?.details ||
             error.message ||
-            "Failed to generate and save company logo"
+            "Failed to generate and save company logo",
         );
       }
     },
-    [axiosInstance, updatePitchCompany]
+    [axiosInstance, updatePitchCompany],
   );
 
   /**
@@ -1009,23 +1055,47 @@ export const useApiService = () => {
     async (id: string): Promise<PitchDetailsResponse> => {
       try {
         const response = await axiosInstance.post(
-          `/pitch/history/${id}/regenerate`
+          `/pitch/history/${id}/regenerate`,
         );
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to regenerate pitch"
+          error.response?.data?.message || "Failed to regenerate pitch",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
+  );
+
+  /**
+   * Update the raw pitch content HTML/JSON blob for an existing pitch.
+   * Used by the "Edit Pitch" flow when the user tweaks the generated pitch text.
+   */
+  const updatePitchContent = useCallback(
+    async (
+      id: string,
+      content: string,
+    ): Promise<PitchContentUpdateResponse> => {
+      try {
+        const response = await axiosInstance.put(
+          `/pitch/history/${id}/content`,
+          { content },
+        );
+        return response.data;
+      } catch (error: any) {
+        throw new Error(
+          error.response?.data?.message || "Failed to update pitch content",
+        );
+      }
+    },
+    [axiosInstance],
   );
 
   const generateLandingPage = useCallback(
     async (
       pitchId: string,
       plan: "basic" | "premium" = "basic",
-      logoSvg?: string // Add optional logoSvg parameter
+      logoSvg?: string, // Add optional logoSvg parameter
     ): Promise<LandingPageResponse> => {
       try {
         const response = await axiosInstance.post(`/pitch/landing/${pitchId}`, {
@@ -1035,50 +1105,47 @@ export const useApiService = () => {
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to generate landing page"
+          error.response?.data?.message || "Failed to generate landing page",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   // Team Insights API methods
-  const getTeamMembers = useCallback(
-    async (): Promise<TeamMemberApi[]> => {
-      try {
-        const response =
-          await axiosInstance.get<TeamMemberListResponse>("/team-insights");
-        return response.data?.data || [];
-      } catch (error: any) {
-        throw new Error(
-          error.response?.data?.message || "Failed to load team members"
-        );
-      }
-    },
-    [axiosInstance]
-  );
+  const getTeamMembers = useCallback(async (): Promise<TeamMemberApi[]> => {
+    try {
+      const response =
+        await axiosInstance.get<TeamMemberListResponse>("/team-insights");
+      return response.data?.data || [];
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message || "Failed to load team members",
+      );
+    }
+  }, [axiosInstance]);
 
   const createTeamMember = useCallback(
     async (payload: CreateTeamMemberPayload): Promise<TeamMemberApi> => {
       try {
-        const response = await axiosInstance.post<{ success: boolean; data: TeamMemberApi }>(
-          "/team-insights/members",
-          payload
-        );
+        const response = await axiosInstance.post<{
+          success: boolean;
+          data: TeamMemberApi;
+        }>("/team-insights/members", payload);
         return response.data.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to create team member"
+          error.response?.data?.message || "Failed to create team member",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const updateTeamMember = useCallback(
     async (
       memberId: string,
-      payload: UpdateTeamMemberPayload
+      payload: UpdateTeamMemberPayload,
     ): Promise<TeamMemberApi> => {
       try {
         const response = await axiosInstance.put<{
@@ -1088,17 +1155,17 @@ export const useApiService = () => {
         return response.data.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to update team member"
+          error.response?.data?.message || "Failed to update team member",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const addTeamFeedback = useCallback(
     async (
       memberId: string,
-      payload: TeamFeedbackCreatePayload
+      payload: TeamFeedbackCreatePayload,
     ): Promise<TeamFeedbackEntryApi> => {
       try {
         const response = await axiosInstance.post<{
@@ -1108,11 +1175,11 @@ export const useApiService = () => {
         return response.data.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to save feedback"
+          error.response?.data?.message || "Failed to save feedback",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const deleteTeamFeedback = useCallback(
@@ -1121,11 +1188,11 @@ export const useApiService = () => {
         await axiosInstance.delete(`/team-insights/feedback/${feedbackId}`);
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to delete feedback"
+          error.response?.data?.message || "Failed to delete feedback",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   // Add a new method to get the first pitch
@@ -1140,12 +1207,12 @@ export const useApiService = () => {
         });
 
         const firstPitch = response.data.data.find(
-          (pitch: PitchHistoryItem) => pitch.isFirstPitch
+          (pitch: PitchHistoryItem) => pitch.isFirstPitch,
         );
         return firstPitch || null;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to get first pitch"
+          error.response?.data?.message || "Failed to get first pitch",
         );
       }
     }, [axiosInstance]);
@@ -1163,28 +1230,28 @@ export const useApiService = () => {
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to get landing page HTML"
+          error.response?.data?.message || "Failed to get landing page HTML",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const getLandingPageHtmlByStartupName = useCallback(
     async (startupName: string): Promise<LandingPageHtmlResponse> => {
       try {
         const response = await axiosInstance.get(
-          `/pitch/landing/startupname/${encodeURIComponent(startupName)}`
+          `/pitch/landing/startupname/${encodeURIComponent(startupName)}`,
         );
         return response.data;
       } catch (error: any) {
         throw new Error(
           error.response?.data?.message ||
-            "Failed to get landing page HTML by startup name"
+            "Failed to get landing page HTML by startup name",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   // Email generator API methods
@@ -1195,7 +1262,7 @@ export const useApiService = () => {
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to get email templates"
+          error.response?.data?.message || "Failed to get email templates",
         );
       }
     }, [axiosInstance]);
@@ -1223,7 +1290,7 @@ export const useApiService = () => {
         throw new Error(errorMessage);
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   // Invoice API methods
@@ -1238,7 +1305,7 @@ export const useApiService = () => {
         console.error("Status:", error.response?.status);
         console.error(
           "Full error:",
-          JSON.stringify(error.response?.data, null, 2)
+          JSON.stringify(error.response?.data, null, 2),
         );
 
         // Extract error message from various possible locations
@@ -1255,13 +1322,13 @@ export const useApiService = () => {
         throw new Error(errorMessage);
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const getInvoices = useCallback(
     async (
       limit: number = 20,
-      offset: number = 0
+      offset: number = 0,
     ): Promise<ResponseInvoiceListResponse> => {
       try {
         const response = await axiosInstance.get("/invoices", {
@@ -1288,11 +1355,11 @@ export const useApiService = () => {
         return { data: response.data, counter: counter };
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to get invoices"
+          error.response?.data?.message || "Failed to get invoices",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const getInvoice = useCallback(
@@ -1302,17 +1369,17 @@ export const useApiService = () => {
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to get invoice"
+          error.response?.data?.message || "Failed to get invoice",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const updateInvoice = useCallback(
     async (
       id: string,
-      updateData: InvoiceUpdateData
+      updateData: InvoiceUpdateData,
     ): Promise<InvoiceResponse> => {
       try {
         const response = await axiosInstance.put(`/invoices/${id}`, updateData);
@@ -1336,7 +1403,7 @@ export const useApiService = () => {
         throw new Error(errorMessage);
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const deleteInvoice = useCallback(
@@ -1346,27 +1413,27 @@ export const useApiService = () => {
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to delete invoice"
+          error.response?.data?.message || "Failed to delete invoice",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const renderInvoiceHtml = useCallback(
     async (id: string): Promise<InvoiceHtmlResponse> => {
       try {
         const response = await axiosInstance.post(
-          `/invoices/${id}/render-html`
+          `/invoices/${id}/render-html`,
         );
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to render invoice HTML"
+          error.response?.data?.message || "Failed to render invoice HTML",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const previewInvoice = useCallback((id: string): void => {
@@ -1381,7 +1448,7 @@ export const useApiService = () => {
           `/invoices/${uid}/${invoiceId}/pdf`,
           {
             responseType: "blob",
-          }
+          },
         );
 
         // Create a blob from the response
@@ -1416,7 +1483,7 @@ export const useApiService = () => {
         throw new Error(errorMessage);
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const downloadInvoicePdf = useCallback(
@@ -1426,7 +1493,7 @@ export const useApiService = () => {
           `/invoices/${uid}/${invoiceId}/pdf`,
           {
             responseType: "blob",
-          }
+          },
         );
 
         // Create a blob from the response
@@ -1452,28 +1519,28 @@ export const useApiService = () => {
         throw new Error(errorMessage);
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   // Interview API methods
   const generateInterviewQuestions = useCallback(
     async (
-      payload: InterviewGenerateRequest
+      payload: InterviewGenerateRequest,
     ): Promise<InterviewQuestionsResponse> => {
       try {
         const response = await axiosInstance.post(
           "/interview/generate",
-          payload
+          payload,
         );
         return response.data;
       } catch (error: any) {
         throw new Error(
           error.response?.data?.message ||
-            "Failed to generate interview questions"
+            "Failed to generate interview questions",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const exportInterviewPdf = useCallback(
@@ -1484,36 +1551,36 @@ export const useApiService = () => {
           payload,
           {
             responseType: "blob",
-          }
+          },
         );
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to export interview PDF"
+          error.response?.data?.message || "Failed to export interview PDF",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   // Contract API methods
   const generateContract = useCallback(
     async (
-      payload: ContractGenerateRequest
+      payload: ContractGenerateRequest,
     ): Promise<ContractGenerateResponse> => {
       try {
         const response = await axiosInstance.post(
           "/contracts/generate",
-          payload
+          payload,
         );
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to generate contract"
+          error.response?.data?.message || "Failed to generate contract",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   // Contract API methods
@@ -1523,14 +1590,14 @@ export const useApiService = () => {
         const response = await axiosInstance.post(
           "/contracts/export-pdf",
           payload,
-          { responseType: "blob" }
+          { responseType: "blob" },
         );
         return response.data;
       } catch (error: any) {
         throw new Error(errorMessage(error));
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const getContract = useCallback(
@@ -1540,27 +1607,27 @@ export const useApiService = () => {
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to get contract"
+          error.response?.data?.message || "Failed to get contract",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const deleteContract = useCallback(
     async (
-      contractId: string
+      contractId: string,
     ): Promise<{ success: boolean; message: string }> => {
       try {
         const response = await axiosInstance.delete(`/contracts/${contractId}`);
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to delete contract"
+          error.response?.data?.message || "Failed to delete contract",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const editContract = useCallback(
@@ -1570,17 +1637,17 @@ export const useApiService = () => {
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to edit contract"
+          error.response?.data?.message || "Failed to edit contract",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const getContracts = useCallback(
     async (
       limit: number = 20,
-      offset: number = 0
+      offset: number = 0,
     ): Promise<ContractListResponse> => {
       try {
         const response = await axiosInstance.get("/contracts", {
@@ -1592,11 +1659,11 @@ export const useApiService = () => {
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to get contracts"
+          error.response?.data?.message || "Failed to get contracts",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const getContractTemplates =
@@ -1606,7 +1673,7 @@ export const useApiService = () => {
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to get contract templates"
+          error.response?.data?.message || "Failed to get contract templates",
         );
       }
     }, [axiosInstance]);
@@ -1615,16 +1682,16 @@ export const useApiService = () => {
     async (templateId: string): Promise<ContractTemplateResponse> => {
       try {
         const response = await axiosInstance.get(
-          `/contracts/templates/${templateId}`
+          `/contracts/templates/${templateId}`,
         );
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to get contract template"
+          error.response?.data?.message || "Failed to get contract template",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const exportContractPdfById = useCallback(
@@ -1633,48 +1700,48 @@ export const useApiService = () => {
         const response = await axiosInstance.post(
           `/contracts/${contractId}/export-pdf`,
           {}, // No body needed since we're using the contract ID
-          { responseType: "blob" }
+          { responseType: "blob" },
         );
         return response.data;
       } catch (error: any) {
         throw new Error(errorMessage(error));
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const getContractTemplatePreview = useCallback(
     async (templateId: string): Promise<ContractTemplatePreviewResponse> => {
       try {
         const response = await axiosInstance.get(
-          `/contracts/templates/${templateId}/preview`
+          `/contracts/templates/${templateId}/preview`,
         );
         return response.data;
       } catch (error: any) {
         throw new Error(
           error.response?.data?.message ||
-            "Failed to get contract template preview"
+            "Failed to get contract template preview",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const previewContractPdf = useCallback(
     async (
-      payload: ContractPreviewPdfRequest
+      payload: ContractPreviewPdfRequest,
     ): Promise<ContractPreviewPdfResponse> => {
       try {
         const response = await axiosInstance.post(
           "/contracts/preview-pdf",
-          payload
+          payload,
         );
         return response.data;
       } catch (error: any) {
         throw new Error(errorMessage(error));
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   // Feedback API methods
@@ -1686,16 +1753,16 @@ export const useApiService = () => {
           payload,
           {
             responseType: "blob",
-          }
+          },
         );
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to export feedback PDF"
+          error.response?.data?.message || "Failed to export feedback PDF",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   // Subscription API methods
@@ -1703,34 +1770,34 @@ export const useApiService = () => {
     async (
       billingPeriod: "monthly" | "yearly",
       email?: string,
-      name?: string
+      name?: string,
     ): Promise<CreateSubscriptionCheckoutResponse> => {
       try {
         const response =
           await axiosInstance.post<CreateSubscriptionCheckoutResponse>(
             "/subscriptions/create",
-            { billingPeriod, email, name }
+            { billingPeriod, email, name },
           );
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to create checkout session"
+          error.response?.data?.message || "Failed to create checkout session",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const getSubscriptionStatus =
     useCallback(async (): Promise<GetSubscriptionStatusResponse> => {
       try {
         const response = await axiosInstance.get<GetSubscriptionStatusResponse>(
-          "/subscriptions/status"
+          "/subscriptions/status",
         );
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to get subscription status"
+          error.response?.data?.message || "Failed to get subscription status",
         );
       }
     }, [axiosInstance]);
@@ -1743,11 +1810,11 @@ export const useApiService = () => {
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to create digital card"
+          error.response?.data?.message || "Failed to create digital card",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const getDigitalCard = useCallback(async (): Promise<DigitalCardResponse> => {
@@ -1756,7 +1823,7 @@ export const useApiService = () => {
       return response.data;
     } catch (error: any) {
       throw new Error(
-        error.response?.data?.message || "Failed to get digital card"
+        error.response?.data?.message || "Failed to get digital card",
       );
     }
   }, [axiosInstance]);
@@ -1764,21 +1831,21 @@ export const useApiService = () => {
   const updateDigitalCard = useCallback(
     async (
       cardId: string,
-      cardData: DigitalCardCreateData
+      cardData: DigitalCardCreateData,
     ): Promise<DigitalCardResponse> => {
       try {
         const response = await axiosInstance.put(
           `/digital-card/${cardId}`,
-          cardData
+          cardData,
         );
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to update digital card"
+          error.response?.data?.message || "Failed to update digital card",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   const deleteDigitalCard = useCallback(
@@ -1788,11 +1855,11 @@ export const useApiService = () => {
         return response.data;
       } catch (error: any) {
         throw new Error(
-          error.response?.data?.message || "Failed to delete digital card"
+          error.response?.data?.message || "Failed to delete digital card",
         );
       }
     },
-    [axiosInstance]
+    [axiosInstance],
   );
 
   return {
@@ -1809,6 +1876,7 @@ export const useApiService = () => {
     updatePitchCompany,
     generateAndSaveCompanyLogo,
     regeneratePitch,
+    updatePitchContent,
     // Team Insights methods
     getTeamMembers,
     createTeamMember,
@@ -1870,7 +1938,7 @@ class ApiService {
 
   private async makeAuthenticatedRequest<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<ApiResponse<T>> {
     const response = await apiFetch(`${API_BASE_URL}${endpoint}`, options);
 
@@ -1912,7 +1980,7 @@ class ApiService {
 
   async getPitchHistory(
     page: number = 1,
-    limit: number = 20
+    limit: number = 20,
   ): Promise<PitchHistoryResponse> {
     const queryParams = new URLSearchParams({
       page: page.toString(),
@@ -1920,14 +1988,14 @@ class ApiService {
     });
 
     const response = await this.makeAuthenticatedRequest<any>(
-      `/pitch/history?${queryParams}`
+      `/pitch/history?${queryParams}`,
     );
     return response as PitchHistoryResponse;
   }
 
   async getPitchDetails(id: string): Promise<PitchDetailsResponse> {
     const response = await this.makeAuthenticatedRequest<PitchDetails>(
-      `/pitch/history/${id}`
+      `/pitch/history/${id}`,
     );
     return response as PitchDetailsResponse;
   }
@@ -1937,7 +2005,7 @@ class ApiService {
       `/pitch/history/${id}`,
       {
         method: "DELETE",
-      }
+      },
     );
     return response as DeletePitchResponse;
   }
@@ -1947,44 +2015,43 @@ class ApiService {
       `/pitch/landing/${pitchId}`,
       {
         method: "POST",
-      }
+      },
     );
     return response as LandingPageResponse;
   }
 
   async getLandingPageHtml(pitchId: string): Promise<LandingPageHtmlResponse> {
     const response = await this.makeAuthenticatedRequest<any>(
-      `/pitch/landing/${pitchId}`
+      `/pitch/landing/${pitchId}`,
     );
     return response as LandingPageHtmlResponse;
   }
 
   async getLandingPageHtmlByStartupName(
-    startupName: string
+    startupName: string,
   ): Promise<LandingPageHtmlResponse> {
     const response = await this.makeAuthenticatedRequest<any>(
-      `/pitch/landing/startupname/${encodeURIComponent(startupName)}`
+      `/pitch/landing/startupname/${encodeURIComponent(startupName)}`,
     );
     return response as LandingPageHtmlResponse;
   }
 
   // Email generator methods for legacy class-based service
   async getEmailTemplates(): Promise<EmailTemplatesResponse> {
-    const response = await this.makeAuthenticatedRequest<EmailTemplate[]>(
-      "/email/templates"
-    );
+    const response =
+      await this.makeAuthenticatedRequest<EmailTemplate[]>("/email/templates");
     return response as EmailTemplatesResponse;
   }
 
   async generateInvestorEmail(
-    payload: GenerateEmailRequest
+    payload: GenerateEmailRequest,
   ): Promise<GenerateEmailResponse> {
     const response = await this.makeAuthenticatedRequest<GenerateEmailResponse>(
       "/email/generate",
       {
         method: "POST",
         body: JSON.stringify(payload),
-      }
+      },
     );
     return response as GenerateEmailResponse;
   }
@@ -1999,7 +2066,7 @@ class ApiService {
 
   async getInvoices(
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<InvoiceListResponse> {
     const queryParams = new URLSearchParams({
       limit: Math.min(limit, 50).toString(),
@@ -2007,40 +2074,40 @@ class ApiService {
     });
 
     const response = await this.makeAuthenticatedRequest<any>(
-      `/invoices?${queryParams}`
+      `/invoices?${queryParams}`,
     );
     return response as InvoiceListResponse;
   }
 
   async getInvoice(id: string): Promise<InvoiceResponse> {
     const response = await this.makeAuthenticatedRequest<Invoice>(
-      `/invoices/${id}`
+      `/invoices/${id}`,
     );
     return response as InvoiceResponse;
   }
 
   async updateInvoice(
     id: string,
-    updateData: InvoiceUpdateData
+    updateData: InvoiceUpdateData,
   ): Promise<InvoiceResponse> {
     const response = await this.makeAuthenticatedRequest<Invoice>(
       `/invoices/${id}`,
       {
         method: "PUT",
         body: JSON.stringify(updateData),
-      }
+      },
     );
     return response as InvoiceResponse;
   }
 
   async deleteInvoice(
-    id: string
+    id: string,
   ): Promise<{ success: boolean; message: string }> {
     const response = await this.makeAuthenticatedRequest<any>(
       `/invoices/${id}`,
       {
         method: "DELETE",
-      }
+      },
     );
     return response as { success: boolean; message: string };
   }
@@ -2050,7 +2117,7 @@ class ApiService {
       `/invoices/${id}/render-html`,
       {
         method: "POST",
-      }
+      },
     );
     return response as InvoiceHtmlResponse;
   }
@@ -2063,7 +2130,7 @@ class ApiService {
   async downloadInvoicePdf(uid: string, invoiceId: string): Promise<void> {
     try {
       const response = await apiFetch(
-        `${API_BASE_URL}invoices/${uid}/${invoiceId}/pdf`
+        `${API_BASE_URL}invoices/${uid}/${invoiceId}/pdf`,
       );
 
       if (!response.ok) {
@@ -2071,7 +2138,7 @@ class ApiService {
         throw new Error(
           errorData.message ||
             errorData.error ||
-            "Failed to download invoice PDF"
+            "Failed to download invoice PDF",
         );
       }
 
@@ -2096,13 +2163,13 @@ class ApiService {
 
   // Contract methods for legacy class-based service
   async deleteContract(
-    contractId: string
+    contractId: string,
   ): Promise<{ success: boolean; message: string }> {
     const response = await this.makeAuthenticatedRequest<any>(
       `/contracts/${contractId}`,
       {
         method: "DELETE",
-      }
+      },
     );
     return response as { success: boolean; message: string };
   }
