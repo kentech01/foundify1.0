@@ -64,6 +64,10 @@ import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { useNavigate } from "react-router-dom";
 import React from "react";
 
+interface InvoicesPageProps {
+  isPremium?: boolean;
+}
+
 interface LineItem {
   description: string;
   quantity: string; // Change from number to string
@@ -76,7 +80,7 @@ type Errors = Partial<{
   lineItems: string;
 }>;
 
-export function InvoicesPage() {
+export function InvoicesPage({ isPremium = false }: InvoicesPageProps) {
   const navigate = useNavigate();
   const [invoicesCounter, setInvoicesCounter] = useState(0);
 
@@ -276,7 +280,18 @@ export function InvoicesPage() {
     setErrors({});
   };
 
+  const requirePremiumForFounderEssentials = () => {
+    if (isPremium) return true;
+
+    toast.info(
+      "Founder Essentials require a Premium plan to use. Please upgrade to continue."
+    );
+    navigate("/upgrade");
+    return false;
+  };
+
   const openEditModal = (invoice: ApiInvoice) => {
+    if (!requirePremiumForFounderEssentials()) return;
     setEditingInvoice(invoice);
     setCompanyName(invoice.companyName || "");
     setClientName(invoice.clientName || "");
@@ -376,6 +391,7 @@ export function InvoicesPage() {
   };
 
   const handleCreateInvoice = () => {
+    if (!requirePremiumForFounderEssentials()) return;
     generateInvoice();
   };
 
@@ -384,6 +400,7 @@ export function InvoicesPage() {
   };
 
   const handleDeleteClick = (invoice: ApiInvoice) => {
+    if (!requirePremiumForFounderEssentials()) return;
     setInvoiceToDelete(invoice);
     setDeleteDialogOpen(true);
   };
@@ -422,6 +439,7 @@ export function InvoicesPage() {
   };
 
   const handleView = async (invoice: ApiInvoice) => {
+    if (!requirePremiumForFounderEssentials()) return;
     setViewingId(invoice.id);
     try {
       await viewInvoicePdf(invoice.firebaseUid, invoice.id);
@@ -469,6 +487,7 @@ export function InvoicesPage() {
   // };
 
   const handleDownload = async (invoice: ApiInvoice) => {
+    if (!requirePremiumForFounderEssentials()) return;
     setDownloadingId(invoice.id);
     try {
       await downloadInvoicePdf(invoice.firebaseUid, invoice.id);

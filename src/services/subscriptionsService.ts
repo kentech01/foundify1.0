@@ -3,20 +3,24 @@ import useAxios from "../hooks/useAxios";
 // Subscription types
 export interface CreateSubscriptionCheckoutResponse {
   success: boolean;
-  checkout_url: string;
-  checkout_id: string | number;
+  checkout_url?: string; // URL for redirect (legacy)
+  transaction_id?: string; // Paddle transaction ID for overlay checkout
+  checkout_id?: string | number; // Legacy field
 }
 
 export interface SubscriptionRecord {
   id?: string;
   user_id?: string;
-  lemonsqueezy_subscription_id?: string | null;
-  status: "inactive" | "active" | "cancelled" | string;
+  paddle_subscription_id?: string | null;
+  lemonsqueezy_subscription_id?: string | null; // Legacy field
+  status: "inactive" | "active" | "cancelled" | "trialing" | "past_due" | "paused" | string;
   plan_type: "free" | "premium";
+  provider?: "paddle" | "lemonsqueezy";
   created_at?: string;
   updated_at?: string;
   email?: string;
-  lemonSqueezeData?: unknown;
+  paddleData?: unknown;
+  lemonSqueezeData?: unknown; // Legacy field
 }
 
 export interface GetSubscriptionStatusResponse {

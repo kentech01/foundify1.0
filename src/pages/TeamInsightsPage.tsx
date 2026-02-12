@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useApiService } from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 interface FeedbackEntry {
   id: string;
@@ -56,9 +57,24 @@ interface Employee {
   feedbackHistory: FeedbackEntry[];
 }
 
-export function TeamInsightsPage() {
+interface TeamInsightsPageProps {
+  isPremium?: boolean;
+}
+
+export function TeamInsightsPage({ isPremium = false }: TeamInsightsPageProps) {
   const { getTeamMembers, createTeamMember, updateTeamMember, addTeamFeedback } =
     useApiService();
+  const navigate = useNavigate();
+
+  const requirePremiumForFounderEssentials = () => {
+    if (isPremium) return true;
+
+    toast.info(
+      "Founder Essentials require a Premium plan to use. Please upgrade to continue."
+    );
+    navigate("/upgrade");
+    return false;
+  };
 
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -145,6 +161,7 @@ export function TeamInsightsPage() {
   }, []);
 
   const handleAddEmployee = async () => {
+    if (!requirePremiumForFounderEssentials()) return;
     if (!newEmployee.name || !newEmployee.role) {
       toast.error("Please fill in all required fields");
       return;
@@ -237,6 +254,7 @@ Looking ahead, focus on: ${newFeedback.goals
   };
 
   const handleSaveFeedback = async () => {
+    if (!requirePremiumForFounderEssentials()) return;
     if (
       !selectedEmployee ||
       !newFeedback.strengths ||

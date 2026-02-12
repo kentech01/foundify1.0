@@ -39,6 +39,7 @@ import {
 import { UserAuth } from "../context/AuthContext";
 import SignInModal from "./signIn/SignInModal";
 import React from "react";
+import { toast } from "sonner";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -181,32 +182,31 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
           </h1>
 
           {/* Sub-items */}
-          
-            <div className="space-y-1 mt-1">
-              {essentialsSubItems.map((subItem) => {
-                const Icon = subItem.icon;
-                const isSubItemActive = currentPath.startsWith(subItem.path);
-                return (
-                  <button
-                    key={subItem.path}
-                    onClick={() => {
-                      navigate(subItem.path);
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-[8px] transition-all duration-200 ${
-                      isSubItemActive
-                        ? "bg-white/20 text-white font-medium"
-                        : "text-white/60 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    <Icon className="h-4 w-4 flex-shrink-0" />
-                    <span className="flex-1 text-left text-sm">
-                      {subItem.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+          <div className="space-y-1 mt-1">
+            {essentialsSubItems.map((subItem) => {
+              const Icon = subItem.icon;
+              const isSubItemActive = currentPath.startsWith(subItem.path);
+              return (
+                <button
+                  key={subItem.path}
+                  onClick={() => {
+                    navigate(subItem.path);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-[8px] transition-all duration-200 ${
+                    isSubItemActive
+                      ? "bg-white/20 text-white font-medium"
+                      : "text-white/60 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <Icon className="h-4 w-4 flex-shrink-0" />
+                  <span className="flex-1 text-left text-sm">
+                    {subItem.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </nav>
 

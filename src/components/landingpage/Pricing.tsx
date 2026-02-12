@@ -1,7 +1,9 @@
 import { motion } from "motion/react";
-import { Check, ArrowRight, Sparkles, Zap } from "lucide-react";
+import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SparkleButton } from "@/components/ui/sparkles";
+import { useNavigate } from "react-router-dom";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface PricingProps {
   onGetStarted?: () => void;
@@ -41,6 +43,25 @@ const plans = [
 ];
 
 export function Pricing({ onGetStarted }: PricingProps) {
+  const navigate = useNavigate();
+  const { user } = useCurrentUser();
+
+  const handleGetStarted = (isPremium: boolean) => {
+    if (onGetStarted) {
+      onGetStarted();
+    } else if (isPremium) {
+      // Navigate to upgrade page for premium plan
+      if (user) {
+        navigate("/upgrade");
+      } else {
+        // If not logged in, redirect to sign up
+        onGetStarted?.();
+      }
+    } else {
+      // Free plan - just sign up
+      onGetStarted?.();
+    }
+  };
   
   return (
     <section id="pricing" className="py-32 bg-white relative overflow-hidden">
@@ -101,12 +122,12 @@ export function Pricing({ onGetStarted }: PricingProps) {
               <div className="w-full mt-auto">
                 <div>
                    {plan.popular ? (
-                      <SparkleButton onClick={onGetStarted} className="w-full h-14 rounded-xl bg-slate-900 text-white font-bold shadow-xl shadow-indigo-500/20 hover:bg-slate-800 transition-all">
+                      <SparkleButton onClick={() => handleGetStarted(true)} className="w-full h-14 rounded-xl bg-slate-900 text-white font-bold shadow-xl shadow-indigo-500/20 hover:bg-slate-800 transition-all">
                          {plan.cta}
                       </SparkleButton>
                    ) : (
                       <Button 
-                        onClick={onGetStarted}
+                        onClick={() => handleGetStarted(false)}
                         className="w-full h-14 rounded-xl text-base font-bold transition-all shadow-lg bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 shadow-slate-200/20"
                       >
                         {plan.cta}

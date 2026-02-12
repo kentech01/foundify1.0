@@ -73,7 +73,11 @@ type Errors = Partial<{
   interviewGoal: string;
 }>;
 
-export function AIHiringAssistant() {
+interface AIHiringAssistantProps {
+  isPremium?: boolean;
+}
+
+export function AIHiringAssistant({ isPremium = false }: AIHiringAssistantProps) {
   const navigate = useNavigate();
   const [candidateName, setCandidateName] = useState("");
   const [role, setRole] = useState("");
@@ -95,6 +99,16 @@ export function AIHiringAssistant() {
   const [submitted, setSubmitted] = useState(false);
 
   const { generateInterviewQuestions, exportInterviewPdf } = useApiService();
+
+  const requirePremiumForFounderEssentials = () => {
+    if (isPremium) return true;
+
+    toast.info(
+      "Founder Essentials require a Premium plan to use. Please upgrade to continue."
+    );
+    navigate("/upgrade");
+    return false;
+  };
 
   const validate = useMemo(() => {
     const trimmed = {
@@ -143,6 +157,7 @@ export function AIHiringAssistant() {
   }, [validate, submitted]);
 
   const handleGenerateQuestions = async () => {
+    if (!requirePremiumForFounderEssentials()) return;
     // Mark form as submitted to show validation errors
     setSubmitted(true);
 
@@ -286,6 +301,7 @@ export function AIHiringAssistant() {
   };
 
   const handleExportPDF = async () => {
+    if (!requirePremiumForFounderEssentials()) return;
     setIsExporting(true);
 
     try {

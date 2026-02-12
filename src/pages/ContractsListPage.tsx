@@ -54,7 +54,11 @@ interface Contract {
   html?: string;
 }
 
-export function ContractsListPage() {
+interface ContractsListPageProps {
+  isPremium?: boolean;
+}
+
+export function ContractsListPage({ isPremium = false }: ContractsListPageProps) {
   const navigate = useNavigate();
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -80,6 +84,16 @@ export function ContractsListPage() {
     exportContractPdfById,
   } = useApiService();
 
+  const requirePremiumForFounderEssentials = () => {
+    if (isPremium) return true;
+
+    toast.info(
+      "Founder Essentials require a Premium plan to use. Please upgrade to continue."
+    );
+    navigate("/upgrade");
+    return false;
+  };
+
   // Fetch contracts on mount
   useEffect(() => {
     fetchContracts();
@@ -99,6 +113,7 @@ export function ContractsListPage() {
   };
 
   const handleDeleteClick = (contract: Contract) => {
+    if (!requirePremiumForFounderEssentials()) return;
     setContractToDelete(contract);
     setDeleteDialogOpen(true);
   };
@@ -125,6 +140,7 @@ export function ContractsListPage() {
   };
 
   const handleView = async (contract: Contract) => {
+    if (!requirePremiumForFounderEssentials()) return;
     try {
       setViewingId(contract.id);
 
@@ -148,6 +164,7 @@ export function ContractsListPage() {
   };
 
   const handleDownload = async (contract: Contract) => {
+    if (!requirePremiumForFounderEssentials()) return;
     try {
       setDownloadingId(contract.id);
 
@@ -177,6 +194,7 @@ export function ContractsListPage() {
   };
 
   const handleEdit = async (contract: Contract) => {
+    if (!requirePremiumForFounderEssentials()) return;
     try {
       setIsLoading(true);
 
@@ -252,6 +270,7 @@ export function ContractsListPage() {
         </div>
         <Button
           onClick={() => {
+            if (!requirePremiumForFounderEssentials()) return;
             setIsCreateModalOpen(true);
             setShowCreateHeader(true);
           }}
