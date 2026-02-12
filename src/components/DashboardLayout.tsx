@@ -264,10 +264,16 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
             </button>
 
             {/* Page Title - Removed */}
-            <div className="flex-1 lg:ml-0 ml-4">
-            </div>
+            <div className="flex-1 lg:ml-0 ml-4" />
 
             <div className="flex items-center gap-2 lg:gap-4">
+              {/* Premium badge in the header */}
+              {isPremium && (
+                <div className="hidden sm:inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+                  <span className="inline-block h-2 w-2 rounded-full bg-white" />
+                  <span>Premium</span>
+                </div>
+              )}
               {currentPath.startsWith("/dashboard/pitches") && (
                 <Button
                   onClick={() => navigate("/builder")}
