@@ -64,6 +64,10 @@ import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { useNavigate } from "react-router-dom";
 import React from "react";
 
+interface InvoicesPageProps {
+  isPremium?: boolean;
+}
+
 interface LineItem {
   description: string;
   quantity: string; // Change from number to string
@@ -76,14 +80,14 @@ type Errors = Partial<{
   lineItems: string;
 }>;
 
-export function InvoicesPage() {
+export function InvoicesPage({ isPremium = false }: InvoicesPageProps) {
   const navigate = useNavigate();
   const [invoicesCounter, setInvoicesCounter] = useState(0);
 
   const [companyName, setCompanyName] = useState("");
   const [clientName, setClientName] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState(
-    `INV-${Date.now().toString().slice(-6)}`
+    `INV-${Date.now().toString().slice(-6)}`,
   );
   const [currency, setCurrency] = useState<
     "USD" | "EUR" | "GBP" | "CAD" | "AUD"
@@ -104,7 +108,7 @@ export function InvoicesPage() {
   const [viewingId, setViewingId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<ApiInvoice | null>(
-    null
+    null,
   );
 
   const {
@@ -163,7 +167,7 @@ export function InvoicesPage() {
 
     // Validate line items
     const hasValidLineItem = lineItems.some(
-      (item) => item.description.trim().length > 0
+      (item) => item.description.trim().length > 0,
     );
     if (!hasValidLineItem) {
       errs.lineItems = "At least one item with description is required";
@@ -196,8 +200,17 @@ export function InvoicesPage() {
     loadInvoices();
   }, []);
   const getCompanyName = async () => {
-    const result = await apiService.getPitchHistory();
-    setFetchedCompany(result.data[0].startupName);
+    try {
+      const result = await apiService.getPitchHistory();
+      const firstStartupName = result?.data?.[0]?.startupName || "";
+      setFetchedCompany(firstStartupName);
+
+      // If the user hasn't typed anything yet, prefill the company name
+      setCompanyName((prev) => (prev ? prev : firstStartupName));
+    } catch (error) {
+      // Silent fail – invoice creation still works without a prefilled company
+      console.error("Failed to preload company name for invoices:", error);
+    }
   };
   const loadInvoices = async () => {
     setIsLoading(true);
@@ -246,7 +259,7 @@ export function InvoicesPage() {
   const updateLineItem = (
     index: number,
     field: keyof LineItem,
-    value: string
+    value: string,
   ) => {
     const updatedItems = [...lineItems];
     updatedItems[index] = { ...updatedItems[index], [field]: value };
@@ -254,7 +267,8 @@ export function InvoicesPage() {
   };
 
   const resetForm = () => {
-    setCompanyName("");
+    // Default company name to fetchedCompany if available
+    setCompanyName(fetchedCompany || "");
     setClientName("");
     setInvoiceNumber(`INV-${Date.now().toString().slice(-6)}`);
     setCurrency("USD");
@@ -266,7 +280,18 @@ export function InvoicesPage() {
     setErrors({});
   };
 
+  const requirePremiumForFounderEssentials = () => {
+    if (isPremium) return true;
+
+    toast.info(
+      "Founder Essentials require a Premium plan to use. Please upgrade to continue."
+    );
+    navigate("/upgrade");
+    return false;
+  };
+
   const openEditModal = (invoice: ApiInvoice) => {
+    if (!requirePremiumForFounderEssentials()) return;
     setEditingInvoice(invoice);
     setCompanyName(invoice.companyName || "");
     setClientName(invoice.clientName || "");
@@ -281,7 +306,7 @@ export function InvoicesPage() {
             quantity: String(item.quantity) || "1", // Use String
             rate: item.rate && item.rate > 0 ? String(item.rate) : "", // Use String, empty if 0 or invalid
           }))
-        : [{ description: "", quantity: "1", rate: "" }]
+        : [{ description: "", quantity: "1", rate: "" }],
     );
     setSubmitted(false);
     setErrors({});
@@ -331,7 +356,7 @@ export function InvoicesPage() {
         toast.success(
           editingInvoice
             ? "Invoice updated successfully!"
-            : "Invoice created successfully!"
+            : "Invoice created successfully!",
         );
 
         // Reset form and close modals
@@ -366,6 +391,7 @@ export function InvoicesPage() {
   };
 
   const handleCreateInvoice = () => {
+    if (!requirePremiumForFounderEssentials()) return;
     generateInvoice();
   };
 
@@ -374,6 +400,7 @@ export function InvoicesPage() {
   };
 
   const handleDeleteClick = (invoice: ApiInvoice) => {
+    if (!requirePremiumForFounderEssentials()) return;
     setInvoiceToDelete(invoice);
     setDeleteDialogOpen(true);
   };
@@ -386,7 +413,7 @@ export function InvoicesPage() {
       if (response.success) {
         toast.success("Invoice deleted successfully");
         setInvoices(
-          invoices.filter((invoice) => invoice.id !== invoiceToDelete.id)
+          invoices.filter((invoice) => invoice.id !== invoiceToDelete.id),
         );
       } else {
         toast.error(response.message || "Failed to delete invoice");
@@ -412,6 +439,7 @@ export function InvoicesPage() {
   };
 
   const handleView = async (invoice: ApiInvoice) => {
+    if (!requirePremiumForFounderEssentials()) return;
     setViewingId(invoice.id);
     try {
       await viewInvoicePdf(invoice.firebaseUid, invoice.id);
@@ -430,7 +458,7 @@ export function InvoicesPage() {
     (invoice) =>
       invoice.invoiceNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       invoice.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.companyName?.toLowerCase().includes(searchTerm.toLowerCase())
+      invoice.companyName?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   // Update stats calculation to remove overdue-specific stat
@@ -459,6 +487,7 @@ export function InvoicesPage() {
   // };
 
   const handleDownload = async (invoice: ApiInvoice) => {
+    if (!requirePremiumForFounderEssentials()) return;
     setDownloadingId(invoice.id);
     try {
       await downloadInvoicePdf(invoice.firebaseUid, invoice.id);
@@ -560,7 +589,7 @@ export function InvoicesPage() {
                     </Label>
                     <Input
                       id="company"
-                      value={companyName == "" ? fetchedCompany : companyName}
+                      value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
                       placeholder="Your Company Inc."
                       autoComplete="off"
@@ -1218,7 +1247,7 @@ export function InvoicesPage() {
                       <p className="text-sm sm:text-sm flex items-center gap-2 font-medium text-gray-600 h-[29px]">
                         <Calendar className="h-4 w-[14px] text-gray-600" />
                         {new Date(invoice.createdAt).toLocaleDateString(
-                          "en-GB"
+                          "en-GB",
                         )}
                       </p>
                     </div>

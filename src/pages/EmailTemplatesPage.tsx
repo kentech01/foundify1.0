@@ -24,6 +24,7 @@ import {
   Building
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface EmailTemplate {
   id: string;
@@ -128,15 +129,31 @@ const mockStartupData = {
   founderTitle: 'Founder & CEO'
 };
 
-export function EmailTemplatesPage() {
+interface EmailTemplatesPageProps {
+  isPremium?: boolean;
+}
+
+export function EmailTemplatesPage({ isPremium = false }: EmailTemplatesPageProps) {
+  const navigate = useNavigate();
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedEmail, setGeneratedEmail] = useState('');
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [savedEmails, setSavedEmails] = useState<Array<{ template: string; content: string; date: string }>>([]);
 
+  const requirePremiumForFounderEssentials = () => {
+    if (isPremium) return true;
+
+    toast.info(
+      "Founder Essentials require a Premium plan to use. Please upgrade to continue."
+    );
+    navigate("/upgrade");
+    return false;
+  };
+
   const generateEmail = async () => {
     if (!selectedTemplate) return;
+  if (!requirePremiumForFounderEssentials()) return;
     
     setIsGenerating(true);
     await new Promise(resolve => setTimeout(resolve, 1500));

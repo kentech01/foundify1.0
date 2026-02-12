@@ -201,15 +201,30 @@ export function DashboardMain({
             />
           }
         /> */}
-        <Route path="invoices" element={<InvoicesPage />} />
-        <Route path="contracts" element={<ContractsListPage />} />
-        <Route path="feedbackCoach" element={<TeamInsightsPage />} />
+        <Route
+          path="invoices"
+          element={<InvoicesPage isPremium={effectiveIsPremium} />}
+        />
+        <Route
+          path="contracts"
+          element={<ContractsListPage isPremium={effectiveIsPremium} />}
+        />
+        <Route
+          path="feedbackCoach"
+          element={<TeamInsightsPage isPremium={effectiveIsPremium} />}
+        />
         <Route
           path="investor-email-draft"
-          element={<EmailTemplatesPage />}
+          element={<EmailTemplatesPage isPremium={effectiveIsPremium} />}
         />
-        <Route path="ai-hiring-assistant" element={<AIHiringAssistant />} />
-        <Route path="qr-card" element={<QRVisitCardPage />} />
+        <Route
+          path="ai-hiring-assistant"
+          element={<AIHiringAssistant isPremium={effectiveIsPremium} />}
+        />
+        <Route
+          path="qr-card"
+          element={<QRVisitCardPage isPremium={effectiveIsPremium} />}
+        />
       </Routes>
     </DashboardLayout>
   );

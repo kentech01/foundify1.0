@@ -21,10 +21,16 @@ import {
 import { toast } from 'sonner';
 import { useApiService } from '../services/api';
 import { UserAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
-export function QRVisitCardPage() {
+interface QRVisitCardPageProps {
+  isPremium?: boolean;
+}
+
+export function QRVisitCardPage({ isPremium = false }: QRVisitCardPageProps) {
   const { user } = UserAuth();
   const apiService = useApiService();
+  const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
     fullName: user?.displayName || '',
@@ -52,6 +58,16 @@ export function QRVisitCardPage() {
   // Derived brand colors for the Smart Digital Card UI, with safe defaults.
   const primaryColor = startupData.primaryColor || '#252952';
   const secondaryColor = startupData.secondaryColor || '#4A90E2';
+
+  const requirePremiumForFounderEssentials = () => {
+    if (isPremium) return true;
+
+    toast.info(
+      "Founder Essentials require a Premium plan to use. Please upgrade to continue."
+    );
+    navigate("/upgrade");
+    return false;
+  };
 
   // Load existing card and startup data on mount
   useEffect(() => {
@@ -131,6 +147,8 @@ export function QRVisitCardPage() {
   }, [user]);
 
   const handleGenerate = async () => {
+    if (!requirePremiumForFounderEssentials()) return;
+
     if (!formData.fullName || !formData.role) {
       toast.error('Please fill in your name and role');
       return;

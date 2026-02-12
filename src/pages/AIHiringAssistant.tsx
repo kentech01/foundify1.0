@@ -10,6 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
+import { Combobox } from "../components/ui/combobox";
+import { INDUSTRIES } from "../constants/industries";
 
 import {
   Card,
@@ -71,7 +73,11 @@ type Errors = Partial<{
   interviewGoal: string;
 }>;
 
-export function AIHiringAssistant() {
+interface AIHiringAssistantProps {
+  isPremium?: boolean;
+}
+
+export function AIHiringAssistant({ isPremium = false }: AIHiringAssistantProps) {
   const navigate = useNavigate();
   const [candidateName, setCandidateName] = useState("");
   const [role, setRole] = useState("");
@@ -86,13 +92,23 @@ export function AIHiringAssistant() {
   const [isAddQuestionModalOpen, setIsAddQuestionModalOpen] = useState(false);
   const [customQuestionInput, setCustomQuestionInput] = useState("");
   const [currentCategoryId, setCurrentCategoryId] = useState<string | null>(
-    null
+    null,
   );
 
   const [errors, setErrors] = useState<Errors>({});
   const [submitted, setSubmitted] = useState(false);
 
   const { generateInterviewQuestions, exportInterviewPdf } = useApiService();
+
+  const requirePremiumForFounderEssentials = () => {
+    if (isPremium) return true;
+
+    toast.info(
+      "Founder Essentials require a Premium plan to use. Please upgrade to continue."
+    );
+    navigate("/upgrade");
+    return false;
+  };
 
   const validate = useMemo(() => {
     const trimmed = {
@@ -141,6 +157,7 @@ export function AIHiringAssistant() {
   }, [validate, submitted]);
 
   const handleGenerateQuestions = async () => {
+    if (!requirePremiumForFounderEssentials()) return;
     // Mark form as submitted to show validation errors
     setSubmitted(true);
 
@@ -211,7 +228,7 @@ export function AIHiringAssistant() {
   const handleAnswerChange = (
     categoryId: string,
     questionId: string,
-    answer: string
+    answer: string,
   ) => {
     setCategories(
       categories.map((category) => {
@@ -219,12 +236,12 @@ export function AIHiringAssistant() {
           return {
             ...category,
             questions: category.questions.map((q) =>
-              q.id === questionId ? { ...q, answer } : q
+              q.id === questionId ? { ...q, answer } : q,
             ),
           };
         }
         return category;
-      })
+      }),
     );
   };
 
@@ -253,7 +270,7 @@ export function AIHiringAssistant() {
           };
         }
         return category;
-      })
+      }),
     );
 
     setIsAddQuestionModalOpen(false);
@@ -266,7 +283,7 @@ export function AIHiringAssistant() {
     setOpenCategories((prev) =>
       prev.includes(categoryId)
         ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
+        : [...prev, categoryId],
     );
   };
 
@@ -284,6 +301,7 @@ export function AIHiringAssistant() {
   };
 
   const handleExportPDF = async () => {
+    if (!requirePremiumForFounderEssentials()) return;
     setIsExporting(true);
 
     try {
@@ -308,7 +326,7 @@ export function AIHiringAssistant() {
       link.href = url;
       link.download = `Interview_${candidateName.replace(
         /\s+/g,
-        "_"
+        "_",
       )}_${Date.now()}.pdf`;
       document.body.appendChild(link);
       link.click();
@@ -341,10 +359,10 @@ ${category.questions
     (q, i) => `
 ${i + 1}. ${q.question}
    Answer/Notes: ${q.answer || "[No notes yet]"}
-`
+`,
   )
   .join("\n")}
-`
+`,
   )
   .join("\n")}`;
 
@@ -468,25 +486,13 @@ ${i + 1}. ${q.question}
                 <Label className="mb-2" htmlFor="industry">
                   Industry
                 </Label>
-                <Select
+                <Combobox
+                  options={INDUSTRIES}
                   value={industry}
                   onValueChange={(value) => setIndustry(value)}
-                >
-                  <SelectTrigger
-                    id="industry"
-                    className="data-[placeholder]:text-gray-400"
-                  >
-                    <SelectValue placeholder="Select industry" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Technology">Technology</SelectItem>
-                    <SelectItem value="Engineering">Engineering</SelectItem>
-                    <SelectItem value="Marketing">Marketing</SelectItem>
-                    <SelectItem value="Design">Design</SelectItem>
-                    <SelectItem value="Finance">Finance</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+                  placeholder="Select industry"
+                  className="h-12 text-base border border-gray-200 rounded-[12px] focus:border-gray-300"
+                />
                 {submitted && errors.industry && (
                   <div
                     style={{
@@ -569,8 +575,8 @@ ${i + 1}. ${q.question}
                       category.color.includes("blue")
                         ? "border-blue-200"
                         : category.color.includes("purple")
-                        ? "border-purple-200"
-                        : "border-green-200"
+                          ? "border-purple-200"
+                          : "border-green-200"
                     }`}
                   >
                     <Collapsible
@@ -635,7 +641,7 @@ ${i + 1}. ${q.question}
                                         handleAnswerChange(
                                           category.id,
                                           question.id,
-                                          e.target.value
+                                          e.target.value,
                                         )
                                       }
                                       placeholder="Record the candidate's answer and add your observations..."
