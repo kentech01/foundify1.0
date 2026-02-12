@@ -66,6 +66,8 @@ export async function openPaddleCheckout(transactionId: string): Promise<void> {
         theme: "light",
         locale: "en",
         allowLogout: false,
+        // After successful payment, redirect back into the app dashboard
+        successUrl: "https://www.foundify.app/dashboard/pitches",
       },
     });
   } catch (error) {
