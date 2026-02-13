@@ -19,6 +19,8 @@ import { useSubscriptionService } from "../services/subscriptionsService";
 import { toast } from "sonner";
 import { useSubscription } from "../hooks/useSubscription";
 import { useCurrentUser } from "../hooks/useCurrentUser";
+import { useRecoilValue } from "recoil";
+import { pitchesAtom } from "../atoms/pitchesAtom";
 
 interface DashboardMainProps{
   username: string | null,
@@ -33,6 +35,8 @@ export function DashboardMain({
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const { createSubscriptionCheckout } = useSubscriptionService();
   const { hasPremium } = useSubscription();
+  const pitchesList = useRecoilValue(pitchesAtom);
+  const showCreateNewButton = !(pitchesList && pitchesList.length > 0);
 
   // Function to close all open modals/popups
   const closeAllModals = () => {
@@ -177,7 +181,7 @@ export function DashboardMain({
   }
 
   return (
-    <DashboardLayout isPremium={effectiveIsPremium}>
+    <DashboardLayout isPremium={effectiveIsPremium} showCreateNewButton={showCreateNewButton}>
       <Routes>
         <Route index element={<Navigate to="/dashboard/pitches" replace />} />
         <Route
