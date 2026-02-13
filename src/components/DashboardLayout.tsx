@@ -44,9 +44,11 @@ import { toast } from "sonner";
 interface DashboardLayoutProps {
   children: React.ReactNode;
   isPremium: boolean;
+  /** When false, "Create New" is hidden on the pitches page (e.g. when user already has pitches). */
+  showCreateNewButton?: boolean;
 }
 
-export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
+export function DashboardLayout({ children, isPremium, showCreateNewButton = true }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logOut, loading } = UserAuth();
@@ -269,12 +271,12 @@ export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
             <div className="flex items-center gap-2 lg:gap-4">
               {/* Premium badge in the header */}
               {isPremium && (
-                <div className="hidden sm:inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 px-3 py-1 text-xs font-semibold text-white shadow-sm">
-                  <span className="inline-block h-2 w-2 rounded-full bg-white" />
+                <div className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#252952] to-[#4A90E2] px-3.5 py-2 text-sm font-semibold text-white shadow-sm">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-white/90" />
                   <span>Premium</span>
                 </div>
               )}
-              {currentPath.startsWith("/dashboard/pitches") && (
+              {currentPath.startsWith("/dashboard/pitches") && showCreateNewButton && (
                 <Button
                   onClick={() => navigate("/builder")}
                   className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[10px] shadow-sm px-3 lg:px-4 transition-all duration-300"
