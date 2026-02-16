@@ -1657,62 +1657,83 @@ export function PitchDashboard({
       // Get primary color from companyData or use default
       const primaryColor = companyData?.brandColor || "#252952";
 
-      // Convert pitch content to HTML
-      let htmlContent = String(pitch.pitchContent ?? "");
-
-      // If we have an uploaded or generated logo for this pitch,
-      // inject it into the cover (first page) of the pitch HTML so it appears in the PDF.
-      if (pitch.logo && typeof pitch.logo === "string" && pitch.logo.trim()) {
-        const rawLogo = pitch.logo.trim();
-
-        // Determine how to render the logo
-        const isSvg = rawLogo.includes("<svg");
-        const isImageSrc =
-          rawLogo.startsWith("data:image") || rawLogo.startsWith("http");
-
-        const logoMarkup = isSvg
-          ? rawLogo
-          : isImageSrc
-            ? `<img src="${rawLogo}" alt="${pitch.startupName} logo" />`
-            : "";
-
-        if (logoMarkup) {
-          const coverLogoContainer = `
-            <div class="cover-logo" style="margin-bottom: 24px; display: flex; justify-content: center; align-items: center;">
-              ${logoMarkup}
-            </div>
-          `;
-
-          // Inject logo container at the top of the cover, before the title
-          if (htmlContent.includes('<div class="cover">')) {
-            htmlContent = htmlContent.replace(
-              '<div class="cover">',
-              `<div class="cover">${coverLogoContainer}`,
+      // Resolve HTML the same way as the editor: use string if already HTML, else build from JSON
+      let htmlContent =
+        typeof pitch.pitchContent === "string"
+          ? pitch.pitchContent
+          : formatPitchContentAsHtml(
+              pitch.pitchContent,
+              pitch.startupName,
+              primaryColor,
             );
-          }
 
-          // Ensure CSS exists to constrain the logo size so it looks good on the cover
-          if (!htmlContent.includes(".cover-logo svg")) {
-            const coverLogoStyles = `
-            .cover-logo svg,
-            .cover-logo img {
-              max-width: 240px !important;
-              max-height: 140px !important;
-              width: auto !important;
-              height: auto !important;
-              object-fit: contain;
-            }`;
+      // Resolve logo: use pitch.logo from API; for current/first pitch also allow unsaved generated or company logo
+      const isCurrentPitch = firstPitchMeta?.id === pitch.id;
+      const logoSource =
+        pitch.logo && typeof pitch.logo === "string" && pitch.logo.trim()
+          ? pitch.logo.trim()
+          : isCurrentPitch
+            ? (generatedLogoSvg ?? companyData?.logo ?? null)
+            : null;
+      //   const rawLogo = typeof logoSource === "string" ? logoSource.trim() : "";
 
-            if (htmlContent.includes("</style>")) {
-              htmlContent = htmlContent.replace(
-                "</style>",
-                `${coverLogoStyles}
-    </style>`,
-              );
-            }
-          }
-        }
-      }
+      //   // If we have an uploaded or generated logo, inject it into the cover (first page) so it appears in the PDF
+      //   if (rawLogo) {
+      //     const isSvg = rawLogo.includes("<svg");
+      //     const isImageSrc =
+      //       rawLogo.startsWith("data:image") || rawLogo.startsWith("http");
+
+      //     const logoMarkup = isSvg
+      //       ? rawLogo
+      //       : isImageSrc
+      //         ? `<img src="${rawLogo}" alt="${pitch.startupName} logo" />`
+      //         : "";
+
+      //     if (logoMarkup) {
+      //       const coverLogoContainer = `
+      //         <div class="cover-logo" style="margin-bottom: 24px; display: flex; justify-content: center; align-items: center;">
+
+      //         ${logoMarkup}
+      //         </div>
+      //       `;
+
+      //       // Inject logo at the top of the cover: support both API format (.cover) and client format (.header)
+      //       const coverMatch = htmlContent.match(/\s*<div\s+class="cover"\s*>/);
+      //       const headerMatch = htmlContent.match(/\s*<div\s+class="header"\s*>/);
+      //       if (coverMatch) {
+      //         htmlContent = htmlContent.replace(
+      //           coverMatch[0],
+      //           `${coverMatch[0]}${coverLogoContainer}`,
+      //         );
+      //       } else if (headerMatch) {
+      //         htmlContent = htmlContent.replace(
+      //           headerMatch[0],
+      //           `${headerMatch[0]}${coverLogoContainer}`,
+      //         );
+      //       }
+
+      //       // Ensure CSS exists to constrain the logo size on the cover
+      //       if (!htmlContent.includes(".cover-logo svg")) {
+      //         const coverLogoStyles = `
+      //         .cover-logo svg,
+      //         .cover-logo img {
+      //           max-width: 240px !important;
+      //           max-height: 140px !important;
+      //           width: auto !important;
+      //           height: auto !important;
+      //           object-fit: contain;
+      //         }`;
+
+      //         if (htmlContent.includes("</style>")) {
+      //           htmlContent = htmlContent.replace(
+      //             "</style>",
+      //             `${coverLogoStyles}
+      // </style>`,
+      //           );
+      //         }
+      //       }
+      //     }
+      //   }
 
       // Create hidden container for PDF content
       const hiddenContainer = document.createElement("div");
@@ -2251,31 +2272,31 @@ export function PitchDashboard({
                       </p>
                     )}
                     <div className="mt-auto relative z-10">
-                    {firstPitchHasPremiumLanding ? (
-                      <button
-                        onClick={openLandingPage}
-                        className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 relative z-10 cursor-pointer"
-                      >
-                        <ExternalLink size={12} /> Open Page
-                      </button>
-                    ) : (
-                      <button
-                        onClick={generateLandingPage}
-                        disabled={isGeneratingLanding}
-                        className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 relative z-10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isGeneratingLanding ? (
-                          <>
-                            <Loader2 size={12} className="animate-spin" />
-                            Generating...
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles size={12} /> Generate Page
-                          </>
-                        )}
-                      </button>
-                    )}
+                      {firstPitchHasPremiumLanding ? (
+                        <button
+                          onClick={openLandingPage}
+                          className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 relative z-10 cursor-pointer"
+                        >
+                          <ExternalLink size={12} /> Open Page
+                        </button>
+                      ) : (
+                        <button
+                          onClick={generateLandingPage}
+                          disabled={isGeneratingLanding}
+                          className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 relative z-10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isGeneratingLanding ? (
+                            <>
+                              <Loader2 size={12} className="animate-spin" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles size={12} /> Generate Page
+                            </>
+                          )}
+                        </button>
+                      )}
                     </div>
 
                     {/* Gradient Effect */}
@@ -2305,59 +2326,59 @@ export function PitchDashboard({
                       </p>
                     )}
                     <div className="mt-auto relative z-10">
-                    {companyData.logo ? (
-                      <div className="flex flex-row gap-2">
-                        <button
-                          onClick={() => {
-                            openLogoPreview(
-                              companyData.logo!,
-                              companyData.logo.startsWith("<svg") ||
-                                companyData.logo.includes("<svg"),
-                            );
-                          }}
-                          className="flex-1 py-2.5 bg-[#8B5CF6] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-[#6D28D9] transition-colors shadow-lg shadow-purple-500/20 cursor-pointer"
-                        >
-                          <Eye size={12} /> Preview
-                        </button>
-                        <button
-                          onClick={() => {
-                            downloadLogo(
-                              companyData.logo!,
-                              companyData.logo.startsWith("<svg") ||
-                                companyData.logo.includes("<svg"),
-                              `${companyData.companyName || "logo"}-logo`,
-                            );
-                          }}
-                          className="flex-1 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer"
-                        >
-                          <Download size={12} /> Download
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="mt-auto w-full">
-                        <Button
-                          size="default"
-                          className="bg-[#8B5CF6] hover:bg-[#6D28D9] text-white rounded-[12px] w-full disabled:opacity-60 disabled:cursor-not-allowed"
-                          disabled={Boolean(firstPitchMeta?.logoGenerated)}
-                          onClick={() => {
-                            if (firstPitchMeta?.logoGenerated) {
-                              toast.error("Logo generation limit reached", {
-                                description:
-                                  "You can only generate one logo per pitch. Please upload a logo if you need a different one.",
-                              });
-                              return;
-                            }
-                            setEditStep(3);
-                            setIsEditing(true);
-                          }}
-                        >
-                          <Sparkles className="w-4 h-4 mr-2" />
-                          {firstPitchMeta?.logoGenerated
-                            ? "Logo Already Generated"
-                            : "Generate Logo"}
-                        </Button>
-                      </div>
-                    )}
+                      {companyData.logo ? (
+                        <div className="flex flex-row gap-2">
+                          <button
+                            onClick={() => {
+                              openLogoPreview(
+                                companyData.logo!,
+                                companyData.logo.startsWith("<svg") ||
+                                  companyData.logo.includes("<svg"),
+                              );
+                            }}
+                            className="flex-1 py-2.5 bg-[#8B5CF6] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-[#6D28D9] transition-colors shadow-lg shadow-purple-500/20 cursor-pointer"
+                          >
+                            <Eye size={12} /> Preview
+                          </button>
+                          <button
+                            onClick={() => {
+                              downloadLogo(
+                                companyData.logo!,
+                                companyData.logo.startsWith("<svg") ||
+                                  companyData.logo.includes("<svg"),
+                                `${companyData.companyName || "logo"}-logo`,
+                              );
+                            }}
+                            className="flex-1 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer"
+                          >
+                            <Download size={12} /> Download
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="mt-auto w-full">
+                          <Button
+                            size="default"
+                            className="bg-[#8B5CF6] hover:bg-[#6D28D9] text-white rounded-[12px] w-full disabled:opacity-60 disabled:cursor-not-allowed"
+                            disabled={Boolean(firstPitchMeta?.logoGenerated)}
+                            onClick={() => {
+                              if (firstPitchMeta?.logoGenerated) {
+                                toast.error("Logo generation limit reached", {
+                                  description:
+                                    "You can only generate one logo per pitch. Please upload a logo if you need a different one.",
+                                });
+                                return;
+                              }
+                              setEditStep(3);
+                              setIsEditing(true);
+                            }}
+                          >
+                            <Sparkles className="w-4 h-4 mr-2" />
+                            {firstPitchMeta?.logoGenerated
+                              ? "Logo Already Generated"
+                              : "Generate Logo"}
+                          </Button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Gradient Effect */}

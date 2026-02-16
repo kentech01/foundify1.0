@@ -48,7 +48,7 @@ export function Dashboard({
   isPremium = false,
 }: DashboardProps) {
   const [pitches, setPitches] = useState<Pitch[]>(
-    initialPitch ? [initialPitch] : []
+    initialPitch ? [initialPitch] : [],
   );
   const [loadingModal, setLoadingModal] = useState<{
     isOpen: boolean;
@@ -73,8 +73,8 @@ export function Dashboard({
             // Update pitch to mark PDF as generated
             setPitches(
               pitches.map((p) =>
-                p.id === pitchId ? { ...p, hasPDF: true } : p
-              )
+                p.id === pitchId ? { ...p, hasPDF: true } : p,
+              ),
             );
             toast.success("PDF Generated!", {
               description: "Your pitch deck PDF is ready to download.",
@@ -103,8 +103,8 @@ export function Dashboard({
               pitches.map((p) =>
                 p.id === pitchId
                   ? { ...p, hasLanding: true, status: "published" }
-                  : p
-              )
+                  : p,
+              ),
             );
             toast.success("Landing Page Live!", {
               description: "Your landing page has been published successfully.",

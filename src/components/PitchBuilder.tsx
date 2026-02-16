@@ -346,6 +346,7 @@ export function PitchBuilder() {
         primaryColor: data.brandColor,
         secondaryColor: secondaryColor,
         email: user?.email || "",
+        logo: data.logo || undefined,
       };
 
       setProgress(30);
