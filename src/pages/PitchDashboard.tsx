@@ -301,14 +301,13 @@ export function PitchDashboard({
   const editSteps = [
     { id: "basics", label: "Company Basics", icon: Building2 },
     { id: "problem", label: "Problem & Value", icon: Target },
-    { id: "credibility", label: "Credibility", icon: TrendingUp },
     { id: "brand", label: "Brand", icon: Palette },
   ];
 
   // When arriving with ?openLogo=1 (e.g. from Hero's Generate Logo), open Edit Company Info at Brand step
   useEffect(() => {
     if (searchParams.get("openLogo") === "1") {
-      setEditStep(3);
+      setEditStep(2);
       setIsEditing(true);
       searchParams.delete("openLogo");
       setSearchParams(searchParams, { replace: true });
@@ -1863,21 +1862,11 @@ export function PitchDashboard({
     }
   };
 
-  const mainLoading =
-    (loading && (pitches?.length || 0) === 0) || isFetchingFirstPitch;
-
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="grid gap-6">
         {/* Company Profile Card - Primary */}
-        {mainLoading ? (
-          <Card className="border-2 border-slate-100 rounded-2xl overflow-hidden shadow-sm">
-            <CardContent className="p-8 flex flex-col items-center justify-center min-h-[200px]">
-              <Loader2 className="h-8 w-8 animate-spin text-indigo-500 mb-3" />
-              <p className="text-slate-600 text-sm">Loading...</p>
-            </CardContent>
-          </Card>
-        ) : companyData ? (
+        {companyData ? (
           <Card className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:border-indigo-100 transition-colors">
             <CardContent className="p-6">
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
@@ -2206,7 +2195,7 @@ export function PitchDashboard({
               <div className="grid md:grid-cols-3 gap-6" id="pitch-assets">
                 {/* Pitch Deck */}
                 {pitches && pitches.length > 0 && (
-                  <div className="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 hover:border-indigo-100 transition-all group/asset flex flex-col min-h-[220px]">
+                  <div className="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 hover:border-indigo-100 transition-all group/asset">
                     <div className="flex justify-between items-start mb-4">
                       <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-sm group-hover/asset:border-indigo-100 group-hover/asset:text-indigo-600 text-slate-400 transition-colors">
                         <FileText size={20} />
@@ -2219,7 +2208,7 @@ export function PitchDashboard({
                     <p className="text-xs text-slate-500 mb-4">
                       Professional presentation
                     </p>
-                    <div className="flex flex-col gap-2.5 mt-auto">
+                    <div className="flex flex-col gap-2.5 mt-1">
                       <div className="flex gap-2.5">
                         <button
                           onClick={handleRegenerate}
@@ -2249,7 +2238,7 @@ export function PitchDashboard({
 
                 {/* Landing Page */}
                 {firstPitchMeta && (
-                  <div className="p-5 rounded-2xl border border-slate-100 bg-indigo-50/30 hover:bg-white hover:shadow-lg hover:shadow-indigo-100/50 hover:border-indigo-100 transition-all group/asset relative overflow-hidden flex flex-col min-h-[220px]">
+                  <div className="p-5 rounded-2xl border border-slate-100 bg-indigo-50/30 hover:bg-white hover:shadow-lg hover:shadow-indigo-100/50 hover:border-indigo-100 transition-all group/asset relative overflow-hidden">
                     <div className="flex justify-between items-start mb-4 relative z-10">
                       <div className="w-10 h-10 rounded-xl bg-indigo-100 border border-indigo-200 flex items-center justify-center shadow-sm text-indigo-600">
                         <Zap size={20} />
@@ -2306,7 +2295,7 @@ export function PitchDashboard({
 
                 {/* Logo & Brand Assets */}
                 {companyData && (
-                  <div className="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg hover:shadow-purple-200/50 hover:border-purple-100 transition-all group/asset relative overflow-hidden flex flex-col min-h-[220px]">
+                  <div className="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg hover:shadow-purple-200/50 hover:border-purple-100 transition-all group/asset relative overflow-hidden">
                     <div className="flex justify-between items-start mb-4 relative z-10">
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#4C1D95] flex items-center justify-center shadow-sm text-white">
                         <Palette size={20} />
@@ -2368,7 +2357,7 @@ export function PitchDashboard({
                                 });
                                 return;
                               }
-                              setEditStep(3);
+                              setEditStep(2);
                               setIsEditing(true);
                             }}
                           >
@@ -2845,13 +2834,13 @@ export function PitchDashboard({
       {/* Edit Modal with 4 Steps */}
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
         <DialogContent className="max-w-4xl h-auto max-h-[90vh] rounded-[32px] p-0 flex flex-col">
-          <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex-shrink-0">
+          <div className="sticky top-0 bg-white z-10 border-b border-gray-200 p-6 flex-shrink-0">
             <DialogHeader>
-              <DialogTitle className="text-xl font-bold text-[#252952] flex items-center gap-2">
-                <Edit className="w-5 h-5 shrink-0" />
+              <DialogTitle className="text-[50px] font-bold text-[#252952] flex items-center gap-3">
+                <Edit className="w-7 h-7" />
                 Edit Company Info
               </DialogTitle>
-              <DialogDescription className="text-sm text-slate-500">
+              <DialogDescription className="text-[16px]">
                 Update your company information — changes apply everywhere
                 automatically
               </DialogDescription>
@@ -3001,7 +2990,7 @@ export function PitchDashboard({
             )}
 
             {/* Step 4: Brand (logo) */}
-            {editStep === 3 && (
+            {editStep === 2 && (
               <div className="space-y-8">
                 {/* Section 1: Upload Logo */}
                 <div className="space-y-3">
@@ -3258,32 +3247,6 @@ export function PitchDashboard({
             )}
 
             {/* Step 3: Credibility */}
-            {editStep === 2 && (
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <Label className="text-base font-semibold text-[#252952]">
-                    Team Size
-                  </Label>
-                  <Select
-                    value={editedData.teamSize}
-                    onValueChange={(value) =>
-                      setEditedData({ ...editedData, teamSize: value })
-                    }
-                  >
-                    <SelectTrigger className="h-14 text-base border-2 border-gray-200 rounded-[12px]">
-                      <SelectValue placeholder="Select team size" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TEAM_SIZES.map((size) => (
-                        <SelectItem key={size} value={size}>
-                          {size}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Navigation */}
