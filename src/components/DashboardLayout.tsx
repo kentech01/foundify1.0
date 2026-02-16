@@ -37,6 +37,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import { UserAuth } from "../context/AuthContext";
+import { useApp } from "../context/AppContext";
 import SignInModal from "./signIn/SignInModal";
 import React from "react";
 import { toast } from "sonner";
@@ -52,6 +53,7 @@ export function DashboardLayout({ children, isPremium, showCreateNewButton = tru
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logOut, loading } = UserAuth();
+  const { setIsPremium } = useApp();
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -116,8 +118,8 @@ export function DashboardLayout({ children, isPremium, showCreateNewButton = tru
 
   const handleSignOut = async () => {
     try {
+      setIsPremium(false);
       await logOut();
-
       navigate("/");
     } catch (error) {
       console.error("Error signing out:", error);
@@ -214,17 +216,13 @@ export function DashboardLayout({ children, isPremium, showCreateNewButton = tru
 
       {/* Bottom Section */}
       <div className="p-4 border-t border-white/10 space-y-2">
-        {/* <button
+        <button
           onClick={() => {
-            navigate("/");
+            navigate("/dashboard/settings");
             setIsMobileMenuOpen(false);
           }}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-[10px] text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200"
         >
-          <Home className="h-5 w-5" />
-          <span className="text-sm">Back to Home</span>
-        </button> */}
-        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-[10px] text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200">
           <Settings className="h-5 w-5" />
           <span className="text-sm">Settings</span>
         </button>
