@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import react from "react";
 import { useNavigate } from "react-router-dom";
 import { Nav } from "@/components/landingpage/Nav";
 import { Hero } from "@/components/landingpage/Hero";
@@ -15,10 +15,10 @@ import SignInModal from "@/components/signIn/SignInModal";
 export default function Landing() {
   const navigate = useNavigate();
   const { user, loading } = UserAuth();
-  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const [isSignInModalOpen, setIsSignInModalOpen] = react.useState(false);
 
   // Handler for "Get Started" buttons - goes to builder if not logged in, dashboard if logged in
-  useEffect(()=>{
+  react.useEffect(()=>{
     if(!loading){
       if (user) {
         navigate("/dashboard");
