@@ -12,6 +12,7 @@ import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
 import { Combobox } from "../components/ui/combobox";
 import { INDUSTRIES } from "../constants/industries";
+import LandingService from "../services/generateLangingService"
 import {
   Select,
   SelectContent,
@@ -61,6 +62,7 @@ import {
   RefreshCw,
   Check,
   AlertCircle,
+  LeafyGreen,
 } from "lucide-react";
 import { LoadingModal } from "../components/LoadingModal";
 import { toast } from "sonner";
@@ -72,7 +74,6 @@ import { currentUserAtom } from "../atoms/userAtom";
 import { pitchesAtom } from "../atoms/pitchesAtom";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import React from "react";
-
 interface PitchDashboardProps {
   initialPitch?: any;
   onCreatePitch: () => void;
@@ -80,7 +81,10 @@ interface PitchDashboardProps {
   userName: string | null;
   onUpgrade: () => void;
 }
-
+interface LandingState {
+  status: "empty" | "processing" | "completed",
+  isloading: boolean;
+}
 export function PitchDashboard({
   initialPitch,
   isPremium,
@@ -94,6 +98,7 @@ export function PitchDashboard({
   const [currentUser] = useRecoilState(currentUserAtom);
   const [pitches, setPitches] = useRecoilState(pitchesAtom); // Use atom state
   const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<LandingState>({status: "empty", isloading:true});
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -1111,6 +1116,11 @@ export function PitchDashboard({
   }, []);
 
   // Fetch first pitch for landing page generator
+  useEffect(()=>{
+    LandingService.startLandingStatusPolling(apiService, firstPitchMeta?.id);
+  const unsubscribe = LandingService.subscribe(setStatus);
+  return unsubscribe;
+  }, [firstPitchMeta])
   useEffect(() => {
     let isMounted = true;
     (async () => {
@@ -1214,42 +1224,18 @@ export function PitchDashboard({
     let progressInterval: number | undefined;
 
     try {
-      setIsGeneratingLanding(true);
-      setShowLandingLoading(true);
-      setLandingProgress(10);
-
-      progressInterval = window.setInterval(() => {
-        setLandingProgress((p) => Math.min(p + 5, 95));
-      }, 5000);
-
-      const response = await apiService.generateLandingPage(
-        firstPitchMeta.id,
-        "premium",
-        logoSvgContent || undefined,
-      );
-
-      setLandingProgress(100);
-
+      LandingService.generateLandingPage(apiService, firstPitchMeta.id, logoSvgContent)      
+      // Clear logo after successful generation
       toast.success("Premium Landing Page Generated!", {
         description: "Your premium landing page has been created successfully.",
       });
-
-      // Clear logo after successful generation
       clearLogo();
-
       // Refresh first pitch data
       await refreshFirstPitch();
     } catch (error: any) {
       toast.error("Failed to generate premium landing page", {
         description: error.message || "Please try again later.",
       });
-    } finally {
-      if (progressInterval) window.clearInterval(progressInterval);
-      setTimeout(() => {
-        setShowLandingLoading(false);
-        setLandingProgress(0);
-      }, 400);
-      setIsGeneratingLanding(false);
     }
   };
 
@@ -1877,8 +1863,8 @@ export function PitchDashboard({
                       onClick={() =>
                         openLogoPreview(
                           companyData.logo!,
-                          companyData.logo.startsWith("<svg") ||
-                            companyData.logo.includes("<svg"),
+                          companyData.logo!.startsWith("<svg") ||
+                            companyData.logo!.includes("<svg"),
                         )
                       }
                       className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-lg border border-slate-100 overflow-hidden p-2 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition"
@@ -2238,7 +2224,7 @@ export function PitchDashboard({
 
                 {/* Landing Page */}
                 {firstPitchMeta && (
-                  <div className="p-5 rounded-2xl border border-slate-100 bg-indigo-50/30 hover:bg-white hover:shadow-lg hover:shadow-indigo-100/50 hover:border-indigo-100 transition-all group/asset relative overflow-hidden">
+                  <div className="p-5 rounded-2xl border  border-slate-100 bg-indigo-50/30 hover:bg-white hover:shadow-lg hover:shadow-indigo-100/50 hover:border-indigo-100 transition-all group/asset relative flex flex-col overflow-hidden">
                     <div className="flex justify-between items-start mb-4 relative z-10">
                       <div className="w-10 h-10 rounded-xl bg-indigo-100 border border-indigo-200 flex items-center justify-center shadow-sm text-indigo-600">
                         <Zap size={20} />
@@ -2261,7 +2247,7 @@ export function PitchDashboard({
                       </p>
                     )}
                     <div className="mt-auto relative z-10">
-                      {firstPitchHasPremiumLanding ? (
+                      {status.status == 'completed' ? (
                         <button
                           onClick={openLandingPage}
                           className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 relative z-10 cursor-pointer"
@@ -2271,10 +2257,10 @@ export function PitchDashboard({
                       ) : (
                         <button
                           onClick={generateLandingPage}
-                          disabled={isGeneratingLanding}
+                          disabled={isGeneratingLanding || status.status == 'processing'|| status.isloading}
                           className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 relative z-10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {isGeneratingLanding ? (
+                          {status.status == 'processing'? (
                             <>
                               <Loader2 size={12} className="animate-spin" />
                               Generating...
@@ -2295,7 +2281,7 @@ export function PitchDashboard({
 
                 {/* Logo & Brand Assets */}
                 {companyData && (
-                  <div className="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg hover:shadow-purple-200/50 hover:border-purple-100 transition-all group/asset relative overflow-hidden">
+                  <div className="p-5 rounded-2xl flex flex-col  border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg hover:shadow-purple-200/50 hover:border-purple-100 transition-all group/asset relative overflow-hidden">
                     <div className="flex justify-between items-start mb-4 relative z-10">
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#4C1D95] flex items-center justify-center shadow-sm text-white">
                         <Palette size={20} />
@@ -2321,8 +2307,8 @@ export function PitchDashboard({
                             onClick={() => {
                               openLogoPreview(
                                 companyData.logo!,
-                                companyData.logo.startsWith("<svg") ||
-                                  companyData.logo.includes("<svg"),
+                                companyData.logo!.startsWith("<svg") ||
+                                  companyData.logo!.includes("<svg"),
                               );
                             }}
                             className="flex-1 py-2.5 bg-[#8B5CF6] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-[#6D28D9] transition-colors shadow-lg shadow-purple-500/20 cursor-pointer"
@@ -2333,8 +2319,8 @@ export function PitchDashboard({
                             onClick={() => {
                               downloadLogo(
                                 companyData.logo!,
-                                companyData.logo.startsWith("<svg") ||
-                                  companyData.logo.includes("<svg"),
+                                companyData.logo!.startsWith("<svg") ||
+                                  companyData.logo!.includes("<svg"),
                                 `${companyData.companyName || "logo"}-logo`,
                               );
                             }}
