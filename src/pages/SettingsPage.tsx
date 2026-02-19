@@ -25,6 +25,9 @@ interface SubscriptionStatusResponse {
   subscription?: {
     status: string;
     plan_type: string;
+    // May include additional fields returned by the API, including:
+    // - paddleData: live Paddle subscription object
+    // - any future metadata columns from the subscriptions table
     [key: string]: unknown;
   };
 }
@@ -43,7 +46,19 @@ export function SettingsPage() {
   const subscription = statusResponse?.subscription;
   const status = subscription?.status ?? "inactive";
   const plan_type = subscription?.plan_type ?? "free";
-  const isPremium = plan_type === "premium" && status === "active";
+  const paddleData = (subscription?.paddleData ||
+    // In case the API ever returns snake_case
+    (subscription as any)?.paddle_data) as any | undefined;
+
+  const scheduledChange =
+    paddleData?.scheduled_change || paddleData?.scheduledChange;
+  const isCancellationScheduled =
+    scheduledChange?.action === "cancel" ||
+    scheduledChange?.action === "cancellation";
+  const cancellationEffectiveAt: string | undefined =
+    scheduledChange?.effective_at || scheduledChange?.effectiveAt;
+
+  const isPremiumActive = plan_type === "premium" && status === "active";
 
   useEffect(() => {
     let cancelled = false;
@@ -63,6 +78,17 @@ export function SettingsPage() {
       cancelled = true;
     };
   }, [getSubscriptionStatus]);
+
+  const formatDate = (iso?: string | null) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   const handleCancelSubscription = async () => {
     try {
@@ -138,7 +164,9 @@ export function SettingsPage() {
                   {plan_type === "premium" ? "Premium" : "Free"}
                 </Badge>
                 <span className="text-xs text-gray-500 uppercase tracking-wide">
-                  {status}
+                  {isPremiumActive && isCancellationScheduled && cancellationEffectiveAt
+                    ? `ACTIVE – CANCELS ${formatDate(cancellationEffectiveAt)}`
+                    : status}
                 </span>
               </div>
             </div>
@@ -156,7 +184,25 @@ export function SettingsPage() {
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span>Loading subscription…</span>
               </div>
-            ) : isPremium ? (
+            ) : isPremiumActive && isCancellationScheduled ? (
+              <>
+                <Alert className="border-yellow-200 bg-yellow-50">
+                  <XCircle className="h-4 w-4 text-yellow-600" />
+                  <AlertTitle className="text-yellow-800">
+                    Subscription cancellation scheduled
+                  </AlertTitle>
+                  <AlertDescription className="text-yellow-700 text-sm">
+                    You&apos;ve cancelled your Premium subscription. You&apos;ll
+                    keep full Premium access until{" "}
+                    {cancellationEffectiveAt
+                      ? formatDate(cancellationEffectiveAt)
+                      : "the end of the current billing period"}
+                    . After that, you won&apos;t be charged again and will move to
+                    the free plan.
+                  </AlertDescription>
+                </Alert>
+              </>
+            ) : isPremiumActive ? (
               <>
                 <Alert className="border-green-200 bg-green-50">
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
