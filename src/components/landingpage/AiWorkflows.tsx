@@ -22,7 +22,7 @@ interface AiWorkflowsProps {
 export function AiWorkflows({ onGetStarted }: AiWorkflowsProps) {
   
   return (
-    <section id="tools" className="py-32 bg-white text-slate-900 overflow-hidden relative border-t border-slate-100">
+    <section className="py-32 bg-white text-slate-900 overflow-hidden relative border-t border-slate-100">
       {/* Background Gradients & Noise */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-indigo-50/50 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[800px] h-[600px] bg-blue-50/50 rounded-full blur-[100px] pointer-events-none" />

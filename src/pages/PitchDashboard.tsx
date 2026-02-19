@@ -12,7 +12,6 @@ import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
 import { Combobox } from "../components/ui/combobox";
 import { INDUSTRIES } from "../constants/industries";
-import LandingService from "../services/generateLangingService"
 import {
   Select,
   SelectContent,
@@ -62,7 +61,6 @@ import {
   RefreshCw,
   Check,
   AlertCircle,
-  LeafyGreen,
 } from "lucide-react";
 import { LoadingModal } from "../components/LoadingModal";
 import { toast } from "sonner";
@@ -74,6 +72,7 @@ import { currentUserAtom } from "../atoms/userAtom";
 import { pitchesAtom } from "../atoms/pitchesAtom";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import React from "react";
+
 interface PitchDashboardProps {
   initialPitch?: any;
   onCreatePitch: () => void;
@@ -81,10 +80,7 @@ interface PitchDashboardProps {
   userName: string | null;
   onUpgrade: () => void;
 }
-interface LandingState {
-  status: "empty" | "processing" | "completed",
-  isloading: boolean;
-}
+
 export function PitchDashboard({
   initialPitch,
   isPremium,
@@ -98,7 +94,6 @@ export function PitchDashboard({
   const [currentUser] = useRecoilState(currentUserAtom);
   const [pitches, setPitches] = useRecoilState(pitchesAtom); // Use atom state
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState<LandingState>({status: "empty", isloading:true});
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -306,13 +301,14 @@ export function PitchDashboard({
   const editSteps = [
     { id: "basics", label: "Company Basics", icon: Building2 },
     { id: "problem", label: "Problem & Value", icon: Target },
+    { id: "credibility", label: "Credibility", icon: TrendingUp },
     { id: "brand", label: "Brand", icon: Palette },
   ];
 
   // When arriving with ?openLogo=1 (e.g. from Hero's Generate Logo), open Edit Company Info at Brand step
   useEffect(() => {
     if (searchParams.get("openLogo") === "1") {
-      setEditStep(2);
+      setEditStep(3);
       setIsEditing(true);
       searchParams.delete("openLogo");
       setSearchParams(searchParams, { replace: true });
@@ -1116,11 +1112,6 @@ export function PitchDashboard({
   }, []);
 
   // Fetch first pitch for landing page generator
-  useEffect(()=>{
-    LandingService.startLandingStatusPolling(apiService, firstPitchMeta?.id);
-  const unsubscribe = LandingService.subscribe(setStatus);
-  return unsubscribe;
-  }, [firstPitchMeta])
   useEffect(() => {
     let isMounted = true;
     (async () => {
@@ -1224,18 +1215,42 @@ export function PitchDashboard({
     let progressInterval: number | undefined;
 
     try {
-      LandingService.generateLandingPage(apiService, firstPitchMeta.id, logoSvgContent)      
-      // Clear logo after successful generation
+      setIsGeneratingLanding(true);
+      setShowLandingLoading(true);
+      setLandingProgress(10);
+
+      progressInterval = window.setInterval(() => {
+        setLandingProgress((p) => Math.min(p + 5, 95));
+      }, 5000);
+
+      const response = await apiService.generateLandingPage(
+        firstPitchMeta.id,
+        "premium",
+        logoSvgContent || undefined,
+      );
+
+      setLandingProgress(100);
+
       toast.success("Premium Landing Page Generated!", {
         description: "Your premium landing page has been created successfully.",
       });
+
+      // Clear logo after successful generation
       clearLogo();
+
       // Refresh first pitch data
       await refreshFirstPitch();
     } catch (error: any) {
       toast.error("Failed to generate premium landing page", {
         description: error.message || "Please try again later.",
       });
+    } finally {
+      if (progressInterval) window.clearInterval(progressInterval);
+      setTimeout(() => {
+        setShowLandingLoading(false);
+        setLandingProgress(0);
+      }, 400);
+      setIsGeneratingLanding(false);
     }
   };
 
@@ -1848,11 +1863,21 @@ export function PitchDashboard({
     }
   };
 
+  const mainLoading =
+    (loading && (pitches?.length || 0) === 0) || isFetchingFirstPitch;
+
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="grid gap-6">
         {/* Company Profile Card - Primary */}
-        {companyData ? (
+        {mainLoading ? (
+          <Card className="border-2 border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+            <CardContent className="p-8 flex flex-col items-center justify-center min-h-[200px]">
+              <Loader2 className="h-8 w-8 animate-spin text-indigo-500 mb-3" />
+              <p className="text-slate-600 text-sm">Loading...</p>
+            </CardContent>
+          </Card>
+        ) : companyData ? (
           <Card className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:border-indigo-100 transition-colors">
             <CardContent className="p-6">
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
@@ -1863,8 +1888,8 @@ export function PitchDashboard({
                       onClick={() =>
                         openLogoPreview(
                           companyData.logo!,
-                          companyData.logo!.startsWith("<svg") ||
-                            companyData.logo!.includes("<svg"),
+                          companyData.logo.startsWith("<svg") ||
+                            companyData.logo.includes("<svg"),
                         )
                       }
                       className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-lg border border-slate-100 overflow-hidden p-2 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition"
@@ -2181,7 +2206,7 @@ export function PitchDashboard({
               <div className="grid md:grid-cols-3 gap-6" id="pitch-assets">
                 {/* Pitch Deck */}
                 {pitches && pitches.length > 0 && (
-                  <div className="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 hover:border-indigo-100 transition-all group/asset">
+                  <div className="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 hover:border-indigo-100 transition-all group/asset flex flex-col min-h-[220px]">
                     <div className="flex justify-between items-start mb-4">
                       <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-sm group-hover/asset:border-indigo-100 group-hover/asset:text-indigo-600 text-slate-400 transition-colors">
                         <FileText size={20} />
@@ -2194,7 +2219,7 @@ export function PitchDashboard({
                     <p className="text-xs text-slate-500 mb-4">
                       Professional presentation
                     </p>
-                    <div className="flex flex-col gap-2.5 mt-1">
+                    <div className="flex flex-col gap-2.5 mt-auto">
                       <div className="flex gap-2.5">
                         <button
                           onClick={handleRegenerate}
@@ -2224,7 +2249,7 @@ export function PitchDashboard({
 
                 {/* Landing Page */}
                 {firstPitchMeta && (
-                  <div className="p-5 rounded-2xl border  border-slate-100 bg-indigo-50/30 hover:bg-white hover:shadow-lg hover:shadow-indigo-100/50 hover:border-indigo-100 transition-all group/asset relative flex flex-col overflow-hidden">
+                  <div className="p-5 rounded-2xl border border-slate-100 bg-indigo-50/30 hover:bg-white hover:shadow-lg hover:shadow-indigo-100/50 hover:border-indigo-100 transition-all group/asset relative overflow-hidden flex flex-col min-h-[220px]">
                     <div className="flex justify-between items-start mb-4 relative z-10">
                       <div className="w-10 h-10 rounded-xl bg-indigo-100 border border-indigo-200 flex items-center justify-center shadow-sm text-indigo-600">
                         <Zap size={20} />
@@ -2247,7 +2272,7 @@ export function PitchDashboard({
                       </p>
                     )}
                     <div className="mt-auto relative z-10">
-                      {status.status == 'completed' ? (
+                      {firstPitchHasPremiumLanding ? (
                         <button
                           onClick={openLandingPage}
                           className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 relative z-10 cursor-pointer"
@@ -2257,10 +2282,10 @@ export function PitchDashboard({
                       ) : (
                         <button
                           onClick={generateLandingPage}
-                          disabled={isGeneratingLanding || status.status == 'processing'|| status.isloading}
+                          disabled={isGeneratingLanding}
                           className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 relative z-10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {status.status == 'processing'? (
+                          {isGeneratingLanding ? (
                             <>
                               <Loader2 size={12} className="animate-spin" />
                               Generating...
@@ -2281,7 +2306,7 @@ export function PitchDashboard({
 
                 {/* Logo & Brand Assets */}
                 {companyData && (
-                  <div className="p-5 rounded-2xl flex flex-col  border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg hover:shadow-purple-200/50 hover:border-purple-100 transition-all group/asset relative overflow-hidden">
+                  <div className="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg hover:shadow-purple-200/50 hover:border-purple-100 transition-all group/asset relative overflow-hidden flex flex-col min-h-[220px]">
                     <div className="flex justify-between items-start mb-4 relative z-10">
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#4C1D95] flex items-center justify-center shadow-sm text-white">
                         <Palette size={20} />
@@ -2307,15 +2332,27 @@ export function PitchDashboard({
                             onClick={() => {
                               openLogoPreview(
                                 companyData.logo!,
-                                companyData.logo!.startsWith("<svg") ||
-                                  companyData.logo!.includes("<svg"),
+                                companyData.logo.startsWith("<svg") ||
+                                  companyData.logo.includes("<svg"),
                               );
                             }}
                             className="flex-1 py-2.5 bg-[#8B5CF6] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-[#6D28D9] transition-colors shadow-lg shadow-purple-500/20 cursor-pointer"
                           >
                             <Eye size={12} /> Preview
                           </button>
-                          
+                          <button
+                            onClick={() => {
+                              downloadLogo(
+                                companyData.logo!,
+                                companyData.logo.startsWith("<svg") ||
+                                  companyData.logo.includes("<svg"),
+                                `${companyData.companyName || "logo"}-logo`,
+                              );
+                            }}
+                            className="flex-1 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer"
+                          >
+                            <Download size={12} /> Download
+                          </button>
                         </div>
                       ) : (
                         <div className="mt-auto w-full">
@@ -2331,7 +2368,7 @@ export function PitchDashboard({
                                 });
                                 return;
                               }
-                              setEditStep(2);
+                              setEditStep(3);
                               setIsEditing(true);
                             }}
                           >
@@ -2808,13 +2845,13 @@ export function PitchDashboard({
       {/* Edit Modal with 4 Steps */}
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
         <DialogContent className="max-w-4xl h-auto max-h-[90vh] rounded-[32px] p-0 flex flex-col">
-          <div className="sticky top-0 bg-white z-10 border-b border-gray-200 p-6 flex-shrink-0">
+          <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex-shrink-0">
             <DialogHeader>
-              <DialogTitle className="text-[30px] font-bold text-[#252952] flex items-center gap-3">
-                <Edit className="w-7 h-7" />
+              <DialogTitle className="text-xl font-bold text-[#252952] flex items-center gap-2">
+                <Edit className="w-5 h-5 shrink-0" />
                 Edit Company Info
               </DialogTitle>
-              <DialogDescription className="text-[16px]">
+              <DialogDescription className="text-sm text-slate-500">
                 Update your company information — changes apply everywhere
                 automatically
               </DialogDescription>
@@ -2964,7 +3001,7 @@ export function PitchDashboard({
             )}
 
             {/* Step 4: Brand (logo) */}
-            {editStep === 2 && (
+            {editStep === 3 && (
               <div className="space-y-8">
                 {/* Section 1: Upload Logo */}
                 <div className="space-y-3">
@@ -3062,7 +3099,22 @@ export function PitchDashboard({
                           <Eye className="w-3 h-3 mr-1" />
                           Preview
                         </Button>
-                        
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 border-2 border-gray-200 rounded-[8px]"
+                          onClick={() =>
+                            downloadLogo(
+                              editLogoPreview,
+                              editLogoPreview.startsWith("<svg") ||
+                                editLogoPreview.includes("<svg"),
+                              `${editedData.companyName || "logo"}-logo`,
+                            )
+                          }
+                        >
+                          <Download className="w-3 h-3 mr-1" />
+                          Download
+                        </Button>
                       </div>
                       <p className="text-xs text-gray-500 mt-2 text-center">
                         This logo will be saved to your company profile
@@ -3125,7 +3177,21 @@ export function PitchDashboard({
                             <Eye className="w-3 h-3 mr-1" />
                             Preview
                           </Button>
-                          
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 border-2 border-gray-200 rounded-[8px]"
+                            onClick={() =>
+                              downloadLogo(
+                                generatedLogoSvg,
+                                true,
+                                `${editedData.companyName || "logo"}-logo`,
+                              )
+                            }
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            Download
+                          </Button>
                         </div>
                         <p className="text-xs text-gray-500 mt-2 text-center">
                           This logo will be saved to your company profile
@@ -3192,6 +3258,32 @@ export function PitchDashboard({
             )}
 
             {/* Step 3: Credibility */}
+            {editStep === 2 && (
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold text-[#252952]">
+                    Team Size
+                  </Label>
+                  <Select
+                    value={editedData.teamSize}
+                    onValueChange={(value) =>
+                      setEditedData({ ...editedData, teamSize: value })
+                    }
+                  >
+                    <SelectTrigger className="h-14 text-base border-2 border-gray-200 rounded-[12px]">
+                      <SelectValue placeholder="Select team size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TEAM_SIZES.map((size) => (
+                        <SelectItem key={size} value={size}>
+                          {size}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Navigation */}
