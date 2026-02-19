@@ -2315,19 +2315,7 @@ export function PitchDashboard({
                           >
                             <Eye size={12} /> Preview
                           </button>
-                          <button
-                            onClick={() => {
-                              downloadLogo(
-                                companyData.logo!,
-                                companyData.logo!.startsWith("<svg") ||
-                                  companyData.logo!.includes("<svg"),
-                                `${companyData.companyName || "logo"}-logo`,
-                              );
-                            }}
-                            className="flex-1 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer"
-                          >
-                            <Download size={12} /> Download
-                          </button>
+                          
                         </div>
                       ) : (
                         <div className="mt-auto w-full">
@@ -2822,7 +2810,7 @@ export function PitchDashboard({
         <DialogContent className="max-w-4xl h-auto max-h-[90vh] rounded-[32px] p-0 flex flex-col">
           <div className="sticky top-0 bg-white z-10 border-b border-gray-200 p-6 flex-shrink-0">
             <DialogHeader>
-              <DialogTitle className="text-[50px] font-bold text-[#252952] flex items-center gap-3">
+              <DialogTitle className="text-[30px] font-bold text-[#252952] flex items-center gap-3">
                 <Edit className="w-7 h-7" />
                 Edit Company Info
               </DialogTitle>
@@ -3074,22 +3062,7 @@ export function PitchDashboard({
                           <Eye className="w-3 h-3 mr-1" />
                           Preview
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex-1 border-2 border-gray-200 rounded-[8px]"
-                          onClick={() =>
-                            downloadLogo(
-                              editLogoPreview,
-                              editLogoPreview.startsWith("<svg") ||
-                                editLogoPreview.includes("<svg"),
-                              `${editedData.companyName || "logo"}-logo`,
-                            )
-                          }
-                        >
-                          <Download className="w-3 h-3 mr-1" />
-                          Download
-                        </Button>
+                        
                       </div>
                       <p className="text-xs text-gray-500 mt-2 text-center">
                         This logo will be saved to your company profile
@@ -3152,21 +3125,7 @@ export function PitchDashboard({
                             <Eye className="w-3 h-3 mr-1" />
                             Preview
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex-1 border-2 border-gray-200 rounded-[8px]"
-                            onClick={() =>
-                              downloadLogo(
-                                generatedLogoSvg,
-                                true,
-                                `${editedData.companyName || "logo"}-logo`,
-                              )
-                            }
-                          >
-                            <Download className="w-3 h-3 mr-1" />
-                            Download
-                          </Button>
+                          
                         </div>
                         <p className="text-xs text-gray-500 mt-2 text-center">
                           This logo will be saved to your company profile
