@@ -8,9 +8,10 @@ import React from "react";
 interface NavProps {
   onDashboardClick?: () => void;
   onSignInClick?: () => void;
+  handleOpenSignInModal?: () => void;
 }
 
-export function Nav({ onDashboardClick, onSignInClick }: NavProps) {
+export function Nav({ onDashboardClick, onSignInClick,handleOpenSignInModal }: NavProps) {
 const logo = new URL("../../assets/logo.svg", import.meta.url).href;
   const navigate = useNavigate();
   const { user } = UserAuth();
@@ -74,7 +75,7 @@ const logo = new URL("../../assets/logo.svg", import.meta.url).href;
       )}
     >
       <div className="container mx-auto px-6 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 cursor-pointer">
           <img src={logo} onClick={handleLogoClick} alt="foundify logo" />
         </div>
 
