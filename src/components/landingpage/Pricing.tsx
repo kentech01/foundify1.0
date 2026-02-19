@@ -1,13 +1,10 @@
 import { motion } from "motion/react";
 import { Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { SparkleButton } from "@/components/ui/sparkles";
+import { Button } from "../ui/button";
+import { SparkleButton } from "../ui/sparkles";
 import { useNavigate } from "react-router-dom";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-
-interface PricingProps {
-  onGetStarted?: () => void;
-}
+import React from "react";
+import SignInModal from "../signIn/SignInModal";
 
 const plans = [
   {
@@ -18,7 +15,7 @@ const plans = [
       "Pitch Dashboard",
       "Landing Page Generator",
       "Pitch Deck Generator",
-      "Basic Email Drafts (3/mo)",
+      "Logo generator",
       "Single User"
     ],
     cta: "Start for Free",
@@ -42,25 +39,30 @@ const plans = [
   }
 ];
 
-export function Pricing({ onGetStarted }: PricingProps) {
+export function Pricing() {
   const navigate = useNavigate();
-  const { user } = useCurrentUser();
+  const [isSignInModalOpen, setIsSignInModalOpen] = React.useState(false);
+  const [signInContext, setSignInContext] = React.useState<"starter" | "premium">(
+    "starter"
+  );
+  const [billingCycle, setBillingCycle] = React.useState<"monthly" | "yearly">(
+    "monthly"
+  );
+
+  const proPriceMonthly = 12;
+  const proPriceYearlyPerMonth = 10;
+  const proYearlyBilledTotal = proPriceYearlyPerMonth * 12;
 
   const handleGetStarted = (isPremium: boolean) => {
-    if (onGetStarted) {
-      onGetStarted();
-    } else if (isPremium) {
-      // Navigate to upgrade page for premium plan
-      if (user) {
-        navigate("/upgrade");
-      } else {
-        // If not logged in, redirect to sign up
-        onGetStarted?.();
-      }
+    // Landing page only shows to logged-out users (logged-in users get redirected),
+    // so always open sign-in and remember where the click came from.
+    setSignInContext(isPremium ? "premium" : "starter");
+    if (isPremium) {
+      sessionStorage.setItem("postAuthRedirect", "/upgrade");
     } else {
-      // Free plan - just sign up
-      onGetStarted?.();
+      sessionStorage.removeItem("postAuthRedirect");
     }
+    setIsSignInModalOpen(true);
   };
   
   return (
@@ -78,16 +80,48 @@ export function Pricing({ onGetStarted }: PricingProps) {
           <p className="text-slate-500 text-lg font-medium leading-relaxed">
             Start for free, upgrade when you're ready to scale your operations. No hidden fees.
           </p>
+
+          {/* Billing toggle */}
+          <div className="mt-8 flex items-center justify-center">
+            <div
+              role="tablist"
+              aria-label="Billing cycle"
+              className="inline-flex rounded-2xl border border-slate-200 bg-white/80 p-1 shadow-sm"
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={billingCycle === "monthly"}
+                onClick={() => setBillingCycle("monthly")}
+                className={`px-4 py-2 text-sm font-bold rounded-xl transition-colors ${
+                  billingCycle === "monthly"
+                    ? "bg-slate-900 text-white"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={billingCycle === "yearly"}
+                onClick={() => setBillingCycle("yearly")}
+                className={`px-4 py-2 text-sm font-bold rounded-xl transition-colors ${
+                  billingCycle === "yearly"
+                    ? "bg-slate-900 text-white"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                Yearly
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {plans.map((plan, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              viewport={{ once: true }}
               whileHover={{ y: -5 }}
               className={`relative rounded-3xl p-10 border transition-all duration-300 h-full flex flex-col ${
                 plan.popular
@@ -99,9 +133,21 @@ export function Pricing({ onGetStarted }: PricingProps) {
               <div className="mb-8">
                 <h3 className={`text-xl font-bold mb-2 ${plan.popular ? "text-indigo-900" : "text-slate-900"}`}>{plan.name}</h3>
                 <div className="flex items-baseline gap-1 mb-4">
-                  <span className={`text-5xl font-black tracking-tight ${plan.popular ? "text-indigo-600" : "text-slate-900"}`}>${plan.price}</span>
+                  <span className={`text-5xl font-black tracking-tight ${plan.popular ? "text-indigo-600" : "text-slate-900"}`}>
+                    $
+                    {plan.popular
+                      ? billingCycle === "yearly"
+                        ? proPriceYearlyPerMonth
+                        : proPriceMonthly
+                      : plan.price}
+                  </span>
                   <span className="text-slate-400 font-bold">/mo</span>
                 </div>
+                {plan.popular && billingCycle === "yearly" && (
+                  <p className="text-sm text-slate-500 font-medium -mt-2 mb-4">
+                    Billed yearly (${proYearlyBilledTotal}/year)
+                  </p>
+                )}
                 <p className="text-sm text-slate-500 font-medium leading-relaxed">{plan.description}</p>
               </div>
 
@@ -139,6 +185,18 @@ export function Pricing({ onGetStarted }: PricingProps) {
           ))}
         </div>
       </div>
+      <SignInModal
+        isOpen={isSignInModalOpen}
+        onClose={() => setIsSignInModalOpen(false)}
+        onSignInSuccess={() => {
+          setIsSignInModalOpen(false);
+          if (signInContext === "premium") {
+            navigate("/upgrade");
+          } else {
+            navigate("/dashboard");
+          }
+        }}
+      />
     </section>
   );
 }

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Footer } from "../components/Footer";
-import { LandingHeader } from "../components/landingpage/LandingHeader";
 import SignInModal from "../components/signIn/SignInModal";
+import { Nav } from "../components/landingpage/Nav";
 
 // app/terms/page.tsx (or components/Terms.tsx)
 function Terms() {
@@ -9,7 +9,7 @@ function Terms() {
 
   return (
     <>
-      <LandingHeader handleOpenSignInModal={() => setIsSignInModalOpen(true)} />
+      <Nav handleOpenSignInModal={() => setIsSignInModalOpen(true)} />
       <div className="min-h-screen bg-white py-8 px-4 leading-relaxed text-slate-800">
         <div className="mx-auto max-w-3xl rounded-xl bg-white p-6 md:p-8">
           <header className="mb-12 border-b-2 border-slate-100 pb-8 text-center">
