@@ -215,7 +215,7 @@ export function DashboardLayout({ children, isPremium, showCreateNewButton = tru
       </nav>
 
       {/* Bottom Section */}
-      <div className="p-4 border-t border-white/10 space-y-2">
+      {/* <div className="p-4 border-t border-white/10 space-y-2">
         <button
           onClick={() => {
             navigate("/dashboard/settings");
@@ -226,7 +226,7 @@ export function DashboardLayout({ children, isPremium, showCreateNewButton = tru
           <Settings className="h-5 w-5" />
           <span className="text-sm">Settings</span>
         </button>
-      </div>
+      </div> */}
     </>
   );
 
@@ -314,9 +314,9 @@ export function DashboardLayout({ children, isPremium, showCreateNewButton = tru
                       <p className="text-sm text-gray-600">{user.email}</p>
                     </div>
                     <div className="px-4 py-2 bg-[#EEF0FF]">
-                      <DropdownMenuItem className="flex items-center gap-3 px-4 py-3 text-base font-medium text-gray-700 hover:bg-white rounded-xl transition-colors cursor-pointer">
-                        <LayoutDashboard className="h-5 w-5" />
-                        <span>Dashboard</span>
+                      <DropdownMenuItem className="flex items-center gap-3 px-4 py-3 text-base font-medium text-gray-700 hover:bg-white rounded-xl transition-colors cursor-pointer" onClick={()=>{navigate("/dashboard/settings")}}>
+                      <Settings className="h-5 w-5" />
+                        <span>Settings</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={handleSignOut}
