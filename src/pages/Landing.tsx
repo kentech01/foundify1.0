@@ -2,15 +2,14 @@ import react from "react";
 import { useNavigate } from "react-router-dom";
 import { Nav } from "@/components/landingpage/Nav";
 import { Hero } from "@/components/landingpage/Hero";
-import { LogoMarquee } from "@/components/landingpage/LogoMarquee";
 import { HowItWorks } from "@/components/landingpage/HowItWorks";
-import { ToolsShowcase } from "@/components/landingpage/ToolsShowcase";
 import { Pricing } from "@/components/landingpage/Pricing";
 import { Footer } from "@/components/Footer";
 import { AiWorkflows } from "@/components/landingpage/AiWorkflows";
 import { WhyFoundify } from "@/components/landingpage/WhyFoundify";
 import { UserAuth } from "@/context/AuthContext";
 import SignInModal from "@/components/signIn/SignInModal";
+import React from "react";
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -21,11 +20,18 @@ export default function Landing() {
   react.useEffect(()=>{
     if(!loading){
       if (user) {
-        navigate("/dashboard");
+        const redirect = sessionStorage.getItem("postAuthRedirect");
+        if (redirect) {
+          sessionStorage.removeItem("postAuthRedirect");
+          navigate(redirect);
+        } else {
+          navigate("/dashboard");
+        }
       }
      }
     
-  }, [loading])
+  }, [loading, user, navigate])
+  
   const handleGetStarted = () => {
     
     if (user) {
@@ -61,7 +67,13 @@ export default function Landing() {
       onClose={() => setIsSignInModalOpen(false)}
       onSignInSuccess={() => {
         setIsSignInModalOpen(false);
-        navigate("/dashboard");
+        const redirect = sessionStorage.getItem("postAuthRedirect");
+        if (redirect) {
+          sessionStorage.removeItem("postAuthRedirect");
+          navigate(redirect);
+        } else {
+          navigate("/dashboard");
+        }
       }}
     />
   </div>)
