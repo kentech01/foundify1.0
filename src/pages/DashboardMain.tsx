@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "../components/DashboardLayout";
 import { PitchDashboard } from "./PitchDashboard";
@@ -21,6 +21,7 @@ import { useSubscription } from "../hooks/useSubscription";
 import { useCurrentUser } from "../hooks/useCurrentUser";
 import { useRecoilValue } from "recoil";
 import { pitchesAtom } from "../atoms/pitchesAtom";
+import { SettingsPage } from "./SettingsPage";
 
 interface DashboardMainProps{
   username: string | null,
@@ -103,6 +104,17 @@ export function DashboardMain({
   const handleSignInSuccess = () => {
     setIsSignInModalOpen(false);
   };
+
+  // Reset premium state when the logged-in user changes (logout or switch account).
+  // Prevents a new account from inheriting the previous account's isPremium flag.
+  const prevUidRef = useRef<string | null>(null);
+  useEffect(() => {
+    const uid = user?.uid ?? null;
+    if (prevUidRef.current !== uid) {
+      prevUidRef.current = uid;
+      setIsPremium(false);
+    }
+  }, [user?.uid, setIsPremium]);
 
   // Check premium status from multiple sources:
   // 1. Subscription status (hasPremium)
@@ -229,6 +241,7 @@ export function DashboardMain({
           path="qr-card"
           element={<QRVisitCardPage isPremium={effectiveIsPremium} />}
         />
+        <Route path="settings" element={<SettingsPage />} />
       </Routes>
     </DashboardLayout>
   );
