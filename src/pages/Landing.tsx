@@ -2,15 +2,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Nav } from "@/components/landingpage/Nav";
 import { Hero } from "@/components/landingpage/Hero";
-import { LogoMarquee } from "@/components/landingpage/LogoMarquee";
 import { HowItWorks } from "@/components/landingpage/HowItWorks";
-import { ToolsShowcase } from "@/components/landingpage/ToolsShowcase";
 import { Pricing } from "@/components/landingpage/Pricing";
 import { Footer } from "@/components/Footer";
 import { AiWorkflows } from "@/components/landingpage/AiWorkflows";
 import { WhyFoundify } from "@/components/landingpage/WhyFoundify";
 import { UserAuth } from "@/context/AuthContext";
 import SignInModal from "@/components/signIn/SignInModal";
+import React from "react";
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -18,6 +17,21 @@ export default function Landing() {
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
 
   // Handler for "Get Started" buttons - goes to builder if not logged in, dashboard if logged in
+  react.useEffect(()=>{
+    if(!loading){
+      if (user) {
+        const redirect = sessionStorage.getItem("postAuthRedirect");
+        if (redirect) {
+          sessionStorage.removeItem("postAuthRedirect");
+          navigate(redirect);
+        } else {
+          navigate("/dashboard");
+        }
+      }
+     }
+    
+  }, [loading, user, navigate])
+  
   const handleGetStarted = () => {
     if (user) {
       navigate("/dashboard");
@@ -36,25 +50,31 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans selection:bg-indigo-50 selection:text-indigo-600">
-      <Nav onDashboardClick={handleDashboardClick} onSignInClick={() => setIsSignInModalOpen(true)} />
-      <main>
-        <Hero onGetStarted={handleGetStarted} />
-        {/* <LogoMarquee /> */}
-        <HowItWorks />
-        <AiWorkflows onGetStarted={handleGetStarted} />
-        <Pricing onGetStarted={handleGetStarted} />
-        <WhyFoundify onGetStarted={handleGetStarted} />
-      </main>
-      <Footer />
-      <SignInModal
-        isOpen={isSignInModalOpen}
-        onClose={() => setIsSignInModalOpen(false)}
-        onSignInSuccess={() => {
-          setIsSignInModalOpen(false);
+    ((!loading && !user) && <div className="min-h-screen bg-white font-sans selection:bg-indigo-50 selection:text-indigo-600">
+    <Nav onDashboardClick={handleDashboardClick} onSignInClick={() => setIsSignInModalOpen(true)} />
+    <main>
+      <Hero onGetStarted={handleGetStarted} />
+      {/* <LogoMarquee /> */}
+      <HowItWorks />
+      <AiWorkflows onGetStarted={handleGetStarted} />
+      <Pricing onGetStarted={handleGetStarted} />
+      <WhyFoundify onGetStarted={handleGetStarted} />
+    </main>
+    <Footer />
+    <SignInModal
+      isOpen={isSignInModalOpen}
+      onClose={() => setIsSignInModalOpen(false)}
+      onSignInSuccess={() => {
+        setIsSignInModalOpen(false);
+        const redirect = sessionStorage.getItem("postAuthRedirect");
+        if (redirect) {
+          sessionStorage.removeItem("postAuthRedirect");
+          navigate(redirect);
+        } else {
           navigate("/dashboard");
-        }}
-      />
-    </div>
+        }
+      }}
+    />
+  </div>)
   );
 }

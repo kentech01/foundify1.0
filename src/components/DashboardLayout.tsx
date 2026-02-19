@@ -144,14 +144,14 @@ export function DashboardLayout({ children, isPremium, showCreateNewButton = tru
 
   const SidebarContent = () => (
     <>
-      {/* Logo */}
+      {/* Logo
       <div className="p-6 pb-0">
         <div className="flex items-center gap-3">
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-white">foundify</h1>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
