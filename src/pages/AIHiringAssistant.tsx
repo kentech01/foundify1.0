@@ -375,6 +375,7 @@ ${i + 1}. ${q.question}
   return (
     <div className="p-8">
       {/* Header: Back + Title */}
+      
       <div className="flex items-center justify-center gap-3 mb-8">
         <div>
           <h2 className="mb-3 text-center text-3xl font-bold text-gray-900">

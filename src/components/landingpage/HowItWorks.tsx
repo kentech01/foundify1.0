@@ -5,20 +5,12 @@ import {
   FileText, 
   Users, 
   CreditCard, 
-  QrCode, 
-  CheckCircle2,
   Sparkles,
-  ArrowRight,
   Search,
-  Plus,
-  Eye,
-  Edit2,
+  Plus, 
   Download,
-  Trash2,
-  MoreHorizontal,
   Bot,
-  Zap,
-  Activity
+  
 } from "lucide-react";
 import React from "react";
 
