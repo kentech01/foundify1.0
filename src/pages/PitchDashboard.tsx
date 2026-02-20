@@ -282,7 +282,7 @@ export function PitchDashboard({
       brandColor: "#252952",
       teamSize: "",
       logo: null,
-    },
+    }
   );
 
   const isProfileComplete = companyData?.companyName && companyData?.oneLiner;
@@ -378,10 +378,10 @@ export function PitchDashboard({
         logoData === null
           ? false
           : generatedLogoSvg
-            ? true
-            : !firstPitchMeta?.logoGenerated && isUploadedLogo
-              ? false
-              : undefined;
+          ? true
+          : !firstPitchMeta?.logoGenerated && isUploadedLogo
+          ? false
+          : undefined;
 
       await apiService.updatePitchCompany(firstPitchMeta.id, {
         companyName: editedData.companyName,
@@ -456,28 +456,23 @@ export function PitchDashboard({
         logoData = generatedLogoSvg;
       }
 
-      const isUploadedLogo = Boolean(editLogoFile && editLogoPreview);
-      const logoGenerated =
-        logoData === null
-          ? false
-          : generatedLogoSvg
-            ? true
-            : !firstPitchMeta?.logoGenerated && isUploadedLogo
-              ? false
-              : undefined;
+      const logoGenerated =firstPitchMeta?.logoGenerated|| logoTouched
+          
 
-      await apiService.updatePitchCompany(firstPitchMeta.id, {
-        companyName: editedData.companyName,
-        industry: editedData.industry,
-        oneLiner: editedData.oneLiner,
-        problem: editedData.problem,
-        value: editedData.value,
-        status: editedData.status,
-        teamSize: editedData.teamSize,
-        brandColor: editedData.brandColor,
-        logo: logoData,
-        logoGenerated: logoGenerated,
-      });
+      let payload = {
+          companyName: editedData.companyName,
+          industry: editedData.industry,
+          oneLiner: editedData.oneLiner,
+          problem: editedData.problem,
+          value: editedData.value,
+          status: editedData.status,
+          teamSize: editedData.teamSize,
+          brandColor: editedData.brandColor,
+          logo: logoData,
+          logoGenerated: logoGenerated,
+        };
+
+      await apiService.updatePitchCompany(firstPitchMeta.id, payload);
 
       // Get updated pitch details
       const updatedPitch = await apiService.getPitchDetails(firstPitchMeta.id);
@@ -553,7 +548,7 @@ export function PitchDashboard({
         brandColor: "#252952",
         teamSize: "",
         logo: null,
-      },
+      }
     );
     setEditLogoFile(null);
     setEditLogoPreview(null);
@@ -729,7 +724,7 @@ export function PitchDashboard({
   // Process SVG to remove black backgrounds
   // Extract colors from SVG (handles raw SVG and data URLs including base64)
   const extractColorsFromSVG = (
-    logoOrSvg: string,
+    logoOrSvg: string
   ): { primaryColor: string; secondaryColor: string } | null => {
     if (!logoOrSvg || typeof logoOrSvg !== "string") {
       return null;
@@ -835,23 +830,23 @@ export function PitchDashboard({
     // Remove black background rectangles
     processed = processed.replace(
       /<rect[^>]*(?:fill=["']#000000["']|fill=["']black["']|fill=["']#000["'])[^>]*\/?>/gi,
-      "",
+      ""
     );
     processed = processed.replace(
       /<rect[^>]*(?:width=["']512["']|width=["']100%["'])[^>]*(?:height=["']512["']|height=["']100%["'])[^>]*(?:fill=["']#000000["']|fill=["']black["']|fill=["']#000["'])[^>]*\/?>/gi,
-      "",
+      ""
     );
 
     // Ensure transparent background
     if (!processed.includes("style=")) {
       processed = processed.replace(
         /<svg([^>]*)>/i,
-        '<svg$1 style="background: transparent;">',
+        '<svg$1 style="background: transparent;">'
       );
     } else if (!processed.includes("background")) {
       processed = processed.replace(
         /style=["']([^"']*)["']/i,
-        'style="$1; background: transparent;"',
+        'style="$1; background: transparent;"'
       );
     }
 
@@ -885,7 +880,6 @@ export function PitchDashboard({
       });
       return;
     }
-
     setIsGeneratingLogo(true);
     setEditLogoError("");
     setShowLogoLoading(true);
@@ -943,11 +937,13 @@ export function PitchDashboard({
             });
           }
           setLogoProgress(25);
+          
+setLogoTouched(true);
           currentProgress = 25;
         } catch (error) {
           console.error(
             "Failed to save company info before logo generation:",
-            error,
+            error
           );
           // Continue with logo generation even if save fails
         }
@@ -969,7 +965,7 @@ export function PitchDashboard({
           status: editedData.status,
           teamSize: editedData.teamSize,
           brandColor: editedData.brandColor,
-        },
+        }
       );
 
       // Clear the interval and jump to 100% when API completes
@@ -1020,7 +1016,7 @@ export function PitchDashboard({
       if (firstPitchMeta?.id) {
         try {
           const updatedPitch = await apiService.getPitchDetails(
-            firstPitchMeta.id,
+            firstPitchMeta.id
           );
           if (updatedPitch?.data) {
             setCompanyData({
@@ -1087,7 +1083,7 @@ export function PitchDashboard({
         setLoading(true);
         const response: PitchHistoryResponse = await apiService.getPitchHistory(
           page,
-          pagination.limit,
+          pagination.limit
         );
 
         if (page === 1) {
@@ -1110,7 +1106,7 @@ export function PitchDashboard({
         setLoading(false);
       }
     },
-    [apiService, pagination.limit, setPitches],
+    [apiService, pagination.limit, setPitches]
   );
 
   // Load more pitches
@@ -1214,7 +1210,7 @@ export function PitchDashboard({
   const copyUrl = async () => {
     try {
       await navigator.clipboard.writeText(
-        `https://foundify.app/${firstPitchMeta.startupName}`,
+        `https://foundify.app/${firstPitchMeta.startupName}`
       );
     } catch (err) {
       console.error("Failed to copy", err);
@@ -1237,7 +1233,7 @@ export function PitchDashboard({
       LandingService.generateLandingPage(
         apiService,
         firstPitchMeta.id,
-        logoSvgContent,
+        logoSvgContent
       );
       // Clear logo after successful generation
       toast.success("Premium Landing Page Generated!", {
@@ -1257,7 +1253,7 @@ export function PitchDashboard({
   const formatPitchContentAsHtml = (
     pitchContent: any,
     startupName: string,
-    primaryColor: string = "#252952",
+    primaryColor: string = "#252952"
   ) => {
     // Handle case where pitchContent might be a string (JSON) or already an object
     let content: any;
@@ -1472,6 +1468,7 @@ export function PitchDashboard({
   };
 
   const [isEditingPitchContent, setIsEditingPitchContent] = useState(false);
+  const [logoTouched, setLogoTouched] = useState(false);
   const [pitchContentSource, setPitchContentSource] = useState("");
   const [isSavingPitchContent, setIsSavingPitchContent] = useState(false);
   const [pitchEditFields, setPitchEditFields] = useState({
@@ -1509,11 +1506,11 @@ export function PitchDashboard({
       const getSectionText = (headingIncludes: string) => {
         // Pitch HTML uses: <div class="section"><div class="section-title"><p>1. Executive Summary</p></div><p>...</p></div>
         const headings = Array.from(
-          doc.querySelectorAll(".section .section-title p"),
+          doc.querySelectorAll(".section .section-title p")
         ) as HTMLElement[];
 
         const heading = headings.find((h) =>
-          h.textContent?.includes(headingIncludes),
+          h.textContent?.includes(headingIncludes)
         );
         if (!heading) return "";
 
@@ -1522,7 +1519,7 @@ export function PitchDashboard({
 
         // Find the first content <p> inside the section that is NOT inside .section-title
         const paragraphs = Array.from(
-          section.querySelectorAll("p"),
+          section.querySelectorAll("p")
         ) as HTMLElement[];
         const contentP = paragraphs.find((p) => !p.closest(".section-title"));
 
@@ -1576,11 +1573,11 @@ export function PitchDashboard({
         if (!value) return;
 
         const headings = Array.from(
-          doc.querySelectorAll(".section .section-title p"),
+          doc.querySelectorAll(".section .section-title p")
         ) as HTMLElement[];
 
         const heading = headings.find((h) =>
-          h.textContent?.includes(headingIncludes),
+          h.textContent?.includes(headingIncludes)
         );
         if (!heading) return;
 
@@ -1588,7 +1585,7 @@ export function PitchDashboard({
         if (!section) return;
 
         const paragraphs = Array.from(
-          section.querySelectorAll("p"),
+          section.querySelectorAll("p")
         ) as HTMLElement[];
         const contentP = paragraphs.find((p) => !p.closest(".section-title"));
 
@@ -1608,15 +1605,15 @@ export function PitchDashboard({
       setSection("Market Opportunity", pitchEditFields.marketOpportunity);
       setSection(
         "Product/Service Description",
-        pitchEditFields.productDescription,
+        pitchEditFields.productDescription
       );
       setSection(
         "Unique Value Proposition",
-        pitchEditFields.uniqueValueProposition,
+        pitchEditFields.uniqueValueProposition
       );
       setSection(
         "Target Market Analysis",
-        pitchEditFields.targetMarketAnalysis,
+        pitchEditFields.targetMarketAnalysis
       );
       setSection("Business Model", pitchEditFields.businessModel);
       setSection("Competitive Advantage", pitchEditFields.competitiveAdvantage);
@@ -1663,7 +1660,7 @@ export function PitchDashboard({
           : formatPitchContentAsHtml(
               pitch.pitchContent,
               pitch.startupName,
-              primaryColor,
+              primaryColor
             );
 
       // Resolve logo: use pitch.logo from API; for current/first pitch also allow unsaved generated or company logo
@@ -1672,8 +1669,8 @@ export function PitchDashboard({
         pitch.logo && typeof pitch.logo === "string" && pitch.logo.trim()
           ? pitch.logo.trim()
           : isCurrentPitch
-            ? (generatedLogoSvg ?? companyData?.logo ?? null)
-            : null;
+          ? generatedLogoSvg ?? companyData?.logo ?? null
+          : null;
       //   const rawLogo = typeof logoSource === "string" ? logoSource.trim() : "";
 
       //   // If we have an uploaded or generated logo, inject it into the cover (first page) so it appears in the PDF
@@ -1890,7 +1887,7 @@ export function PitchDashboard({
                         openLogoPreview(
                           companyData.logo!,
                           companyData.logo!.startsWith("<svg") ||
-                            companyData.logo!.includes("<svg"),
+                            companyData.logo!.includes("<svg")
                         )
                       }
                       className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-lg border border-slate-100 overflow-hidden p-2 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition"
@@ -1999,7 +1996,7 @@ export function PitchDashboard({
                         let pitch;
                         if (needsFetch) {
                           const details = await apiService.getPitchDetails(
-                            firstPitchMeta.id,
+                            firstPitchMeta.id
                           );
                           pitch = details.data;
                         } else {
@@ -2340,7 +2337,7 @@ export function PitchDashboard({
                               openLogoPreview(
                                 companyData.logo!,
                                 companyData.logo!.startsWith("<svg") ||
-                                  companyData.logo!.includes("<svg"),
+                                  companyData.logo!.includes("<svg")
                               );
                             }}
                             className="flex-1 py-2.5 bg-[#8B5CF6] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-[#6D28D9] transition-colors shadow-lg shadow-purple-500/20 cursor-pointer"
@@ -2829,7 +2826,7 @@ export function PitchDashboard({
                     Saving…
                   </>
                 ) : (
-                  "Save changes"
+                  "Save change"
                 )}
               </Button>
             </div>
@@ -2839,8 +2836,7 @@ export function PitchDashboard({
 
       {/* Edit Modal with 4 Steps */}
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="max-w-4xl h-auto max-h-[90vh] rounded-[32px] p-0 flex flex-col">
-          <div className="sticky top-0 bg-white z-10 border-b border-gray-200 p-6 flex-shrink-0">
+        <DialogContent className="max-w-4xl z-100 h-auto max-h-[90vh] rounded-[32px] pt-10 px-10 flex flex-col">
             <DialogHeader>
               <DialogTitle className="text-[30px] font-bold text-[#252952] flex items-center gap-3">
                 <Edit className="w-7 h-7" />
@@ -2892,7 +2888,6 @@ export function PitchDashboard({
                 );
               })}
             </div>
-          </div>
 
           <div className="p-6 flex-1 overflow-y-auto">
             {/* Step 1: Company Basics */}
@@ -3057,7 +3052,7 @@ export function PitchDashboard({
                             openLogoPreview(
                               editLogoPreview,
                               editLogoPreview.startsWith("<svg") ||
-                                editLogoPreview.includes("<svg"),
+                                editLogoPreview.includes("<svg")
                             )
                           }
                         >
@@ -3087,7 +3082,7 @@ export function PitchDashboard({
                             openLogoPreview(
                               editLogoPreview,
                               editLogoPreview.startsWith("<svg") ||
-                                editLogoPreview.includes("<svg"),
+                                editLogoPreview.includes("<svg")
                             )
                           }
                         >
@@ -3111,7 +3106,7 @@ export function PitchDashboard({
                             Logo generated successfully
                           </span>
                         </div>
-                        <button
+                        {/* <button
                           onClick={() => {
                             setGeneratedLogoSvg(null);
                             if (editedData.logo === generatedLogoSvg) {
@@ -3122,8 +3117,8 @@ export function PitchDashboard({
                           type="button"
                         >
                           <X className="h-5 w-5" />
-                        </button>
-                      </div>
+                        </button> */}
+                      </div> 
                       {/* Logo Preview */}
                       <div className="p-4 bg-white rounded-lg border-2 border-gray-200">
                         <p className="text-sm font-semibold text-[#252952] mb-3">
@@ -3555,7 +3550,11 @@ export function PitchDashboard({
                     downloadLogo(
                       logoPreviewModal.logo,
                       logoPreviewModal.isSvg,
-                      `${editedData.companyName || companyData?.companyName || "logo"}-logo`,
+                      `${
+                        editedData.companyName ||
+                        companyData?.companyName ||
+                        "logo"
+                      }-logo`
                     );
                   }
                 }}
