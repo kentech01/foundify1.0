@@ -233,7 +233,7 @@ export function DashboardLayout({ children, isPremium, showCreateNewButton = tru
   return (
     <div className="flex h-screen bg-[#f8fafc]">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 flex-col" style={{ backgroundColor: '#1f2937' }}>
+      <aside className="hidden lg:flex w-70 flex-col" style={{ backgroundColor: '#1a1d3b' }}>
         <SidebarContent />
       </aside>
 
@@ -241,8 +241,8 @@ export function DashboardLayout({ children, isPremium, showCreateNewButton = tru
       <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
         <SheetContent
           side="left"
-          className="w-64 p-0"
-          style={{ backgroundColor: 'rgba(37, 41, 82, 1)' }}
+          className="w-70 p-0"
+          style={{ backgroundColor:"#1a1d3b" }}
         >
           <div className="flex flex-col h-full">
             <SidebarContent />

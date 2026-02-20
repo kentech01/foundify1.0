@@ -9,8 +9,6 @@ import { UserAuth } from "../context/AuthContext";
 import SignInModal from "../components/signIn/SignInModal";
 import { ContractsListPage } from "./ContractsListPage";
 import React from "react";
-import { FeedbackCoach } from "./FeedbackCoach";
-import { InvestorEmailDraft } from "./InvestorEmailDraft";
 import { EmailTemplatesPage } from "./EmailTemplatesPage";
 import { AIHiringAssistant } from "./AIHiringAssistant";
 import { QRVisitCardPage } from "./QRVisitCardPage";

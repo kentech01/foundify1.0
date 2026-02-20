@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import React from 'react';
 
 interface EmailTemplate {
   id: string;
@@ -459,29 +460,18 @@ ${mockStartupData.name}`;
   return (
     <div className="p-4 lg:p-8">
       {/* Header */}
-      <div className="mb-8">
-        <p className="text-gray-600 mt-2">
-          Ready-to-send emails generated from your startup data
-        </p>
-      </div>
-
-      {/* Info Card */}
-      <Card className="mb-8 border-2 border-[#4A90E2]/20 bg-gradient-to-r from-[#252952]/5 to-[#4A90E2]/5 rounded-2xl">
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#252952] to-[#4A90E2] flex items-center justify-center flex-shrink-0 shadow-lg">
-              <Zap className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-1">Smart Email Generation</h3>
-              <p className="text-sm text-gray-600">
-                Select a template and we'll generate a professional email using your startup information from Foundify. 
-                Minimal input required—just add recipient details and we handle the rest.
-              </p>
-            </div>
+      <div className="flex items-center mb-8 gap-3">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+             Email Generation
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600">
+            Ready-to-send emails generated from your startup data
+            </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      
+
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left: Template Selection */}
@@ -507,7 +497,7 @@ ${mockStartupData.name}`;
                       <div className="flex items-start gap-3">
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
                           selectedTemplate?.id === template.id
-                            ? 'bg-[#4A90E2] text-white'
+                            ? 'bg-[#252952] text-white'
                             : 'bg-gray-100 text-gray-600'
                         }`}>
                           <Icon className="h-5 w-5" />
