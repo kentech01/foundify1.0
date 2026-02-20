@@ -99,41 +99,38 @@ export function PublicDigitalCard() {
           </a>
         </div>
 
-        {/* Digital Card */}
+        {/* Digital Card - always white background, black text */}
         <Card className="border-2 border-gray-200 rounded-3xl overflow-hidden shadow-2xl">
-          <div 
-            className="p-8 md:p-12 text-white"
-            style={{
-              background: `linear-gradient(to bottom right, ${card.primaryColor || '#252952'}, ${card.secondaryColor || '#4A90E2'}, ${card.secondaryColor || '#4A90E2'}dd)`
-            }}
-          >
-            {/* Company Header - company name only, no logo */}
-            <div className="mb-8">
-              {card.companyName && (
-                <div className="text-3xl md:text-4xl font-bold mb-2">
-                  {card.companyName}
-                </div>
-              )}
-              {card.companyWebsite && (
-                <div className="text-sm md:text-base opacity-90">
-                  {card.companyWebsite}
-                </div>
-              )}
+          <div className="p-8 md:p-12 bg-white">
+            {/* Name on left, company on right */}
+            <div className="flex justify-between items-start gap-4 mb-8">
+              <div>
+                <div className="text-3xl md:text-4xl font-bold mb-2 text-black">{card.fullName}</div>
+                <div className="text-xl md:text-2xl text-gray-700">{card.role}</div>
+              </div>
+              <div className="text-right shrink-0">
+                {card.companyName && (
+                  <div className="text-xl md:text-2xl font-semibold text-black">
+                    {card.companyName}
+                  </div>
+                )}
+                {card.companyWebsite && (
+                  <div className="text-sm md:text-base text-gray-600">
+                    {card.companyWebsite}
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Personal Information */}
+            {/* Contact & rest */}
             <div className="space-y-4">
-              <div>
-                <div className="text-3xl md:text-4xl font-bold mb-2">{card.fullName}</div>
-                <div className="text-xl md:text-2xl opacity-90">{card.role}</div>
-              </div>
 
               {/* Contact Details */}
-              <div className="pt-4 border-t border-white/20 space-y-3">
+              <div className="pt-4 border-t border-gray-200 space-y-3 text-black">
                 {card.email && (
                   <a 
                     href={`mailto:${card.email}`}
-                    className="flex items-center gap-3 opacity-90 hover:opacity-100 transition-opacity"
+                    className="flex items-center gap-3 text-black hover:text-gray-700 transition-colors"
                   >
                     <Mail className="h-5 w-5" />
                     <span className="text-sm md:text-base">{card.email}</span>
@@ -142,7 +139,7 @@ export function PublicDigitalCard() {
                 {card.phone && (
                   <a 
                     href={`tel:${card.phone}`}
-                    className="flex items-center gap-3 opacity-90 hover:opacity-100 transition-opacity"
+                    className="flex items-center gap-3 text-black hover:text-gray-700 transition-colors"
                   >
                     <Phone className="h-5 w-5" />
                     <span className="text-sm md:text-base">{card.phone}</span>
@@ -152,8 +149,8 @@ export function PublicDigitalCard() {
 
               {/* Company Description */}
               {card.companyDescription && (
-                <div className="pt-4 border-t border-white/20">
-                  <div className="text-sm md:text-base opacity-90">
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="text-sm md:text-base text-gray-800">
                     {card.companyDescription}
                   </div>
                 </div>
@@ -167,7 +164,7 @@ export function PublicDigitalCard() {
                       href={card.linkedin.startsWith('http') ? card.linkedin : `https://${card.linkedin}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-sm bg-white/20 px-4 py-2 rounded-lg hover:bg-white/30 transition-colors"
+                      className="flex items-center gap-2 text-sm bg-gray-100 text-black px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
                     >
                       <Linkedin className="h-4 w-4" />
                       <span>LinkedIn</span>
@@ -178,7 +175,7 @@ export function PublicDigitalCard() {
                       href={card.twitter.startsWith('http') ? card.twitter : `https://twitter.com/${card.twitter.replace('@', '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-sm bg-white/20 px-4 py-2 rounded-lg hover:bg-white/30 transition-colors"
+                      className="flex items-center gap-2 text-sm bg-gray-100 text-black px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
                     >
                       <Twitter className="h-4 w-4" />
                       <span>Twitter</span>

@@ -1,63 +1,70 @@
 import { useNavigate } from "react-router-dom";
-import { Sparkles } from "lucide-react";
 import React from "react";
+
+const productLinks = [
+  { label: "Pitch Dashboard", path: "/dashboard/pitches" },
+  { label: "Invoices & Contracts", path: "/dashboard/invoices" },
+  { label: "Hiring & Team Insights", path: "/dashboard/ai-hiring-assistant" },
+  { label: "Email & Digital Card", path: "/dashboard/investor-email-draft" },
+];
 
 export function Footer() {
   const navigate = useNavigate();
-const logo = new URL("./../assets/logo.svg", import.meta.url).href;
-  
-  
-  return (
-    <footer className="bg-white border-t border-slate-100 py-16 text-slate-900 relative overflow-hidden">
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-          <div className="col-span-1 md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-            <img src={logo} alt="foundify logo" />
+  const logo = new URL("./../assets/logo.svg", import.meta.url).href;
 
-            </div>
+  return (
+    <footer className="bg-white border-t border-slate-100">
+      <div className="container mx-auto px-6 py-12 md:py-16">
+        {/* Main content */}
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-10 md:gap-16">
+          {/* Brand */}
+          <div className="md:max-w-xs">
+            <img
+              src={logo}
+              alt="Foundify"
+              className="h-8 w-auto mb-4"
+            />
             <p className="text-slate-500 text-sm leading-relaxed">
               The AI-powered company brain that organizes, analyzes, and assists your entire operation.
             </p>
           </div>
-          
-          <div>
-            <h4 className="font-semibold text-slate-900 mb-4">Product</h4>
-            <ul className="space-y-2 text-sm text-slate-500">
-              <li><button onClick={() => navigate("/dashboard")} className="hover:text-indigo-600 transition-colors">Invoices</button></li>
-              <li><button onClick={() => navigate("/dashboard")} className="hover:text-indigo-600 transition-colors">Contracts</button></li>
-              <li><button onClick={() => navigate("/dashboard")} className="hover:text-indigo-600 transition-colors">Hiring</button></li>
-              <li><button onClick={() => navigate("/dashboard")} className="hover:text-indigo-600 transition-colors">Team Insights</button></li>
-            </ul>
-          </div>
 
-          <div>
-            <h4 className="font-semibold text-slate-900 mb-4">Company</h4>
-            <ul className="space-y-2 text-sm text-slate-500">
-              <li><a href="#" className="hover:text-indigo-600 transition-colors">About</a></li>
-              <li><a href="#" className="hover:text-indigo-600 transition-colors">Blog</a></li>
-              <li><a href="#" className="hover:text-indigo-600 transition-colors">Careers</a></li>
-              <li><a href="#" className="hover:text-indigo-600 transition-colors">Contact</a></li>
-            </ul>
-          </div>
+          {/* Links */}
+          <div className="flex flex-col sm:flex-row gap-10 sm:gap-16">
+            <div>
+              <h4 className="font-semibold text-slate-900 text-sm mb-4">Product</h4>
+              <nav className="flex flex-col gap-3">
+                {productLinks.map(({ label, path }) => (
+                  <button
+                    key={path}
+                    onClick={() => navigate(path)}
+                    className="text-sm text-slate-500 hover:text-indigo-600 transition-colors text-left w-fit"
+                  >
+                    {label}
+                  </button>
+                ))}
+              </nav>
+            </div>
 
-          <div>
-            <h4 className="font-semibold text-slate-900 mb-4">Legal</h4>
-            <ul className="space-y-2 text-sm text-slate-500">
-              <li><a href="#" className="hover:text-indigo-600 transition-colors">Privacy</a></li>
-              <li><button onClick={() => navigate("/terms")} className="hover:text-indigo-600 transition-colors">Terms</button></li>
-              <li><a href="#" className="hover:text-indigo-600 transition-colors">Security</a></li>
-            </ul>
+            <div>
+              <h4 className="font-semibold text-slate-900 text-sm mb-4">Legal</h4>
+              <nav className="flex flex-col gap-3">
+                <button
+                  onClick={() => navigate("/terms")}
+                  className="text-sm text-slate-500 hover:text-indigo-600 transition-colors text-left w-fit"
+                >
+                  Terms
+                </button>
+              </nav>
+            </div>
           </div>
         </div>
-        
-        <div className="border-t border-slate-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+
+        {/* Copyright */}
+        <div className="mt-12 pt-8 border-t border-slate-100">
           <p className="text-xs text-slate-500">
-            © 2026 Foundify Inc. All rights reserved.
+            © 2026 Foundify. All rights reserved.
           </p>
-          <div className="flex gap-4">
-            {/* Social icons would go here */}
-          </div>
         </div>
       </div>
     </footer>
