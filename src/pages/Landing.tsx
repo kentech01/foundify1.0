@@ -51,7 +51,7 @@ export default function Landing() {
   };
 
   return (
-    ((!loading && !user) && <div className="min-h-screen bg-white font-sans selection:bg-indigo-50 selection:text-indigo-600">
+    ((!user) && <div className="min-h-screen bg-white font-sans selection:bg-indigo-50 selection:text-indigo-600">
     <Nav onDashboardClick={handleDashboardClick} onSignInClick={() => setIsSignInModalOpen(true)} />
     <main>
       <Hero onGetStarted={handleGetStarted} />

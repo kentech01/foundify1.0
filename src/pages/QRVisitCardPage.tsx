@@ -22,6 +22,19 @@ import { toast } from 'sonner';
 import { useApiService } from '../services/api';
 import { UserAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import React from 'react';
+import QRCode from 'qrcode';
+import { QRCodeCanvas } from 'qrcode.react';
+
+const CARD_BASE_URL = 'https://foundify.app';
+
+function QRCodeDisplay({ url }: { url: string }) {
+  return (
+    <div className="w-full aspect-square rounded-2xl border-4 border-gray-900 overflow-hidden bg-white p-2">
+      <QRCodeCanvas value={url} size={256} className="w-full h-full" />
+    </div>
+  );
+}
 
 interface QRVisitCardPageProps {
   isPremium?: boolean;
@@ -54,10 +67,6 @@ export function QRVisitCardPage({ isPremium = false }: QRVisitCardPageProps) {
   const [isGenerated, setIsGenerated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingCard, setIsLoadingCard] = useState(true);
-
-  // Derived brand colors for the Smart Digital Card UI, with safe defaults.
-  const primaryColor = startupData.primaryColor || '#252952';
-  const secondaryColor = startupData.secondaryColor || '#4A90E2';
 
   const requirePremiumForFounderEssentials = () => {
     if (isPremium) return true;
@@ -188,29 +197,37 @@ export function QRVisitCardPage({ isPremium = false }: QRVisitCardPageProps) {
     }
   };
 
-  const handleDownload = () => {
-    if (!existingCard?.qrCode) {
+  const cardPublicUrl = existingCard
+    ? `${CARD_BASE_URL}/card/${existingCard.cardId || existingCard.id}`
+    : '';
+
+  const handleDownload = async () => {
+    if (!cardPublicUrl) {
       toast.error('No QR code available');
       return;
     }
 
-    // Convert base64 to blob and download
-    const link = document.createElement('a');
-    link.href = existingCard.qrCode;
-    link.download = `${formData.fullName.replace(/\s+/g, '_')}_QR.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success('QR code downloaded!');
+    try {
+      const dataUrl = await QRCode.toDataURL(cardPublicUrl, { width: 512, margin: 2 });
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `${formData.fullName.replace(/\s+/g, '_')}_QR.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('QR code downloaded!');
+    } catch (err) {
+      toast.error('Failed to generate QR code');
+    }
   };
 
   const handleShare = () => {
-    if (!existingCard?.publicUrl) {
+    if (!cardPublicUrl) {
       toast.error('No card URL available');
       return;
     }
 
-    navigator.clipboard.writeText(existingCard.publicUrl);
+    navigator.clipboard.writeText(cardPublicUrl);
     toast.success('Card link copied to clipboard!');
   };
 
@@ -231,30 +248,18 @@ export function QRVisitCardPage({ isPremium = false }: QRVisitCardPageProps) {
   return (
     <div className="p-4 lg:p-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-[#252952] mb-2">Smart Digital Card</h1>
-        <p className="text-gray-600 mt-2">
-          Share your identity and startup instantly
-        </p>
-      </div>
 
-      {/* Info Card */}
-      <Card className="mb-8 border-2 border-[#4A90E2]/20 bg-gradient-to-r from-[#252952]/5 to-[#4A90E2]/5 rounded-2xl">
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#252952] to-[#4A90E2] flex items-center justify-center flex-shrink-0 shadow-lg">
-              <Sparkles className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-1">Smart Digital Card</h3>
-              <p className="text-sm text-gray-600">
-                Just add your personal details—we'll automatically include your startup information from Foundify. 
-                Perfect for networking events, meetings, and conferences.
-              </p>
-            </div>
+      <div className="flex items-center mb-8 gap-3">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Smart Digital Card            </h2>
+            <p className="text-sm sm:text-base text-gray-600">
+            Share your identity and startup instantly            </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+     
+
+     
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
         {/* Left: Input Form */}
@@ -401,65 +406,62 @@ export function QRVisitCardPage({ isPremium = false }: QRVisitCardPageProps) {
         <div className="space-y-6">
           {!isGenerated ? (
             <>
-              {/* Live preview with logo-derived colors */}
+              {/* Live preview - always white background, black text */}
               <Card className="border-2 border-gray-100 rounded-2xl overflow-hidden gap-0">
                 <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
-                  <h3 className="font-semibold text-gray-700 text-sm">Card Preview</h3>
+                  <h3 className="font-semibold text-gray-500 text-sm">Card Preview</h3>
                 </div>
-                <div
-                  className="p-8 pt-6 text-white"
-                  style={{
-                    background: `linear-gradient(to bottom right, ${primaryColor}, ${secondaryColor}, ${secondaryColor}dd)`,
-                  }}
-                >
-                  <div className="mb-8">
-                    <div className="text-3xl font-bold mb-1">{startupData.name || 'Company'}</div>
-                    {startupData.website && (
-                      <div className="text-sm opacity-90">{startupData.website}</div>
-                    )}
+                <div className="p-8 pt-6 bg-white">
+                  <div className="flex justify-between items-start gap-4 mb-8">
+                    <div>
+                      <div className="text-3xl font-bold mb-1 text-black">{formData.fullName || 'Your Name'}</div>
+                      <div className="text-xl text-gray-700">{formData.role || 'Your Role'}</div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-xl font-semibold text-black">{startupData.name || 'Company'}</div>
+                      {startupData.website && (
+                        <div className="text-sm text-gray-600">{startupData.website}</div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="space-y-4">
-                    <div>
-                      <div className="text-3xl font-bold mb-1">{formData.fullName || 'Your Name'}</div>
-                      <div className="text-xl opacity-90">{formData.role || 'Your Role'}</div>
-                    </div>
 
-                    <div className="pt-4 border-t border-white/20 space-y-2 text-sm">
+                    <div className="pt-4 border-t border-gray-200 space-y-2 text-sm text-black">
                       {formData.email && (
-                        <div className="flex items-center gap-2 opacity-90">
+                        <div className="flex items-center gap-2 text-black">
                           <Mail className="h-4 w-4" />
                           <span>{formData.email}</span>
                         </div>
                       )}
                       {formData.phone && (
-                        <div className="flex items-center gap-2 opacity-90">
+                        <div className="flex items-center gap-2 text-black">
                           <Phone className="h-4 w-4" />
                           <span>{formData.phone}</span>
                         </div>
                       )}
                       {!formData.email && !formData.phone && (
-                        <div className="text-sm opacity-70">Add email & phone to see them here</div>
+                        <div className="text-sm text-gray-500">Add email & phone to see them here</div>
                       )}
                     </div>
 
                     {startupData.description && (
-                      <div className="pt-4 border-t border-white/20">
-                        <div className="text-sm opacity-90 mb-2">{startupData.description}</div>
+                      <div className="pt-4 border-t border-gray-200">
+                        <div className="text-sm text-gray-800 mb-2">{startupData.description}</div>
                       </div>
                     )}
 
                     <div className="flex gap-3 pt-2">
                       {formData.linkedin && (
-                        <div className="flex items-center gap-1.5 text-xs bg-white/20 px-3 py-1.5 rounded-lg">
+                        <div className="flex items-center gap-1.5 text-xs bg-gray-100 text-black px-3 py-1.5 rounded-lg">
                           <Linkedin className="h-3.5 w-3.5" />
-                          <span className="opacity-90">LinkedIn</span>
+                          <span>LinkedIn</span>
                         </div>
                       )}
                       {formData.twitter && (
-                        <div className="flex items-center gap-1.5 text-xs bg-white/20 px-3 py-1.5 rounded-lg">
+                        <div className="flex items-center gap-1.5 text-xs bg-gray-100 text-black px-3 py-1.5 rounded-lg">
                           <Twitter className="h-3.5 w-3.5" />
-                          <span className="opacity-90">Twitter</span>
+                          <span>Twitter</span>
                         </div>
                       )}
                     </div>
@@ -472,36 +474,33 @@ export function QRVisitCardPage({ isPremium = false }: QRVisitCardPageProps) {
             </>
           ) : (
             <>
-              {/* Digital Card Preview */}
+              {/* Digital Card Preview - always white background, black text */}
               <Card className="border-2 border-gray-100 rounded-2xl overflow-hidden">
-                <div
-                  className="p-8 text-white"
-                  style={{
-                    background: `linear-gradient(to bottom right, ${primaryColor}, ${secondaryColor}, ${secondaryColor}dd)`,
-                  }}
-                >
-                  <div className="mb-8">
-                    <div className="text-3xl font-bold mb-1">{startupData.name}</div>
-                    {startupData.website && (
-                      <div className="text-sm opacity-90">{startupData.website}</div>
-                    )}
+                <div className="p-8 bg-white">
+                  <div className="flex justify-between items-start gap-4 mb-8">
+                    <div>
+                      <p className="text-3xl font-bold mb-1 text-black">{formData.fullName}</p>
+                      <p className="text-xl text-gray-700">{formData.role}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xl font-semibold text-black">{startupData.name}</p>
+                      {startupData.website && (
+                        <p className="text-sm text-gray-600">{startupData.website}</p>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="space-y-4">
-                    <div>
-                      <div className="text-3xl font-bold mb-1">{formData.fullName}</div>
-                      <div className="text-xl opacity-90">{formData.role}</div>
-                    </div>
                     
-                    <div className="pt-4 border-t border-white/20 space-y-2 text-sm">
+                    <div className="pt-4 border-t border-gray-200 space-y-2 text-sm text-black">
                       {formData.email && (
-                        <div className="flex items-center gap-2 opacity-90">
+                        <div className="flex items-center gap-2">
                           <Mail className="h-4 w-4" />
                           <span>{formData.email}</span>
                         </div>
                       )}
                       {formData.phone && (
-                        <div className="flex items-center gap-2 opacity-90">
+                        <div className="flex items-center gap-2">
                           <Phone className="h-4 w-4" />
                           <span>{formData.phone}</span>
                         </div>
@@ -509,22 +508,22 @@ export function QRVisitCardPage({ isPremium = false }: QRVisitCardPageProps) {
                     </div>
                     
                     {startupData.description && (
-                      <div className="pt-4 border-t border-white/20">
-                        <div className="text-sm opacity-90 mb-2">{startupData.description}</div>
+                      <div className="pt-4 border-t border-gray-200">
+                        <div className="text-sm text-gray-800 mb-2">{startupData.description}</div>
                       </div>
                     )}
 
                     <div className="flex gap-3 pt-2">
                       {formData.linkedin && (
-                        <div className="flex items-center gap-1.5 text-xs bg-white/20 px-3 py-1.5 rounded-lg">
+                        <div className="flex items-center gap-1.5 text-xs bg-gray-100 text-black px-3 py-1.5 rounded-lg">
                           <Linkedin className="h-3.5 w-3.5" />
-                          <span className="opacity-90">LinkedIn</span>
+                          <span>LinkedIn</span>
                         </div>
                       )}
                       {formData.twitter && (
-                        <div className="flex items-center gap-1.5 text-xs bg-white/20 px-3 py-1.5 rounded-lg">
+                        <div className="flex items-center gap-1.5 text-xs bg-gray-100 text-black px-3 py-1.5 rounded-lg">
                           <Twitter className="h-3.5 w-3.5" />
-                          <span className="opacity-90">Twitter</span>
+                          <span>Twitter</span>
                         </div>
                       )}
                     </div>
@@ -542,12 +541,8 @@ export function QRVisitCardPage({ isPremium = false }: QRVisitCardPageProps) {
                 </CardHeader>
                 <CardContent className="p-8">
                   <div className="max-w-xs mx-auto">
-                    {existingCard?.qrCode ? (
-                      <img 
-                        src={existingCard.qrCode} 
-                        alt="QR Code" 
-                        className="w-full h-auto rounded-2xl border-4 border-gray-900"
-                      />
+                    {cardPublicUrl ? (
+                      <QRCodeDisplay url={cardPublicUrl} />
                     ) : (
                       <div className="w-full aspect-square bg-gray-100 rounded-2xl flex items-center justify-center">
                         <QrCode className="h-20 w-20 text-gray-300" />

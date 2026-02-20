@@ -34,11 +34,13 @@ import {
 import { useApp, PitchData, Pitch } from "../context/AppContext";
 import { UserAuth } from "../context/AuthContext";
 import SignInModal from "./signIn/SignInModal";
-import { useApiService } from "../services/api";
+// import { apiService, useApiService } from "../services/api";
 import React from "react";
 
 import { Combobox } from "./ui/combobox";
 import { INDUSTRIES } from "../constants/industries";
+import { PitchHistoryResponse, useApiService } from "../services/api";
+import { log } from "console";
 
 interface BuilderFormData {
   companyName: string;
@@ -61,6 +63,7 @@ export function PitchBuilder() {
   const [search, setSearch] = useState("");
   
   const [currentStep, setCurrentStep] = useState(0);
+  const apiService = useApiService();
   const [shouldAutoSubmit, setShouldAutoSubmit] = useState(false);
   const [formData, setFormData] = useState<BuilderFormData>({
     companyName: "",
@@ -85,7 +88,22 @@ export function PitchBuilder() {
       handleComplete(formData);
     }
   }, [shouldAutoSubmit, user, loading, formData]);
-
+  useEffect(()=>{
+    if(user){
+      loadFrstPitchHistory()
+    }    
+  }, [user])
+  const loadFrstPitchHistory = async ()=>{
+    const response: PitchHistoryResponse = await apiService.getPitchHistory(
+      1,
+      10,
+    );
+    console.log(response);
+    
+    if(response.data.length > 0){
+      navigate("/dashboard")
+    }
+  }
   const { generatePitch, updatePitchCompany, generateAndSaveCompanyLogo } =
     useApiService();
 
@@ -433,7 +451,7 @@ export function PitchBuilder() {
       const rawMessage = err?.message || "Failed to generate pitch";
       const normalized = rawMessage.toLowerCase();
       const limitMessage =
-        "You have reached the pitch limit for the free plan. Upgrade to create more pitches.";
+        "You have reached the pitch limit. Log in to your account and try the features";
       setLimitModalMessage(
         normalized.includes("only create one pitch") ? limitMessage : rawMessage
       );

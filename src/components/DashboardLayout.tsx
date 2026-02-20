@@ -29,7 +29,6 @@ import {
   QrCode,
   Globe,
   User,
-  Plus,
   HomeIcon,
   Brain,
   Bot,
@@ -45,11 +44,9 @@ import { toast } from "sonner";
 interface DashboardLayoutProps {
   children: React.ReactNode;
   isPremium: boolean;
-  /** When false, "Create New" is hidden on the pitches page (e.g. when user already has pitches). */
-  showCreateNewButton?: boolean;
 }
 
-export function DashboardLayout({ children, isPremium, showCreateNewButton = true }: DashboardLayoutProps) {
+export function DashboardLayout({ children, isPremium }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logOut, loading } = UserAuth();
@@ -233,7 +230,7 @@ export function DashboardLayout({ children, isPremium, showCreateNewButton = tru
   return (
     <div className="flex h-screen bg-[#f8fafc]">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 flex-col" style={{ backgroundColor: '#1f2937' }}>
+      <aside className="hidden lg:flex w-70 flex-col" style={{ backgroundColor: '#1a1d3b' }}>
         <SidebarContent />
       </aside>
 
@@ -241,8 +238,8 @@ export function DashboardLayout({ children, isPremium, showCreateNewButton = tru
       <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
         <SheetContent
           side="left"
-          className="w-64 p-0"
-          style={{ backgroundColor: 'rgba(37, 41, 82, 1)' }}
+          className="w-70 p-0"
+          style={{ backgroundColor:"#1a1d3b" }}
         >
           <div className="flex flex-col h-full">
             <SidebarContent />
@@ -274,16 +271,6 @@ export function DashboardLayout({ children, isPremium, showCreateNewButton = tru
                   <span>Premium</span>
                 </div>
               )}
-              {currentPath.startsWith("/dashboard/pitches") && showCreateNewButton && (
-                <Button
-                  onClick={() => navigate("/builder")}
-                  className="bg-[#252952] hover:bg-[#1a1d3a] text-white rounded-[10px] shadow-sm px-3 lg:px-4 transition-all duration-300"
-                >
-                  <Plus className="mr-0 lg:mr-2 h-4 w-4" />
-                  <span className="hidden lg:inline">Create New</span>
-                </Button>
-              )}
-
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

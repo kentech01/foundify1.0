@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SparkleButton } from "@/components/ui/sparkles";
+import React from "react";
 
 interface WhyFoundifyProps {
   onGetStarted?: () => void;

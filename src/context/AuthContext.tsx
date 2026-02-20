@@ -79,7 +79,12 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const emailSignUp = async (email: string, password: string, name: string) => {
+    const strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+    if(!strongPassword.test(password)){
+      throw new Error("Password should be stronger")
+    }
     setLoading(true);
+    
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,

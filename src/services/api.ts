@@ -41,6 +41,12 @@ interface GenerateEmailRequest {
   investorName: string;
   valueProposition: string;
   keyTraction?: string; // Optional for meeting_followup and warm_introduction, required for cold_outreach
+  // Optional pitch data (from Foundify pitch) for richer emails
+  problemSolved?: string;
+  targetAudience?: string;
+  industry?: string;
+  teamSize?: string;
+  mutualContact?: string;
 }
 
 interface GenerateEmailResponse {
@@ -186,6 +192,9 @@ interface Invoice {
   subtotal: number;
   tax: number;
   total: number;
+  vatRate?: number | null;
+  vatNumber?: string | null;
+  clientVatNumber?: string | null;
   notes?: string;
   bankDetails?: string;
   status: "draft" | "sent" | "paid" | "cancelled";
@@ -203,6 +212,9 @@ interface InvoiceCreateData {
   subtotal: number;
   tax: number;
   total: number;
+  vatRate?: number;
+  vatNumber?: string;
+  clientVatNumber?: string;
   notes?: string;
   bankDetails?: string;
   status?: "draft" | "sent" | "paid" | "cancelled";
@@ -217,6 +229,9 @@ interface InvoiceUpdateData {
   subtotal?: number;
   tax?: number;
   total?: number;
+  vatRate?: number;
+  vatNumber?: string;
+  clientVatNumber?: string;
   notes?: string;
   bankDetails?: string;
   status?: "draft" | "sent" | "paid" | "cancelled";
@@ -1926,6 +1941,7 @@ export const useApiService = () => {
 
 // Legacy class-based API service (keeping for backward compatibility)
 class ApiService {
+  
   private async getAuthToken(): Promise<string | null> {
     const { auth } = await import("../../firebase");
     const user = auth.currentUser;

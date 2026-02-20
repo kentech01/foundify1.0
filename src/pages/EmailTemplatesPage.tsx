@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -25,6 +25,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useApiService } from '../services/api';
 
 interface EmailTemplate {
   id: string;
@@ -118,16 +120,30 @@ const emailTemplates: EmailTemplate[] = [
   }
 ];
 
-// Mock startup data (this would come from user's pitch/profile)
-const mockStartupData = {
-  name: 'TechVenture AI',
-  industry: 'AI/ML',
-  description: 'An AI-powered platform that helps startups automate their pitch creation and investor outreach',
-  traction: '1,200 active users, $15K MRR, 40% month-over-month growth',
-  fundingStage: 'Seed',
-  founderName: 'Sarah Chen',
-  founderTitle: 'Founder & CEO'
+// Map frontend template IDs to backend API template IDs
+const TEMPLATE_TO_BACKEND_ID: Record<string, string> = {
+  'cold-investor': 'cold_outreach',
+  'warm-intro': 'warm_introduction',
+  'meeting-followup': 'meeting_followup',
+  'investor-update': 'investor_update',
+  'demo-request': 'demo_request',
+  'partnership': 'cold_outreach',
+  'hiring': 'cold_outreach',
+  'customer-followup': 'cold_outreach',
+  'accelerator': 'cold_outreach',
+  'business-intro': 'cold_outreach',
 };
+
+interface StartupData {
+  companyName: string;
+  founderName: string;
+  valueProposition: string;
+  keyTraction: string;
+  problemSolved?: string;
+  targetAudience?: string;
+  industry?: string;
+  teamSize?: string;
+}
 
 interface EmailTemplatesPageProps {
   isPremium?: boolean;
@@ -135,11 +151,79 @@ interface EmailTemplatesPageProps {
 
 export function EmailTemplatesPage({ isPremium = false }: EmailTemplatesPageProps) {
   const navigate = useNavigate();
+  const {
+    generateInvestorEmail,
+    getFirstPitch,
+    getPitchDetails,
+    getCurrentUserProfile,
+  } = useApiService();
+
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedEmail, setGeneratedEmail] = useState('');
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [savedEmails, setSavedEmails] = useState<Array<{ template: string; content: string; date: string }>>([]);
+  const [startupData, setStartupData] = useState<StartupData | null>(null);
+  const [startupDataLoading, setStartupDataLoading] = useState(true);
+
+  useEffect(() => {
+    const loadStartupData = async () => {
+      try {
+        setStartupDataLoading(true);
+        const [pitch, profile] = await Promise.all([
+          getFirstPitch().then((p) => (p ? getPitchDetails(p.id) : null)),
+          getCurrentUserProfile().catch(() => null),
+        ]);
+        const data = pitch?.data;
+        const companyName = data?.startupName || '';
+        const founderName = profile?.displayName || 'Founder';
+        const valueProposition =
+          data?.mainProduct || data?.uniqueSellingPoint
+            ? [data.mainProduct, data.uniqueSellingPoint].filter(Boolean).join('. ')
+            : '';
+        const keyTraction = data?.traction || '';
+        const problemSolved = data?.problemSolved?.trim() || '';
+        const targetAudience = data?.targetAudience?.trim() || '';
+        const industry = data?.industry?.trim() || '';
+        const teamSize = data?.teamSize?.trim() || '';
+        if (companyName || valueProposition || keyTraction || problemSolved || targetAudience || industry) {
+          setStartupData({
+            companyName: companyName || 'My Startup',
+            founderName,
+            valueProposition,
+            keyTraction,
+            ...(problemSolved && { problemSolved }),
+            ...(targetAudience && { targetAudience }),
+            ...(industry && { industry }),
+            ...(teamSize && { teamSize }),
+          });
+        } else if (profile?.displayName) {
+          setStartupData({
+            companyName: 'My Startup',
+            founderName: profile.displayName,
+            valueProposition: '',
+            keyTraction: '',
+          });
+        }
+      } catch {
+        setStartupData(null);
+      } finally {
+        setStartupDataLoading(false);
+      }
+    };
+    loadStartupData();
+  }, [getFirstPitch, getPitchDetails, getCurrentUserProfile]);
+
+  useEffect(() => {
+    if (!startupData) return;
+    setFormData((prev) => ({
+      ...prev,
+      ...(prev.valueProposition === undefined && startupData.valueProposition && { valueProposition: startupData.valueProposition }),
+      ...(prev.keyTraction === undefined && startupData.keyTraction && { keyTraction: startupData.keyTraction }),
+      ...(prev.companyName === undefined && startupData.companyName && { companyName: startupData.companyName }),
+      ...(prev.yourName === undefined && startupData.founderName && { yourName: startupData.founderName }),
+    }));
+  }, [startupData]);
 
   const requirePremiumForFounderEssentials = () => {
     if (isPremium) return true;
@@ -153,271 +237,77 @@ export function EmailTemplatesPage({ isPremium = false }: EmailTemplatesPageProp
 
   const generateEmail = async () => {
     if (!selectedTemplate) return;
-  if (!requirePremiumForFounderEssentials()) return;
-    
-    setIsGenerating(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    let emailContent = '';
-
-    // Generate email based on template using startup data
-    switch (selectedTemplate.id) {
-      case 'cold-investor':
-        emailContent = `Subject: ${mockStartupData.name} - ${mockStartupData.industry} Investment Opportunity
-
-Dear ${formData.investorName || '[Investor Name]'},
-
-I hope this email finds you well. My name is ${mockStartupData.founderName}, ${mockStartupData.founderTitle} of ${mockStartupData.name}.
-
-We've built ${mockStartupData.description}. Based on your portfolio's focus on ${mockStartupData.industry}, I believe we'd be a strong fit for your investment thesis.
-
-Key highlights:
-• ${mockStartupData.traction}
-• Solving a critical pain point in the startup ecosystem
-• Strong product-market fit with proven retention metrics
-
-We're currently raising our ${mockStartupData.fundingStage} round. I'd love to share our pitch deck and discuss how ${mockStartupData.name} aligns with your investment strategy.
-
-Would you be available for a 15-minute introductory call next week?
-
-Best regards,
-${mockStartupData.founderName}
-${mockStartupData.founderTitle}
-${mockStartupData.name}`;
-        break;
-
-      case 'warm-intro':
-        emailContent = `Subject: Introduction via ${formData.mutualContact || '[Mutual Contact]'}
-
-Dear ${formData.investorName || '[Investor Name]'},
-
-${formData.mutualContact || '[Mutual Contact]'} suggested I reach out to you regarding ${mockStartupData.name}.
-
-I'm ${mockStartupData.founderName}, and we've developed ${mockStartupData.description}. We're currently seeing ${mockStartupData.traction}.
-
-${formData.mutualContact} mentioned your interest in ${mockStartupData.industry} companies and thought our work might align well with your investment focus.
-
-I'd love to share our story and get your insights. Would you have 20 minutes for a quick call in the coming weeks?
-
-Looking forward to connecting,
-${mockStartupData.founderName}
-${mockStartupData.founderTitle}
-${mockStartupData.name}`;
-        break;
-
-      case 'meeting-followup':
-        emailContent = `Subject: Thank You - Following Up on Our Conversation
-
-Dear ${formData.investorName || '[Investor Name]'},
-
-Thank you for taking the time to meet with me yesterday. I really enjoyed our conversation about ${mockStartupData.name} and hearing your insights on the ${mockStartupData.industry} space.
-
-As discussed, here are the key points we covered:
-• Our current traction: ${mockStartupData.traction}
-• The ${mockStartupData.fundingStage} round we're raising
-• Next milestones and growth strategy
-
-I've attached our pitch deck and financial projections as promised. ${formData.note ? `\n\n${formData.note}` : ''}
-
-Please let me know if you need any additional information. I'm happy to arrange a follow-up call or product demo at your convenience.
-
-Thank you again for your time and consideration.
-
-Best regards,
-${mockStartupData.founderName}
-${mockStartupData.founderTitle}
-${mockStartupData.name}`;
-        break;
-
-      case 'investor-update':
-        emailContent = `Subject: ${mockStartupData.name} - Q4 2024 Update
-
-Dear Investors,
-
-I wanted to share our latest progress and key metrics from this quarter.
-
-📊 Metrics Update:
-• ${mockStartupData.traction}
-• Expanding into new market segments
-• Strong unit economics and improving retention
-
-🎯 Recent Achievements:
-• Launched major product features
-• Onboarded key enterprise customers
-• Strengthened our team with strategic hires
-
-📅 Next Quarter Focus:
-• Scaling growth channels
-• Product expansion
-• Team building in engineering and sales
-
-As always, we're grateful for your support and partnership. Please feel free to reach out if you'd like to discuss anything in detail.
-
-Best,
-${mockStartupData.founderName}
-${mockStartupData.founderTitle}
-${mockStartupData.name}`;
-        break;
-
-      case 'demo-request':
-        emailContent = `Subject: ${mockStartupData.name} - Product Demo Invitation
-
-Dear ${formData.investorName || '[Investor Name]'},
-
-Following our recent conversation, I'd like to invite you to a personalized demo of ${mockStartupData.name}.
-
-The demo will showcase:
-• Our core platform and key features
-• Real-world use cases and customer success stories
-• Our technology stack and competitive advantages
-• Growth roadmap and market opportunity
-
-Current traction: ${mockStartupData.traction}
-
-I can walk you through the product in about 30 minutes and leave time for Q&A. Would any of these times work for you?
-• [Time Option 1]
-• [Time Option 2]
-• [Time Option 3]
-
-Or feel free to suggest a time that works better for your schedule.
-
-Looking forward to showing you what we've built!
-
-Best,
-${mockStartupData.founderName}
-${mockStartupData.founderTitle}
-${mockStartupData.name}`;
-        break;
-
-      case 'partnership':
-        emailContent = `Subject: Partnership Opportunity - ${mockStartupData.name} × ${formData.companyName || '[Company]'}
-
-Dear ${formData.recipientName || 'Team'},
-
-I'm reaching out from ${mockStartupData.name}, where we're ${mockStartupData.description}.
-
-I've been following ${formData.companyName || '[Company]'}'s work and believe there's a strong opportunity for collaboration. Our user bases and missions align well, and I think we could create significant value together.
-
-About us: ${mockStartupData.traction}
-
-I'd love to explore potential partnership opportunities. Would you be open to a brief exploratory call?
-
-Best regards,
-${mockStartupData.founderName}
-${mockStartupData.founderTitle}
-${mockStartupData.name}`;
-        break;
-
-      case 'hiring':
-        emailContent = `Subject: ${formData.position || '[Position]'} Opportunity at ${mockStartupData.name}
-
-Hi ${formData.candidateName || '[Name]'},
-
-I came across your profile and was impressed by your background. I'm ${mockStartupData.founderName}, ${mockStartupData.founderTitle} at ${mockStartupData.name}.
-
-We're ${mockStartupData.description}, and we're currently growing our team. Given your experience, I think you'd be a great fit for our ${formData.position || '[Position]'} role.
-
-What we're building:
-• ${mockStartupData.traction}
-• Backed by top-tier investors
-• Solving real problems for founders and startups
-
-Why join us:
-• Early-stage equity opportunity
-• High-impact role with autonomy
-• Mission-driven team and culture
-
-Would you be open to learning more? I'd love to share our vision and hear about what you're looking for in your next opportunity.
-
-Best,
-${mockStartupData.founderName}
-${mockStartupData.founderTitle}
-${mockStartupData.name}`;
-        break;
-
-      case 'customer-followup':
-        emailContent = `Subject: Following Up - ${mockStartupData.name}
-
-Hi ${formData.recipientName || 'there'},
-
-Thank you for taking the time to explore ${mockStartupData.name} with us! I wanted to follow up and see if you had any questions about how we can help ${formData.companyName || '[your company]'}.
-
-Quick recap of what ${mockStartupData.name} offers:
-• ${mockStartupData.description}
-• Currently helping ${mockStartupData.traction.split(',')[0]}
-• Easy implementation with immediate value
-
-I'd be happy to:
-• Answer any questions you might have
-• Set up a custom demo for your team
-• Discuss pricing and implementation timeline
-
-What would be most helpful for you at this stage?
-
-Best,
-${mockStartupData.founderName}
-${mockStartupData.founderTitle}
-${mockStartupData.name}`;
-        break;
-
-      case 'accelerator':
-        emailContent = `Subject: ${mockStartupData.name} - Application to ${formData.programName || '[Program]'}
-
-Dear ${formData.programName || '[Program]'} Team,
-
-I'm ${mockStartupData.founderName}, ${mockStartupData.founderTitle} of ${mockStartupData.name}, and I'm excited to apply for ${formData.programName || 'your program'}.
-
-We've built ${mockStartupData.description}, and we're currently seeing strong traction: ${mockStartupData.traction}.
-
-Why we're a great fit:
-• Addressing a significant market opportunity in ${mockStartupData.industry}
-• Strong early indicators of product-market fit
-• Experienced team ready to accelerate growth
-• Clear vision for scaling
-
-We're at the perfect stage to benefit from ${formData.programName || 'your program'}'s mentorship, network, and resources. We're committed to making the most of this opportunity and becoming a standout portfolio company.
-
-I've attached our pitch deck and application materials. Happy to provide any additional information needed.
-
-Thank you for considering ${mockStartupData.name}!
-
-Best,
-${mockStartupData.founderName}
-${mockStartupData.founderTitle}
-${mockStartupData.name}`;
-        break;
-
-      case 'business-intro':
-        emailContent = `Subject: Introduction - ${mockStartupData.name}
-
-Hi ${formData.recipientName || '[Name]'},
-
-I'm ${mockStartupData.founderName}, ${mockStartupData.founderTitle} at ${mockStartupData.name}.
-
-We're ${mockStartupData.description}. I've been following your work and would love to connect and learn more about what you're building.
-
-A bit about us: ${mockStartupData.traction}
-
-I believe there could be interesting opportunities to exchange ideas or even collaborate. Would you be open to a brief virtual coffee chat?
-
-Looking forward to connecting!
-
-Best,
-${mockStartupData.founderName}
-${mockStartupData.founderTitle}
-${mockStartupData.name}`;
-        break;
+    if (!requirePremiumForFounderEssentials()) return;
+
+    const backendTemplateId = TEMPLATE_TO_BACKEND_ID[selectedTemplate.id] ?? 'cold_outreach';
+    const companyName =
+      startupData?.companyName || formData.companyName || 'My Startup';
+    const yourName = startupData?.founderName || formData.yourName || 'Founder';
+    const investorName = formData.investorName || formData.recipientName || formData.candidateName || 'Investor';
+    const valueProposition =
+      formData.valueProposition?.trim() ||
+      startupData?.valueProposition?.trim() ||
+      '';
+    const keyTraction =
+      formData.keyTraction?.trim() || startupData?.keyTraction?.trim() || '';
+
+    if (backendTemplateId === 'cold_outreach' && !keyTraction) {
+      toast.error('Key traction is required for this template', {
+        description: 'Add your key metrics or traction in the form below.',
+      });
+      return;
+    }
+    if (backendTemplateId !== 'investor_update' && backendTemplateId !== 'demo_request' && valueProposition.length < 5) {
+      toast.error('Company description is required', {
+        description: 'Add "What does your startup do?" (at least 5 characters) or complete your pitch in Foundify.',
+      });
+      return;
+    }
+    if (investorName.length < 2) {
+      toast.error('Recipient name is required', {
+        description: 'Add the investor or recipient name.',
+      });
+      return;
     }
 
-    setGeneratedEmail(emailContent);
-    setIsGenerating(false);
-    toast.success('Email generated successfully!');
+    setIsGenerating(true);
+    try {
+      const res = await generateInvestorEmail({
+        template: backendTemplateId,
+        yourName,
+        companyName,
+        investorName,
+        valueProposition: valueProposition || `${companyName} - see pitch for details.`,
+        ...(keyTraction && { keyTraction }),
+        ...(startupData?.problemSolved && { problemSolved: startupData.problemSolved }),
+        ...(startupData?.targetAudience && { targetAudience: startupData.targetAudience }),
+        ...(startupData?.industry && { industry: startupData.industry }),
+        ...(startupData?.teamSize && { teamSize: startupData.teamSize }),
+        ...(formData.mutualContact?.trim() && { mutualContact: formData.mutualContact.trim() }),
+      });
+      const emailContent =
+        (res.subject ? `Subject: ${res.subject}\n\n` : '') + (res.body || '');
+      setGeneratedEmail(emailContent);
+      toast.success('Email generated with AI');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Failed to generate email. Please try again.';
+      toast.error('Email generation failed', { description: message });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleTemplateSelect = (template: EmailTemplate) => {
     setSelectedTemplate(template);
     setGeneratedEmail('');
-    setFormData({});
+    setFormData((prev) => {
+      const next: Record<string, string> = {};
+      if (startupData?.valueProposition) next.valueProposition = startupData.valueProposition;
+      if (startupData?.keyTraction) next.keyTraction = startupData.keyTraction;
+      if (startupData?.companyName) next.companyName = startupData.companyName;
+      if (startupData?.founderName) next.yourName = startupData.founderName;
+      return { ...next };
+    });
   };
 
   const handleCopy = () => {
@@ -459,29 +349,18 @@ ${mockStartupData.name}`;
   return (
     <div className="p-4 lg:p-8">
       {/* Header */}
-      <div className="mb-8">
-        <p className="text-gray-600 mt-2">
-          Ready-to-send emails generated from your startup data
-        </p>
-      </div>
-
-      {/* Info Card */}
-      <Card className="mb-8 border-2 border-[#4A90E2]/20 bg-gradient-to-r from-[#252952]/5 to-[#4A90E2]/5 rounded-2xl">
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#252952] to-[#4A90E2] flex items-center justify-center flex-shrink-0 shadow-lg">
-              <Zap className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-1">Smart Email Generation</h3>
-              <p className="text-sm text-gray-600">
-                Select a template and we'll generate a professional email using your startup information from Foundify. 
-                Minimal input required—just add recipient details and we handle the rest.
-              </p>
-            </div>
+      <div className="flex items-center mb-8 gap-3">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+             Email Generation
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600">
+            Ready-to-send emails generated from your startup data
+            </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      
+
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left: Template Selection */}
@@ -507,7 +386,7 @@ ${mockStartupData.name}`;
                       <div className="flex items-start gap-3">
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
                           selectedTemplate?.id === template.id
-                            ? 'bg-[#4A90E2] text-white'
+                            ? 'bg-[#252952] text-white'
                             : 'bg-gray-100 text-gray-600'
                         }`}>
                           <Icon className="h-5 w-5" />
@@ -605,9 +484,36 @@ ${mockStartupData.name}`;
                       </div>
                     )}
 
+                    {/* Startup context - prefilled from Foundify pitch when available */}
+                    <div className="space-y-2">
+                      <Label className="text-sm">
+                        What does your startup do? <span className="text-gray-400 text-xs">(used in email, optional if you have a pitch)</span>
+                      </Label>
+                      <Textarea
+                        placeholder="e.g., AI-powered project management for remote teams"
+                        value={formData.valueProposition ?? startupData?.valueProposition ?? ''}
+                        onChange={(e) => setFormData({ ...formData, valueProposition: e.target.value })}
+                        className="rounded-xl border-2 border-gray-200 focus:border-[#4A90E2]"
+                        rows={2}
+                        autoComplete="off"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm">
+                        Key traction / metrics <span className="text-gray-400 text-xs">(optional, required for Cold Outreach)</span>
+                      </Label>
+                      <Input
+                        placeholder="e.g., $50K MRR, 1000+ users"
+                        value={formData.keyTraction ?? startupData?.keyTraction ?? ''}
+                        onChange={(e) => setFormData({ ...formData, keyTraction: e.target.value })}
+                        className="rounded-xl border-2 border-gray-200 focus:border-[#4A90E2]"
+                        autoComplete="off"
+                      />
+                    </div>
+
                     <div className="pt-2">
                       <p className="text-xs text-gray-500 mb-3">
-                        ✨ We'll use your startup data from Foundify to complete the email
+                        ✨ We use your startup data from Foundify when available; you can edit above.
                       </p>
                       <Button
                         onClick={generateEmail}

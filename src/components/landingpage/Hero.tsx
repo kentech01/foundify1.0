@@ -8,17 +8,16 @@ import {
   ArrowRight,
   Sparkles,
   Bot,
-  Activity,
   ChevronRight,
   CreditCard,
   Mail,
   IdCard,
   Palette,
+  Presentation,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SparklesCore, SparkleButton } from "@/components/ui/sparkles";
 import React from "react";
-import { useNavigate } from "react-router-dom";
 
 const ROTATION_INTERVAL = 3000;
 
@@ -30,14 +29,13 @@ const words = [
   { text: "Analytics", color: "text-indigo-600" },
   { text: "Drafting", color: "text-blue-600" },
   { text: "Hiring", color: "text-sky-600" },
-  { text: "Operations", color: "text-violet-600" },
   { text: "Pitches", color: "text-fuchsia-600" },
   { text: "Company Brain", color: "text-indigo-600" },
 ];
 
 const activities = [
   {
-    text: "Analyzing revenue, churn, and growth metrics",
+    text: "Viewing your pitch performance at a glance",
     icon: Brain,
     color: "bg-indigo-500",
   },
@@ -47,22 +45,17 @@ const activities = [
     color: "bg-blue-500",
   },
   {
-    text: "Screening candidates and scheduling interviews",
+    text: "Creating interview questions for candidates",
     icon: Users,
     color: "bg-sky-500",
   },
   {
-    text: "Managing workflows and daily tasks",
-    icon: Zap,
-    color: "bg-violet-500",
-  },
-  {
-    text: "Creating decks and refining your story",
-    icon: Sparkles,
+    text: "Creating pitch decks and landing pages",
+    icon: Presentation,
     color: "bg-fuchsia-500",
   },
   {
-    text: "Centralizing all your business knowledge",
+    text: "Your company info powers every output",
     icon: Bot,
     color: "bg-indigo-500",
   },
@@ -120,7 +113,7 @@ export function Hero({ onGetStarted }: HeroProps) {
           </h1>
 
           {/* Rotating Sub-headline (Nouns) */}
-          <div className="h-24 md:h-32 mb-6 w-full flex items-center justify-center overflow-visible">
+          <div className="h-24 md:h-32 mb-8 w-full flex items-center justify-center overflow-visible px-4">
             <AnimatePresence mode="popLayout">
               <motion.div
                 key={index}
@@ -128,11 +121,11 @@ export function Hero({ onGetStarted }: HeroProps) {
                 animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
                 exit={{ y: -20, opacity: 0, filter: "blur(10px)" }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
-                className="absolute w-full flex justify-center"
+                className="absolute w-full flex justify-center px-2 overflow-visible"
               >
                 <span
                   className={cn(
-                    "text-5xl md:text-7xl lg:text-[80px] font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r py-4 leading-normal",
+                    "inline-block text-5xl md:text-7xl lg:text-[80px] font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r leading-normal pr-4",
                     index === 0
                       ? "from-indigo-600 to-violet-600"
                       : index === 1
@@ -140,10 +133,8 @@ export function Hero({ onGetStarted }: HeroProps) {
                         : index === 2
                           ? "from-sky-600 to-blue-600"
                           : index === 3
-                            ? "from-violet-600 to-fuchsia-600"
-                            : index === 4
-                              ? "from-fuchsia-600 to-pink-600"
-                              : "from-indigo-600 to-sky-600",
+                            ? "from-fuchsia-600 to-pink-600"
+                            : "from-indigo-600 to-sky-600",
                   )}
                 >
                   {words[index].text}
@@ -153,7 +144,7 @@ export function Hero({ onGetStarted }: HeroProps) {
           </div>
 
           {/* AI Activity Bar (Glass Style) */}
-          <div className="relative mb-12 w-full max-w-md mx-auto h-12">
+          <div className="relative mb-12 w-full max-w-md mx-auto h-12 overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.div
                 key={index}
@@ -163,7 +154,7 @@ export function Hero({ onGetStarted }: HeroProps) {
                 transition={{ duration: 0.3 }}
                 className="absolute inset-0 flex items-center justify-center"
               >
-                <div className="inline-flex items-center gap-3 bg-white/60 backdrop-blur-md border border-slate-200/60 shadow-lg shadow-slate-200/10 rounded-full px-5 py-2.5 w-max max-w-full">
+                <div className="inline-flex items-center gap-3 bg-white/60 backdrop-blur-md ring-1 ring-slate-200/60 shadow-lg shadow-slate-200/10 rounded-full px-5 py-2.5 w-max max-w-full min-w-0">
                   <div
                     className={cn(
                       "w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-white shadow-sm",
@@ -210,43 +201,40 @@ export function Hero({ onGetStarted }: HeroProps) {
 
               {/* App Interface */}
               <div className="h-full w-full bg-[#0F1117] relative overflow-hidden flex flex-col pt-12">
-                {/* App Header */}
-                <div className="flex items-center justify-between mb-6 px-6">
-                  <div className="flex items-center gap-2"></div>
-                </div>
-
                 {/* Content Container */}
-                <div className="flex-1 px-6 pb-6 overflow-hidden flex flex-col gap-6">
-                  {/* Search Bar */}
-                  <div className="h-12 bg-slate-800/50 rounded-2xl flex items-center px-4 gap-3 border border-white/5 shrink-0">
-                    <div className="text-slate-500">
-                      <Brain size={16} />
+                <div className="flex-1 px-6 pt-4 pb-6 overflow-y-auto overflow-x-hidden flex flex-col gap-5 min-h-0">
+                  {/* Quick Actions - Current features */}
+                  <div className="grid grid-cols-2 gap-3 shrink-0">
+                    <div className="bg-[#1A1D26] p-4 rounded-2xl border border-white/5">
+                      <div className="text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-1">
+                        Pitch Deck
+                      </div>
+                      <div className="text-slate-300 text-sm font-medium">
+                        Create & download
+                      </div>
                     </div>
-                    <div className="text-slate-500 text-sm">
-                      Ask your company brain...
-                    </div>
-                  </div>
-
-                  {/* Stats Row */}
-                  <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6 no-scrollbar shrink-0">
-                    <div className="min-w-[140px] bg-[#1A1D26] p-4 rounded-2xl border border-white/5">
+                    <div className="bg-[#1A1D26] p-4 rounded-2xl border border-white/5">
                       <div className="text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-1">
                         Invoices
                       </div>
-                      <div className="text-2xl font-bold text-white">
-                        €12.4k
-                      </div>
-                      <div className="text-emerald-400 text-[10px] flex items-center gap-1 mt-1">
-                        <ArrowRight size={10} className="-rotate-45" /> +12%
+                      <div className="text-slate-300 text-sm font-medium">
+                        Generate & send
                       </div>
                     </div>
-                    <div className="min-w-[140px] bg-[#1A1D26] p-4 rounded-2xl border border-white/5">
+                    <div className="bg-[#1A1D26] p-4 rounded-2xl border border-white/5">
                       <div className="text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-1">
-                        Runway
+                        Contracts
                       </div>
-                      <div className="text-2xl font-bold text-white">18m</div>
-                      <div className="text-slate-500 text-[10px] flex items-center gap-1 mt-1">
-                        Stable
+                      <div className="text-slate-300 text-sm font-medium">
+                        NDAs & agreements
+                      </div>
+                    </div>
+                    <div className="bg-[#1A1D26] p-4 rounded-2xl border border-white/5">
+                      <div className="text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-1">
+                        Email
+                      </div>
+                      <div className="text-slate-300 text-sm font-medium">
+                        Investor outreach
                       </div>
                     </div>
                   </div>
@@ -348,7 +336,7 @@ export function Hero({ onGetStarted }: HeroProps) {
             {/* Main Dashboard UI */}
             <div className="relative z-10 bg-white rounded-t-3xl border border-slate-200 shadow-2xl shadow-slate-200/50 overflow-hidden flex flex-col md:flex-row min-h-[600px] border-b-0">
               {/* Sidebar */}
-              <div className="hidden md:flex w-64 bg-slate-50 border-r border-slate-100 p-6 flex-col gap-6 shrink-0">
+              <div className="hidden md:flex w-64 bg-slate-50 border-r border-slate-100 p-6 flex-col gap-6 shrink-0 pointer-events-none select-none">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-6 h-6 bg-slate-900 rounded-lg flex items-center justify-center">
                     <Sparkles size={12} className="text-white" />
@@ -376,13 +364,13 @@ export function Hero({ onGetStarted }: HeroProps) {
                       Invoice Generator
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 transition-colors">
+                  <div className="flex items-center gap-3 px-3 py-2 text-slate-500">
                     <FileText size={16} />
                     <span className="text-sm font-medium">
                       Contract Templates
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 transition-colors">
+                  <div className="flex items-center gap-3 px-3 py-2 text-slate-500">
                     <Users size={16} />
                     <span className="text-sm font-medium">Team Insights</span>
                   </div>
@@ -392,7 +380,7 @@ export function Hero({ onGetStarted }: HeroProps) {
                       AI Hiring Assistant
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 transition-colors">
+                  <div className="flex items-center gap-3 px-3 py-2 text-slate-500">
                     <Mail size={16} />
                     <span className="text-sm font-medium">
                       Email Generation
@@ -413,7 +401,7 @@ export function Hero({ onGetStarted }: HeroProps) {
               </div>
 
               {/* Main Content Area */}
-              <div className="flex-1 p-8 bg-white">
+              <div className="flex-1 p-8 bg-white pointer-events-none select-none">
                 {/* Header Action */}
                 <div className="flex justify-between items-center mb-8">
                   <h2 className="text-2xl font-bold text-slate-900">
@@ -426,7 +414,7 @@ export function Hero({ onGetStarted }: HeroProps) {
                 </div>
 
                 {/* Company Card */}
-                <div className="mb-8 p-6 rounded-2xl border border-slate-100 bg-white shadow-sm flex flex-col sm:flex-row sm:items-start justify-between gap-6 group hover:border-indigo-100 transition-colors">
+                <div className="mb-8 p-6 rounded-2xl border border-slate-100 bg-white shadow-sm flex flex-col sm:flex-row sm:items-start justify-between gap-6 pointer-events-none select-none">
                   <div className="flex gap-5">
                     <div className="w-14 h-14 bg-slate-900 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-slate-900/10">
                       <div className="w-7 h-7 border-2 border-white/30 rounded-full" />
@@ -434,40 +422,37 @@ export function Hero({ onGetStarted }: HeroProps) {
                     <div>
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-lg font-bold text-slate-900">
-                          Thrio
+                          thrio.co
                         </h3>
                         <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-600 uppercase tracking-wide border border-emerald-100">
                           Complete
                         </span>
                       </div>
                       <p className="text-sm text-slate-500 leading-relaxed max-w-md">
-                        Solving business issues with digital products. Our
-                        platform streamlines workflow automation for creative
-                        agencies.
+                        A compact product studio turning ideas into digital
+                        products from MVPs to full platforms. Design, build,
+                        and launch scalable solutions fast.
                       </p>
                     </div>
                   </div>
-                  <button className="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-colors whitespace-nowrap">
+                  <div className="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl whitespace-nowrap">
                     EDIT INFO
-                  </button>
+                  </div>
                 </div>
 
                 {/* Assets Section */}
-                <div>
+                <div className="pointer-events-none select-none">
                   <div className="flex items-center justify-between mb-6">
                     <h4 className="font-bold text-slate-900 text-base">
                       Pitch Assets
                     </h4>
-                    <span className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 transition-colors bg-indigo-50 px-3 py-1 rounded-full">
-                      REGENERATE ALL
-                    </span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     {/* Asset 1 */}
-                    <div className="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 hover:border-indigo-100 transition-all group/asset">
+                    <div className="p-5 rounded-2xl border border-slate-100 bg-slate-50/50">
                       <div className="flex justify-between items-start mb-4">
-                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-sm group-hover/asset:border-indigo-100 group-hover/asset:text-indigo-600 text-slate-400 transition-colors">
+                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-sm text-slate-400">
                           <FileText size={20} />
                         </div>
                         <div className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -478,14 +463,14 @@ export function Hero({ onGetStarted }: HeroProps) {
                       <p className="text-xs text-slate-500 mb-4">
                         Professional presentation
                       </p>
-                      <div className="w-full py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 flex items-center justify-center gap-2 hover:bg-slate-50 hover:border-slate-300 transition-colors">
+                      <div className="w-full py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 flex items-center justify-center gap-2">
                         <div className="w-2.5 h-3 border border-slate-400 rounded-sm" />{" "}
                         Download PDF
                       </div>
                     </div>
 
                     {/* Asset 2 */}
-                    <div className="p-5 rounded-2xl border border-slate-100 bg-indigo-50/30 hover:bg-white hover:shadow-lg hover:shadow-indigo-100/50 hover:border-indigo-100 transition-all group/asset relative overflow-hidden">
+                    <div className="p-5 rounded-2xl border border-slate-100 bg-indigo-50/30 relative overflow-hidden">
                       <div className="flex justify-between items-start mb-4 relative z-10">
                         <div className="w-10 h-10 rounded-xl bg-indigo-100 border border-indigo-200 flex items-center justify-center shadow-sm text-indigo-600">
                           <Zap size={20} />
@@ -498,16 +483,13 @@ export function Hero({ onGetStarted }: HeroProps) {
                       <p className="text-xs text-slate-500 mb-4 relative z-10">
                         Generate your landing page
                       </p>
-                      <div className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 relative z-10">
+                      <div className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 relative z-10">
                         <Sparkles size={12} /> Generate Page
                       </div>
-
-                      {/* Gradient Effect */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-transparent opacity-0 group-hover/asset:opacity-100 transition-opacity" />
                     </div>
 
                     {/* Asset 3 */}
-                    <div className="hidden lg:block p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-lg hover:shadow-purple-200/50 hover:border-purple-100 transition-all group/asset relative overflow-hidden">
+                    <div className="hidden lg:block p-5 rounded-2xl border border-slate-100 bg-slate-50/50 relative overflow-hidden">
                       <div className="flex justify-between items-start mb-4 relative z-10">
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#4C1D95] flex items-center justify-center shadow-sm text-white">
                           <Palette size={20} />
@@ -520,18 +502,9 @@ export function Hero({ onGetStarted }: HeroProps) {
                       <p className="text-xs text-slate-500 mb-4 relative z-10">
                         Generate your logo
                       </p>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          navigate("/dashboard/pitches?openLogo=1")
-                        }
-                        className="w-full py-2.5 bg-[#8B5CF6] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-[#6D28D9] transition-colors shadow-lg shadow-purple-500/20 relative z-10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B5CF6]"
-                      >
+                      <div className="w-full py-2.5 bg-[#8B5CF6] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20 relative z-10">
                         <Sparkles size={12} /> Generate Logo
-                      </button>
-
-                      {/* Gradient Effect */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 to-transparent opacity-0 group-hover/asset:opacity-100 transition-opacity" />
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -9,8 +9,6 @@ import { UserAuth } from "../context/AuthContext";
 import SignInModal from "../components/signIn/SignInModal";
 import { ContractsListPage } from "./ContractsListPage";
 import React from "react";
-import { FeedbackCoach } from "./FeedbackCoach";
-import { InvestorEmailDraft } from "./InvestorEmailDraft";
 import { EmailTemplatesPage } from "./EmailTemplatesPage";
 import { AIHiringAssistant } from "./AIHiringAssistant";
 import { QRVisitCardPage } from "./QRVisitCardPage";
@@ -19,8 +17,6 @@ import { useSubscriptionService } from "../services/subscriptionsService";
 import { toast } from "sonner";
 import { useSubscription } from "../hooks/useSubscription";
 import { useCurrentUser } from "../hooks/useCurrentUser";
-import { useRecoilValue } from "recoil";
-import { pitchesAtom } from "../atoms/pitchesAtom";
 import { SettingsPage } from "./SettingsPage";
 
 interface DashboardMainProps{
@@ -36,9 +32,6 @@ export function DashboardMain({
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const { createSubscriptionCheckout } = useSubscriptionService();
   const { hasPremium } = useSubscription();
-  const pitchesList = useRecoilValue(pitchesAtom);
-  const showCreateNewButton = !(pitchesList && pitchesList.length > 0);
-
   // Function to close all open modals/popups
   const closeAllModals = () => {
     // Close all dialog overlays
@@ -193,7 +186,7 @@ export function DashboardMain({
   }
 
   return (
-    <DashboardLayout isPremium={effectiveIsPremium} showCreateNewButton={showCreateNewButton}>
+    <DashboardLayout isPremium={effectiveIsPremium}>
       <Routes>
         <Route index element={<Navigate to="/dashboard/pitches" replace />} />
         <Route

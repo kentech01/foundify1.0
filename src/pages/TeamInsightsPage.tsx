@@ -36,6 +36,7 @@ import {
 import { toast } from "sonner";
 import { useApiService } from "../services/api";
 import { useNavigate } from "react-router-dom";
+import React from "react";
 
 interface FeedbackEntry {
   id: string;
@@ -361,13 +362,21 @@ Looking ahead, focus on: ${newFeedback.goals
   return (
     <div className="p-4 lg:p-8">
       {/* Header */}
+
+      <div className="flex items-center mb-8 gap-3">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Team Insights</h2>
+            <p className="text-sm sm:text-base text-gray-600">
+            Structured feedback, growth tracking, and team insights
+            </p>
+          </div>
+        </div>
       <div className="mb-8">
         <p className="text-gray-600 mt-2 text-base">
-          Structured feedback, growth tracking, and team insights
         </p>
       </div>
 
-      {/* Stats */}
+      {/* Stats
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card className="border-2 border-gray-100 rounded-[10px] shadow-sm">
           <CardContent className="p-6">
@@ -416,7 +425,7 @@ Looking ahead, focus on: ${newFeedback.goals
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       {/* Team List */}
       <Card className="border-2 border-gray-100 rounded-[10px] shadow-sm">
