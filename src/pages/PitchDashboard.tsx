@@ -1239,9 +1239,9 @@ export function PitchDashboard({
         firstPitchMeta.id,
         logoSvgContent,
       );
-      // Clear logo after successful generation
-      toast.success("Premium Landing Page Generated!", {
-        description: "Your premium landing page has been created successfully.",
+      toast.success("Your Landing Page is being created", {
+        description:
+          "It will take a bit. Have a look around until our agent prepares it.",
       });
       clearLogo();
       // Refresh first pitch data
