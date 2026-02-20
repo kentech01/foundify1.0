@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import useAxios from "../hooks/useAxios";
 import { useCurrentUser } from "../hooks/useCurrentUser";
 import { useSubscription } from "../hooks/useSubscription";
@@ -33,6 +34,7 @@ interface SubscriptionStatusResponse {
 }
 
 export function SettingsPage() {
+  const navigate = useNavigate();
   const axiosInstance = useAxios();
   const { currentUser } = useCurrentUser();
   const { refreshSubscription } = useSubscription();
@@ -266,10 +268,16 @@ export function SettingsPage() {
                     No active subscription
                   </AlertTitle>
                   <AlertDescription className="text-blue-700 text-sm">
-                    You are currently on the free plan. Upgrade from the
-                    dashboard to unlock all Premium features.
+                    You are currently on the free plan. Upgrade to unlock all
+                    Premium features.
                   </AlertDescription>
                 </Alert>
+                <Button
+                  onClick={() => navigate("/upgrade")}
+                  className="w-full bg-[#252952] hover:bg-[#1a1d3a] text-white"
+                >
+                  Upgrade Now
+                </Button>
               </>
             )}
 
