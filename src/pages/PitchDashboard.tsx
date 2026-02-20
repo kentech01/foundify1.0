@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -12,7 +12,7 @@ import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
 import { Combobox } from "../components/ui/combobox";
 import { INDUSTRIES } from "../constants/industries";
-import LandingService from "../services/generateLangingService"
+import LandingService from "../services/generateLangingService";
 import {
   Select,
   SelectContent,
@@ -82,7 +82,7 @@ interface PitchDashboardProps {
   onUpgrade: () => void;
 }
 interface LandingState {
-  status: "empty" | "processing" | "completed",
+  status: "empty" | "processing" | "completed";
   isloading: boolean;
 }
 export function PitchDashboard({
@@ -98,7 +98,10 @@ export function PitchDashboard({
   const [currentUser] = useRecoilState(currentUserAtom);
   const [pitches, setPitches] = useRecoilState(pitchesAtom); // Use atom state
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState<LandingState>({status: "empty", isloading:true});
+  const [status, setStatus] = useState<LandingState>({
+    status: "empty",
+    isloading: true,
+  });
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -135,6 +138,7 @@ export function PitchDashboard({
   const [editLogoError, setEditLogoError] = useState<string>("");
   const [isGeneratingLogo, setIsGeneratingLogo] = useState(false);
   const [generatedLogoSvg, setGeneratedLogoSvg] = useState<string | null>(null);
+  const userClearedLogoRef = useRef(false);
   const [logoPreviewModal, setLogoPreviewModal] = useState<{
     isOpen: boolean;
     logo: string | null;
@@ -312,6 +316,7 @@ export function PitchDashboard({
   // When arriving with ?openLogo=1 (e.g. from Hero's Generate Logo), open Edit Company Info at Brand step
   useEffect(() => {
     if (searchParams.get("openLogo") === "1") {
+      userClearedLogoRef.current = false;
       setEditStep(2);
       setIsEditing(true);
       searchParams.delete("openLogo");
@@ -356,23 +361,27 @@ export function PitchDashboard({
 
     try {
       setIsStepSaving(true);
-      // Convert logo file or generated SVG if present
       let logoData = editedData.logo;
-      if (editLogoFile && editLogoPreview) {
+      if (userClearedLogoRef.current) {
+        logoData = null;
+        userClearedLogoRef.current = false;
+      } else if (editLogoFile && editLogoPreview) {
         logoData = editLogoPreview;
+      } else if (editedData.logo === null) {
+        logoData = null;
       } else if (generatedLogoSvg) {
         logoData = generatedLogoSvg;
       }
 
-      // If user uploaded a logo (not generated), only clear logoGenerated
-      // if it has never been set before. Once a logo has been generated
-      // for this pitch, that flag stays true for lifetime.
       const isUploadedLogo = Boolean(editLogoFile && editLogoPreview);
-      const logoGenerated = generatedLogoSvg
-        ? true
-        : !firstPitchMeta?.logoGenerated && isUploadedLogo
+      const logoGenerated =
+        logoData === null
           ? false
-          : undefined; // don't change when already true
+          : generatedLogoSvg
+            ? true
+            : !firstPitchMeta?.logoGenerated && isUploadedLogo
+              ? false
+              : undefined;
 
       await apiService.updatePitchCompany(firstPitchMeta.id, {
         companyName: editedData.companyName,
@@ -413,7 +422,7 @@ export function PitchDashboard({
           status: editedData.status,
           brandColor: editedData.brandColor,
           teamSize: editedData.teamSize,
-          logo: logoData || prev.logo,
+          logo: logoData ?? null,
         };
       });
     } catch (error) {
@@ -433,30 +442,29 @@ export function PitchDashboard({
 
     setIsSaving(true);
     try {
-      // Convert logo file to base64 if a new file was uploaded
-      // Or use generated SVG if one was generated
       let logoData = editedData.logo;
-      if (editLogoFile && editLogoPreview) {
-        // If it's a data URL, extract the base64 part
-        if (editLogoPreview.startsWith("data:")) {
-          logoData = editLogoPreview;
-        } else {
-          logoData = editLogoPreview;
-        }
+      if (userClearedLogoRef.current) {
+        logoData = null;
+        userClearedLogoRef.current = false;
+      } else if (editLogoFile && editLogoPreview) {
+        logoData = editLogoPreview.startsWith("data:")
+          ? editLogoPreview
+          : editLogoPreview;
+      } else if (editedData.logo === null) {
+        logoData = null;
       } else if (generatedLogoSvg) {
-        // Use generated SVG if available
         logoData = generatedLogoSvg;
       }
 
-      // If user uploaded a logo (not generated), only clear logoGenerated
-      // if it has never been set before. Once a logo has been generated,
-      // the flag should remain true even if the user uploads a new logo.
       const isUploadedLogo = Boolean(editLogoFile && editLogoPreview);
-      const logoGenerated = generatedLogoSvg
-        ? true
-        : !firstPitchMeta?.logoGenerated && isUploadedLogo
+      const logoGenerated =
+        logoData === null
           ? false
-          : undefined;
+          : generatedLogoSvg
+            ? true
+            : !firstPitchMeta?.logoGenerated && isUploadedLogo
+              ? false
+              : undefined;
 
       await apiService.updatePitchCompany(firstPitchMeta.id, {
         companyName: editedData.companyName,
@@ -533,6 +541,7 @@ export function PitchDashboard({
   };
 
   const handleCancelEdit = () => {
+    userClearedLogoRef.current = false;
     setEditedData(
       companyData || {
         companyName: "",
@@ -580,9 +589,8 @@ export function PitchDashboard({
     }
 
     setEditLogoError("");
+    userClearedLogoRef.current = false;
     setEditLogoFile(file);
-    // When user chooses to upload, treat upload as the single source of truth
-    // and clear any previously generated logo
     setGeneratedLogoSvg(null);
     setIsGeneratingLogo(false);
 
@@ -679,10 +687,12 @@ export function PitchDashboard({
   };
 
   const clearEditLogo = () => {
+    userClearedLogoRef.current = true;
     setEditLogoFile(null);
     setEditLogoPreview(null);
     setEditLogoError("");
-    // Do not touch generatedLogoSvg here – this only clears the uploaded version
+    setEditedData((prev) => ({ ...prev, logo: null }));
+    setGeneratedLogoSvg(null);
   };
 
   // Download logo function
@@ -1116,11 +1126,11 @@ export function PitchDashboard({
   }, []);
 
   // Fetch first pitch for landing page generator
-  useEffect(()=>{
+  useEffect(() => {
     LandingService.startLandingStatusPolling(apiService, firstPitchMeta?.id);
-  const unsubscribe = LandingService.subscribe(setStatus);
-  return unsubscribe;
-  }, [firstPitchMeta])
+    const unsubscribe = LandingService.subscribe(setStatus);
+    return unsubscribe;
+  }, [firstPitchMeta]);
   useEffect(() => {
     let isMounted = true;
     (async () => {
@@ -1224,7 +1234,11 @@ export function PitchDashboard({
     let progressInterval: number | undefined;
 
     try {
-      LandingService.generateLandingPage(apiService, firstPitchMeta.id, logoSvgContent)      
+      LandingService.generateLandingPage(
+        apiService,
+        firstPitchMeta.id,
+        logoSvgContent,
+      );
       // Clear logo after successful generation
       toast.success("Premium Landing Page Generated!", {
         description: "Your premium landing page has been created successfully.",
@@ -1917,6 +1931,7 @@ export function PitchDashboard({
                           setEditLogoFile(null);
                           setGeneratedLogoSvg(null);
                         }
+                        userClearedLogoRef.current = false;
                         setEditStep(2);
                         setIsEditing(true);
                       }}
@@ -2093,6 +2108,7 @@ export function PitchDashboard({
                           setGeneratedLogoSvg(null);
                         }
                       }
+                      userClearedLogoRef.current = false;
                       setIsEditing(true);
                       setEditStep(0);
                     } catch (error) {
@@ -2247,7 +2263,7 @@ export function PitchDashboard({
                       </p>
                     )}
                     <div className="mt-auto relative z-10">
-                      {status.status == 'completed' ? (
+                      {status.status == "completed" ? (
                         <button
                           onClick={openLandingPage}
                           className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 relative z-10 cursor-pointer"
@@ -2257,10 +2273,14 @@ export function PitchDashboard({
                       ) : (
                         <button
                           onClick={generateLandingPage}
-                          disabled={isGeneratingLanding || status.status == 'processing'|| status.isloading}
+                          disabled={
+                            isGeneratingLanding ||
+                            status.status == "processing" ||
+                            status.isloading
+                          }
                           className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 relative z-10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {status.status == 'processing'? (
+                          {status.status == "processing" ? (
                             <>
                               <Loader2 size={12} className="animate-spin" />
                               Generating...
@@ -2315,7 +2335,6 @@ export function PitchDashboard({
                           >
                             <Eye size={12} /> Preview
                           </button>
-                          
                         </div>
                       ) : (
                         <div className="mt-auto w-full">
@@ -2331,6 +2350,7 @@ export function PitchDashboard({
                                 });
                                 return;
                               }
+                              userClearedLogoRef.current = false;
                               setEditStep(2);
                               setIsEditing(true);
                             }}
@@ -3062,7 +3082,6 @@ export function PitchDashboard({
                           <Eye className="w-3 h-3 mr-1" />
                           Preview
                         </Button>
-                        
                       </div>
                       <p className="text-xs text-gray-500 mt-2 text-center">
                         This logo will be saved to your company profile
@@ -3125,7 +3144,6 @@ export function PitchDashboard({
                             <Eye className="w-3 h-3 mr-1" />
                             Preview
                           </Button>
-                          
                         </div>
                         <p className="text-xs text-gray-500 mt-2 text-center">
                           This logo will be saved to your company profile

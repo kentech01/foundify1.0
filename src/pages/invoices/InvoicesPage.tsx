@@ -92,6 +92,7 @@ export function InvoicesPage({ isPremium = false }: InvoicesPageProps) {
   const [currency, setCurrency] = useState<
     "USD" | "EUR" | "GBP" | "CAD" | "AUD"
   >("USD");
+  const [vatRate, setVatRate] = useState<number>(0);
   const [notes, setNotes] = useState("");
   const [bankDetails, setBankDetails] = useState("");
   const [lineItems, setLineItems] = useState<LineItem[]>([
@@ -242,7 +243,8 @@ export function InvoicesPage({ isPremium = false }: InvoicesPageProps) {
     const rate = parseFloat(item.rate) || 0;
     return sum + quantity * rate;
   }, 0);
-  const total = subtotal;
+  const vatAmount = vatRate > 0 ? Math.round(subtotal * (vatRate / 100) * 100) / 100 : 0;
+  const total = subtotal + vatAmount;
 
   const addLineItem = () => {
     setLineItems([...lineItems, { description: "", quantity: "1", rate: "" }]);
@@ -267,11 +269,11 @@ export function InvoicesPage({ isPremium = false }: InvoicesPageProps) {
   };
 
   const resetForm = () => {
-    // Default company name to fetchedCompany if available
     setCompanyName(fetchedCompany || "");
     setClientName("");
     setInvoiceNumber(`INV-${Date.now().toString().slice(-6)}`);
     setCurrency("USD");
+    setVatRate(0);
     setNotes("");
     setBankDetails("");
     setLineItems([{ description: "", quantity: "", rate: "" }]);
@@ -297,6 +299,7 @@ export function InvoicesPage({ isPremium = false }: InvoicesPageProps) {
     setClientName(invoice.clientName || "");
     setInvoiceNumber(invoice.invoiceNumber || `INV-${invoice.id.slice(-6)}`);
     setCurrency((invoice.currency as any) || "USD");
+    setVatRate(invoice.vatRate ?? 0);
     setNotes(invoice.notes || "");
     setBankDetails(invoice.bankDetails || "");
     setLineItems(
@@ -337,7 +340,9 @@ export function InvoicesPage({ isPremium = false }: InvoicesPageProps) {
               (parseFloat(item.quantity) || 0) * (parseFloat(item.rate) || 0),
           })),
         subtotal,
+        tax: vatAmount,
         total,
+        ...(vatRate > 0 && { vatRate }),
         notes: notes || undefined,
         bankDetails: bankDetails || undefined,
         status: "draft" as const,
@@ -672,6 +677,25 @@ export function InvoicesPage({ isPremium = false }: InvoicesPageProps) {
                     </Select>
                   </div>
                 </div>
+
+                <div className={styles.twoCol}>
+                  <div>
+                    <Label className={styles.lableWrapper}>VAT Rate (%)</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step={0.01}
+                      value={vatRate === 0 ? "" : vatRate}
+                      onChange={(e) =>
+                        setVatRate(Math.min(100, Math.max(0, Number(e.target.value) || 0)))
+                      }
+                      placeholder="e.g. 20"
+                      autoComplete="off"
+                    />
+                  </div>
+                  <div />
+                </div>
               </CardContent>
             </Card>
 
@@ -776,6 +800,22 @@ export function InvoicesPage({ isPremium = false }: InvoicesPageProps) {
                 )}
 
                 <div className={styles.summarySection}>
+                  <div className={styles.totalRow}>
+                    <span className={styles.totalLabel}>Subtotal:</span>
+                    <span className={styles.totalValue}>
+                      {currencySymbol}
+                      {subtotal.toFixed(2)}
+                    </span>
+                  </div>
+                  {vatRate > 0 && (
+                    <div className={styles.totalRow}>
+                      <span className={styles.totalLabel}>VAT ({vatRate}%):</span>
+                      <span className={styles.totalValue}>
+                        {currencySymbol}
+                        {vatAmount.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
                   <div className={styles.totalRow}>
                     <span className={styles.totalLabel}>Total:</span>
                     <span className={styles.totalValue}>
@@ -959,6 +999,25 @@ export function InvoicesPage({ isPremium = false }: InvoicesPageProps) {
                   </Select>
                 </div>
               </div>
+
+              <div className={styles.twoCol}>
+                <div>
+                  <Label>VAT Rate (%)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step={0.01}
+                    value={vatRate === 0 ? "" : vatRate}
+                    onChange={(e) =>
+                      setVatRate(Math.min(100, Math.max(0, Number(e.target.value) || 0)))
+                    }
+                    placeholder="e.g. 20"
+                    autoComplete="off"
+                  />
+                </div>
+                <div />
+              </div>
             </CardContent>
           </Card>
 
@@ -1058,6 +1117,22 @@ export function InvoicesPage({ isPremium = false }: InvoicesPageProps) {
               ))}
 
               <div className={styles.summarySection}>
+                <div className={styles.totalRow}>
+                  <span className={styles.totalLabel}>Subtotal:</span>
+                  <span className={styles.totalValue}>
+                    {currencySymbol}
+                    {subtotal.toFixed(2)}
+                  </span>
+                </div>
+                {vatRate > 0 && (
+                  <div className={styles.totalRow}>
+                    <span className={styles.totalLabel}>VAT ({vatRate}%):</span>
+                    <span className={styles.totalValue}>
+                      {currencySymbol}
+                      {vatAmount.toFixed(2)}
+                    </span>
+                  </div>
+                )}
                 <div className={styles.totalRow}>
                   <span className={styles.totalLabel}>Total:</span>
                   <span className={styles.totalValue}>

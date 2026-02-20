@@ -139,7 +139,7 @@ export function LandingPageGenerator() {
       const response = await apiService.generateLandingPage(
         firstPitchMeta.id,
         "premium",
-        logoSvgContent || undefined
+        logoSvgContent || undefined,
       );
 
       setLandingProgress(100);
