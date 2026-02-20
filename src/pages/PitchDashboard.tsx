@@ -1866,7 +1866,19 @@ export function PitchDashboard({
     <div className="p-8 max-w-7xl mx-auto">
       <div className="grid gap-6">
         {/* Company Profile Card - Primary */}
-        {companyData ? (
+        {isFetchingFirstPitch ? (
+          <Card className="border-2 border-gray-100 rounded-[24px] overflow-hidden shadow-lg">
+            <CardContent className="p-12 text-center">
+              <Loader2 className="w-12 h-12 text-[#252952] mx-auto mb-4 animate-spin" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Loading your company profile...
+              </h3>
+              <p className="text-gray-500 text-sm">
+                Fetching your pitch and company data from the backend
+              </p>
+            </CardContent>
+          </Card>
+        ) : companyData ? (
           <Card className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:border-indigo-100 transition-colors">
             <CardContent className="p-6">
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
@@ -2184,8 +2196,8 @@ export function PitchDashboard({
           </Card>
         )}
 
-        {/* Pitch Assets - Merged Output Card */}
-        {companyData && (
+        {/* Pitch Assets - Merged Output Card - only show when we have company data (not loading, not empty) */}
+        {!isFetchingFirstPitch && companyData && (
           <Card className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all">
             <CardContent className="p-8">
               <div className="flex items-center justify-between mb-6">
